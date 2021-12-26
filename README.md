@@ -9,6 +9,10 @@ Differences from the original N64 tool:
 - Fixed reading the virtual address of the first instruction
 - Add (partial) support for stripped exectuables that don't have symbol/string tables
 
+## Dependencies:
+
+- libcapstone-dev
+
 ## Usage:
 
     $ psp-elfdump EBOOT.BIN -o EBOOT.BIN.s
