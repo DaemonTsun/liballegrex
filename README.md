@@ -13,6 +13,10 @@ Differences from the original N64 tool:
 
 - libcapstone-dev
 
+## Building:
+
+    $ make
+
 ## Usage:
 
     $ psp-elfdump EBOOT.BIN -o EBOOT.BIN.s
