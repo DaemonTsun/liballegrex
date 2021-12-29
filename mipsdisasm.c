@@ -504,7 +504,7 @@ void mipsdisasm_pass2(FILE *out, disasm_state *state, unsigned int offset)
             fprintf(out, "%s:\n", block->locals.items[local_idx].name);
             local_idx++;
         }
-        fprintf(out, "/* %06X %08X %02X%02X%02X%02X */  ", offset, vaddr, insn->bytes[0], insn->bytes[1], insn->bytes[2], insn->bytes[3]);
+        fprintf(out, "/* %06X %08X %02X%02X%02X%02X */  ", offset, vaddr, insn->bytes[3], insn->bytes[2], insn->bytes[1], insn->bytes[0]);
         // indent the lines after a jump or branch
         if (indent) {
             indent = 0;
