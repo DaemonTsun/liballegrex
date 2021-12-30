@@ -14,7 +14,7 @@ $(TARGET): main.o
 all: $(TARGET)
 
 objdump: $(TARGET)
-	psp-objdump -d $(TARGET)
+	psp-objdump -z -d $(TARGET)
 
 clean:
 	rm $(TARGET) main.o

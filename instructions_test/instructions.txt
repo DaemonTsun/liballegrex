@@ -11,94 +11,94 @@ https://github.com/hrydgard/ppsspp/blob/master/Core/MIPS/MIPSTables.cpp
  bc1fl        FPUBranch
  bc1t        FPUBranch
  bc1tl        FPUBranch
-beq        RelBranch
-beql        RelBranch
-bgez        RelBranchRI
-bgezal        RelBranchRI
-bgezall        RelBranchRI
-bgezl        RelBranchRI
-bgtz        RelBranch
-bgtzl        RelBranch
-bitrev        Allegrex
-blez        RelBranch
-blezl        RelBranch
-bltz        RelBranchRI
-bltzal        RelBranchRI
-bltzall        RelBranchRI
-bltzl        RelBranchRI
-bne        RelBranch
-bnel        RelBranch
-break        Break
-bvf        VBranch
-bvfl        VBranch
-bvt        VBranch
-bvtl        VBranch
-c.eq        FPUComp
-c.f        FPUComp
-c.le        FPUComp
-c.lt        FPUComp
-c.nge        FPUComp
-c.ngl        FPUComp
-c.ngle        FPUComp
-c.ngt        FPUComp
-c.ole        FPUComp
-c.olt        FPUComp
-c.seq        FPUComp
-c.sf        FPUComp
-c.ueq        FPUComp
-c.ule        FPUComp
-c.ult        FPUComp
-c.un        FPUComp
-cache        Cache
-ceil.w.s        FPU2op
-cfc1        mxc1
-cfc2        Generic
-clo        RType2
-clz        RType2
-ctc1        mxc1
-ctc2        Generic
-cvt.s.w        FPU2op
-cvt.w.s        FPU2op
-deret        Generic
-dis.int        Generic
-div        MulDivType
-div.s        FPU3op
-divu        MulDivType
-eret        Generic
-ext        Special3
-floor.w.s        FPU2op
-halt        Generic
-iack        Generic
-ins        Special3
-j        Jump
-jal        Jump
-jalr        JumpReg
-jr        JumpReg
-lb        ITypeMem
-lbu        ITypeMem
-lh        ITypeMem
-lhu        ITypeMem
-ll        Generic
-lui        IType
-lv        SVQ
-lv.q        SVQ
-lv.s        SV
-lw        ITypeMem
-lwc1        FPULS
-lwl        ITypeMem
-lwr        ITypeMem
-madd        MulDivType
-maddu        MulDivType
-max        RType3
-mfc0        Generic
-mfc1        mxc1
-mfc2        Generic
-mfhi        MulDivType
-mfic        Generic
-mflo        MulDivType
-mfmc0        Generic
-mfv        Mftv
-min        RType3
+ beq        RelBranch
+ beql        RelBranch
+ bgez        RelBranchRI
+ bgezal        RelBranchRI
+ bgezall        RelBranchRI
+ bgezl        RelBranchRI
+ bgtz        RelBranch
+ bgtzl        RelBranch
+ bitrev        Allegrex
+ blez        RelBranch
+ blezl        RelBranch
+ bltz        RelBranchRI
+ bltzal        RelBranchRI
+ bltzall        RelBranchRI
+ bltzl        RelBranchRI
+ bne        RelBranch
+ bnel        RelBranch
+ break        Break
+ bvf        VBranch
+ bvfl        VBranch
+ bvt        VBranch
+ bvtl        VBranch
+ c.eq        FPUComp
+ c.f        FPUComp
+ c.le        FPUComp
+ c.lt        FPUComp
+ c.nge        FPUComp
+ c.ngl        FPUComp
+ c.ngle        FPUComp
+ c.ngt        FPUComp
+ c.ole        FPUComp
+ c.olt        FPUComp
+ c.seq        FPUComp
+ c.sf        FPUComp
+ c.ueq        FPUComp
+ c.ule        FPUComp
+ c.ult        FPUComp
+ c.un        FPUComp
+ cache        Cache
+ ceil.w.s        FPU2op
+ cfc1        mxc1
+ cfc2        Generic
+ clo        RType2
+ clz        RType2
+ ctc1        mxc1
+ ctc2        Generic
+ cvt.s.w        FPU2op
+ cvt.w.s        FPU2op
+ deret        Generic
+ dis.int        Generic
+ div        MulDivType
+ div.s        FPU3op
+ divu        MulDivType
+ eret        Generic
+ ext        Special3
+ floor.w.s        FPU2op
+ halt        Generic
+ iack        Generic
+ ins        Special3
+ j        Jump
+ jal        Jump
+ jalr        JumpReg
+ jr        JumpReg
+ lb        ITypeMem
+ lbu        ITypeMem
+ lh        ITypeMem
+ lhu        ITypeMem
+ ll        Generic
+ lui        IType
+ lv        SVQ
+ lv.q        SVQ
+ lv.s        SV
+ lw        ITypeMem
+ lwc1        FPULS
+ lwl        ITypeMem
+ lwr        ITypeMem
+ madd        MulDivType
+ maddu        MulDivType
+ max        RType3
+ mfc0        Generic
+ mfc1        mxc1
+ mfc2        Generic
+ mfhi        MulDivType
+ mfic        Generic
+ mflo        MulDivType
+ mfmc0        Generic
+ mfv        Mftv
+ min        RType3
 mov.s        FPU2op
 movn        RType3
 movz        RType3
