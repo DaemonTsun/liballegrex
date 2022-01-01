@@ -1,4 +1,5 @@
 https://github.com/hrydgard/ppsspp/blob/master/Core/MIPS/MIPSTables.cpp
+http://hlide.free.fr/
  abs.s        FPU2op
  add        RType3
  add.s        FPU3op
@@ -99,103 +100,104 @@ https://github.com/hrydgard/ppsspp/blob/master/Core/MIPS/MIPSTables.cpp
  mfmc0        Generic
  mfv        Mftv
  min        RType3
-mov.s        FPU2op
-movn        RType3
-movz        RType3
-msub        MulDivType
-msubu        MulDivType
-mtc0        Generic
-mtc1        mxc1
-mtc2        Generic
-mthi        MulDivType
-mtic        Generic
-mtlo        MulDivType
-mtv        Mftv
-mul.s        FPU3op
-mult        MulDivType
-multu        MulDivType
-neg.s        FPU2op
-nor        RType3
-or        RType3
-ori        IType
-rdhwr        Generic
-rdpgpr        Generic
-round.w.s        FPU2op
-sb        ITypeMem
-sc        Generic
-seb        Allegrex
-seh        Allegrex
-sh        ITypeMem
-sll        ShiftType
-sllv        ShiftType
-slt        RType3
-slti        IType
-sltiu        IType
-sltu        RType3
-sqrt.s        FPU2op
-sra        ShiftType
-srav        ShiftType
-srl        ShiftType
-srlv        ShiftType
-sub        RType3
-sub.s        FPU3op
-subu        RType3
-sv        SVQ
-sv.q        SVQ
-sv.s        SV
-sw        ITypeMem
-swc1        FPULS
-swl        ITypeMem
-swr        ITypeMem
-sync        DoNothing
-synci        Generic
-syscall        Syscall
-teq        Generic
-teqi        Generic
-tge        Generic
-tgei        Generic
-tgeiu        Generic
-tgeu        Generic
-tlbp        Generic
-tlbr        Generic
-tlbwi        Generic
-tlbwr        Generic
-tlt        Generic
-tlti        Generic
-tltiu        Generic
-tltu        Generic
-tne        Generic
-tnei        Generic
-trunc.w.s        FPU2op
-v(h)tfm2        Vtfm
-v(h)tfm2        Vtfm
-v(h)tfm2        Vtfm
-v(h)tfm2        Vtfm
-v(h)tfm3        Vtfm
-v(h)tfm3        Vtfm
-v(h)tfm3        Vtfm
-v(h)tfm3        Vtfm
-v(h)tfm4        Vtfm
-v(h)tfm4        Vtfm
-v(h)tfm4        Vtfm
-v(h)tfm4        Vtfm
-vabs        VV2Op
-vadd        VecDo3
-vasin        VV2Op
-vavg        Vhoriz
-vbfy1        Vbfy
-vbfy2        Vbfy
-vc2i        Vx2i
-vcmov        Vcmov
-vcmp        Vcmp
-vcos        VV2Op
-vcrs        VCrs
-vcrsp.t/vqmul.q        VCrossQuat
-vcrsp.t/vqmul.q        VCrossQuat
-vcrsp.t/vqmul.q        VCrossQuat
-vcrsp.t/vqmul.q        VCrossQuat
-vcst        Vcst
-vdet        VDet
+ mov.s        FPU2op
+ movn        RType3
+ movz        RType3
+ msub        MulDivType
+ msubu        MulDivType
+ mtc0        Generic
+ mtc1        mxc1
+ mtc2        Generic
+ mthi        MulDivType
+ mtic        Generic
+ mtlo        MulDivType
+ mtv        Mftv
+ mul.s        FPU3op
+ mult        MulDivType
+ multu        MulDivType
+ neg.s        FPU2op
+ nop
+ nor        RType3
+ or        RType3
+ ori        IType
+ rdhwr        Generic
+ rdpgpr        Generic
+ round.w.s        FPU2op
+ sb        ITypeMem
+ sc        Generic
+ seb        Allegrex
+ seh        Allegrex
+ sh        ITypeMem
+ sll        ShiftType
+ sllv        ShiftType
+ slt        RType3
+ slti        IType
+ sltiu        IType
+ sltu        RType3
+ sqrt.s        FPU2op
+ sra        ShiftType
+ srav        ShiftType
+ srl        ShiftType
+ srlv        ShiftType
+ sub        RType3
+ sub.s        FPU3op
+ subu        RType3
+ sv        SVQ
+ sv.q        SVQ
+ sv.s        SV
+ sw        ITypeMem
+ swc1        FPULS
+ swl        ITypeMem
+ swr        ITypeMem
+ sync        DoNothing
+ synci        Generic
+ syscall        Syscall
+ teq        Generic
+ teqi        Generic
+ tge        Generic
+ tgei        Generic
+ tgeiu        Generic
+ tgeu        Generic
+ tlbp        Generic
+ tlbr        Generic
+ tlbwi        Generic
+ tlbwr        Generic
+ tlt        Generic
+ tlti        Generic
+ tltiu        Generic
+ tltu        Generic
+ tne        Generic
+ tnei        Generic
+ trunc.w.s        FPU2op
+ v(h)tfm2        Vtfm
+ v(h)tfm2        Vtfm
+ v(h)tfm2        Vtfm
+ v(h)tfm2        Vtfm
+ v(h)tfm3        Vtfm
+ v(h)tfm3        Vtfm
+ v(h)tfm3        Vtfm
+ v(h)tfm3        Vtfm
+ v(h)tfm4        Vtfm
+ v(h)tfm4        Vtfm
+ v(h)tfm4        Vtfm
+ v(h)tfm4        Vtfm
+ vabs        VV2Op
+ vadd        VecDo3
+ vasin        VV2Op
+ vavg        Vhoriz
+ vbfy1        Vbfy
+ vbfy2        Vbfy
+ vc2i        Vx2i
+ vcmov        Vcmov
+ vcmp        Vcmp
+ vcos        VV2Op
+ vcrs        VCrs
+ vcrsp.t/vqmul.q        VCrossQuat
+ vcrsp.t/vqmul.q        VCrossQuat
+ vcrsp.t/vqmul.q        VCrossQuat
+ vcrsp.t/vqmul.q        VCrossQuat
+ vcst        Vcst
+ vdet        VDet
 vdiv        VecDo3
 vdot        VDot
 vexp2        VV2Op
