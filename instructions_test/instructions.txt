@@ -198,26 +198,26 @@ http://hlide.free.fr/
  vcrsp.t/vqmul.q        VCrossQuat
  vcst        Vcst
  vdet        VDet
-vdiv        VecDo3
-vdot        VDot
-vexp2        VV2Op
-vf2h        Generic
-vf2id        Vf2i
-vf2in        Vf2i
-vf2iu        Vf2i
-vf2iz        Vf2i
-vfad        Vhoriz
-vfim.s        Vfim
-vflush        DoNothing
-vh2f        Vh2f
-vhdp        VHdp
-vi2c        Vi2x
-vi2f        Vi2f
-vi2s        Vi2x
-vi2uc        Vi2x
-vi2us        Vi2x
-vidt        VIdt
-viim.s        Viim
+ vdiv        VecDo3
+ vdot        VDot
+ vexp2        VV2Op
+ vf2h        Generic
+ vf2id        Vf2i
+ vf2in        Vf2i
+ vf2iu        Vf2i
+ vf2iz        Vf2i
+ vfad        Vhoriz
+ vfim.s        Vfim
+ vflush        DoNothing
+ vh2f        Vh2f
+ vhdp        VHdp
+ vi2c        Vi2x
+ vi2f        Vi2f
+ vi2s        Vi2x
+ vi2uc        Vi2x
+ vi2us        Vi2x
+ vidt        VIdt
+ viim.s        Viim
 vlgb        Generic
 vlog2        VV2Op
 vmax        VecDo3
