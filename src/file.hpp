@@ -14,9 +14,9 @@ public:
     using size_type = size_t;
     size_type block_size = 1;
 
-    file(FILE *file);
-    file(const char *path, const char *mode = MODE_READ);
-    file(const std::string &path, const char *mode = MODE_READ);
+    file(FILE *file, bool calc_size = true);
+    file(const char *path, const char *mode = MODE_READ, bool calc_size = true);
+    file(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
     file(const file &other) = delete;
     file(file &&other);
 
@@ -32,8 +32,8 @@ public:
     size_type size() const;
     FILE *stream() const;
 
-    bool open(const char *path, const char *mode = MODE_READ);
-    bool open(const std::string &path, const char *mode = MODE_READ);
+    bool open(const char *path, const char *mode = MODE_READ, bool calc_size = true);
+    bool open(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
     int close();
 
     int seek(long offset, int whence = SEEK_SET);
@@ -55,7 +55,7 @@ public:
     template<typename... Ts>
     size_type format(const char *format_string, Ts&&... args)
     {
-        return fprintf(m_file, std::forward<Ts>(args)...);
+        return fprintf(m_file, format_string, std::forward<Ts>(args)...);
     }
 
     size_type read_block(void *out);

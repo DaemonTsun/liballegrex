@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "file.hpp"
 #include "string.hpp"
 #include "number_types.hpp"
 #include "config.hpp"
@@ -82,6 +83,16 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
+        if (arg == "--log")
+        {
+            if (i >= argc - 1)
+                throw std::runtime_error(str(arg, " expects a positional argument: the log file"));
+
+            out->log_file = argv[i+1];
+            i += 2;
+            continue;
+        }
+
         if (arg == "-p" || arg == "--pseudo")
         {
             out->emit_pseudo = true;
@@ -130,12 +141,26 @@ try
     if (args.input_file.empty())
         throw std::runtime_error("expected input file");
 
+    // get logfile
+    FILE *logfd = stdout;
+
+    if (!args.log_file.empty())
+        logfd = fopen(args.log_file.c_str(), "a");
+
+    file log(logfd);
+    file in(args.input_file, "rb");
     
+    FILE *outfd = stdout;
+
+    if (!args.output_file.empty())
+        outfd = fopen(args.output_file.c_str(), "w");
+
+    file out(outfd);
 
     return 0;
 }
 catch (std::runtime_error &e)
 {
-    printf("error: %s\n", e.what());
+    fprintf(stderr, "error: %s\n", e.what());
     return 1;
 }

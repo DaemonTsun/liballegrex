@@ -1,19 +1,21 @@
 
 #include "file.hpp"
 
-file::file(FILE *file)
+file::file(FILE *file, bool calc_size)
 {
     this->m_file = file;
-    this->calculate_size();
+
+    if (calc_size)
+        this->calculate_size();
 }
 
-file::file(const char *path, const char *mode)
+file::file(const char *path, const char *mode, bool calc_size)
 {
-    this->open(path);
+    this->open(path, mode, calc_size);
 }
 
-file::file(const std::string &path, const char *mode)
-  : file(path.c_str(), mode)
+file::file(const std::string &path, const char *mode, bool calc_size)
+  : file(path.c_str(), mode, calc_size)
 {
 }
 
@@ -30,6 +32,7 @@ file::~file()
 
 file &file::operator=(file &&other)
 {
+    this->close();
     this->m_file = other.m_file;
     this->m_size = other.m_size;
 
@@ -56,7 +59,7 @@ FILE *file::stream() const
     return this->m_file;
 }
 
-bool file::open(const char *path, const char *mode)
+bool file::open(const char *path, const char *mode, bool calc_size)
 {
     int e = this->close();
 
@@ -64,13 +67,16 @@ bool file::open(const char *path, const char *mode)
         return e;
 
     this->m_file = fopen(path, mode);
-    this->calculate_size();
+
+    if (calc_size)
+        this->calculate_size();
+
     return this->is_open();
 }
 
-bool file::open(const std::string &path, const char *mode)
+bool file::open(const std::string &path, const char *mode, bool calc_size)
 {
-    return this->open(path.c_str(), mode);
+    return this->open(path.c_str(), mode, calc_size);
 }
 
 int file::close()
@@ -78,7 +84,8 @@ int file::close()
     int ret = 0;
 
     if (this->m_file != nullptr)
-        ret = fclose(this->m_file);
+        if (!((this->m_file == stdout) || (this->m_file == stdin) || (this->m_file == stderr)))
+            ret = fclose(this->m_file);
 
     this->m_file = nullptr;
     this->m_size = 0;
