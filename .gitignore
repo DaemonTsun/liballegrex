@@ -1,3 +1,4 @@
+bin/
 *.swp
 psp-elfdump
 instruction_test/instructions
