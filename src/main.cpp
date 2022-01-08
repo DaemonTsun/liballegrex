@@ -13,6 +13,7 @@ struct arguments
 {
     bool emit_glabels;       // -g, --glabel
     std::string output_file; // -o, --output
+    std::string log_file;    // --log
     bool emit_pseudo;        // -p, --pseudo
     u32 vaddr;               // -a, --vaddr
     bool verbose;            // -v, --verbose
@@ -23,6 +24,7 @@ struct arguments
 const arguments default_arguments{
     .emit_glabels = false,
     .output_file = "",
+    .log_file = "",
     .emit_pseudo = false,
     .vaddr = INFER_VADDR,
     .verbose = false,
@@ -40,6 +42,7 @@ void print_usage()
          " -h, --help                  show this help and exit\n"
          " -g, --glabel                emit \"glabel name\" for global labels\n"
          " -o OUTPUT, --output OUTPUT  output filename (default: stdout)\n"
+         " --log LOGFILE               output all information messages to LOGFILE (stdout by default)\n"
          " -p, --pseudo                emit pseudoinstructions for related instructions\n"
          " -a VADDR, --vaddr VADDR     virtual address of the first instruction\n"
          "                             will be read from elf instead if not set\n"
@@ -124,10 +127,15 @@ try
 
     parse_arguments(argc, argv, &args);
 
+    if (args.input_file.empty())
+        throw std::runtime_error("expected input file");
+
+    
+
     return 0;
 }
 catch (std::runtime_error &e)
 {
-    printf("%s\n", e.what());
+    printf("error: %s\n", e.what());
     return 1;
 }
