@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "file.hpp"
+#include "psp_elf.hpp"
+
+#include "file_buffer.hpp"
 #include "string.hpp"
 #include "number_types.hpp"
 #include "config.hpp"
-
-#define INFER_VADDR UINT32_MAX
 
 struct arguments
 {
@@ -147,15 +147,33 @@ try
     if (!args.log_file.empty())
         logfd = fopen(args.log_file.c_str(), "a");
 
-    file log(logfd);
-    file in(args.input_file, "rb");
+    file_buffer log(logfd);
+
+    if (!log)
+        throw std::runtime_error("could not open file to log");
+
+    file_buffer in(args.input_file, "rb");
+
+    if (!in)
+        throw std::runtime_error("could not open input file");
     
+    psp_elf_read_config rconf;
+    rconf.in = &in;
+    rconf.log = &log;
+    rconf.vaddr = args.vaddr;
+    rconf.verbose = args.verbose;
+
+    u8 tmp;
+    read_elf(&rconf, &tmp);
+
+    /*
     FILE *outfd = stdout;
 
     if (!args.output_file.empty())
         outfd = fopen(args.output_file.c_str(), "w");
 
-    file out(outfd);
+    file_buffer out(outfd);
+    */
 
     return 0;
 }

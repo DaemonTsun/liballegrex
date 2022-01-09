@@ -8,22 +8,22 @@
 #define MODE_WRITE "w"
 #define MODE_BINARY "b"
 
-class file
+class file_buffer
 {
 public:
     using size_type = size_t;
     size_type block_size = 1;
 
-    file(FILE *file, bool calc_size = true);
-    file(const char *path, const char *mode = MODE_READ, bool calc_size = true);
-    file(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
-    file(const file &other) = delete;
-    file(file &&other);
+    file_buffer(FILE *file_buffer, bool calc_size = true);
+    file_buffer(const char *path, const char *mode = MODE_READ, bool calc_size = true);
+    file_buffer(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
+    file_buffer(const file_buffer &other) = delete;
+    file_buffer(file_buffer &&other);
 
-    ~file();
+    ~file_buffer();
 
-    file &operator=(const file &other) = delete;
-    file &operator=(file &&other);
+    file_buffer &operator=(const file_buffer &other) = delete;
+    file_buffer &operator=(file_buffer &&other);
 
     // operator FILE*() const;
     operator bool() const;
@@ -47,6 +47,13 @@ public:
 
     size_type read(void *out, size_type size);
     size_type read(void *out, size_type size, size_type nmemb);
+
+    template<typename T>
+    size_type read(T *out)
+    {
+        return this->read(out, sizeof(T));
+    }
+
     size_type write(const void *in, size_type size);
     size_type write(const void *in, size_type size, size_type nmemb);
     size_type write(const char *size);
@@ -55,7 +62,7 @@ public:
     template<typename... Ts>
     size_type format(const char *format_string, Ts&&... args)
     {
-        return fprintf(m_file, format_string, std::forward<Ts>(args)...);
+        return fprintf(this->m_file, format_string, std::forward<Ts>(args)...);
     }
 
     size_type read_block(void *out);
