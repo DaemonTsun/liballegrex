@@ -1,27 +1,30 @@
 
 #include "file_buffer.hpp"
 
-file_buffer::file_buffer(FILE *file_buffer, bool calc_size)
+file_buffer::file_buffer()
 {
-    this->m_file = file_buffer;
-
-    if (calc_size)
-        this->calculate_size();
 }
 
-file_buffer::file_buffer(const char *path, const char *mode, bool calc_size)
+file_buffer::file_buffer(FILE *file_buffer, bool owns)
 {
-    this->open(path, mode, calc_size);
+    this->handle = file_buffer;
+    this->owns_handle = owns;
 }
 
-file_buffer::file_buffer(const std::string &path, const char *mode, bool calc_size)
-  : file_buffer(path.c_str(), mode, calc_size)
+file_buffer::file_buffer(const char *path, const char *mode)
+{
+    this->open(path, mode);
+}
+
+file_buffer::file_buffer(const std::string &path, const char *mode)
+  : file_buffer(path.c_str(), mode)
 {
 }
 
 file_buffer::file_buffer(file_buffer &&other)
 {
-    this->m_file = other.m_file;
+    this->handle = other.handle;
+    this->owns_handle = other.owns_handle;
     this->m_size = other.m_size;
 }
 
@@ -33,7 +36,8 @@ file_buffer::~file_buffer()
 file_buffer &file_buffer::operator=(file_buffer &&other)
 {
     this->close();
-    this->m_file = other.m_file;
+    this->handle = other.handle;
+    this->owns_handle = other.owns_handle;
     this->m_size = other.m_size;
 
     return *this;
@@ -46,7 +50,7 @@ file_buffer::operator bool() const
 
 bool file_buffer::is_open() const
 {
-    return this->m_file != nullptr;
+    return this->handle != nullptr;
 }
 
 file_buffer::size_type file_buffer::size() const
@@ -54,43 +58,34 @@ file_buffer::size_type file_buffer::size() const
     return this->m_size;
 }
 
-FILE *file_buffer::stream() const
-{
-    return this->m_file;
-}
-
-bool file_buffer::open(const char *path, const char *mode, bool calc_size)
+bool file_buffer::open(const char *path, const char *mode)
 {
     int e = this->close();
 
     if (e != 0)
-        return e;
+        return false;
 
-    this->m_file = fopen(path, mode);
+    this->handle = fopen(path, mode);
 
     if (!this->is_open())
         return false;
 
-    if (calc_size)
-        this->calculate_size();
-
     return true;
 }
 
-bool file_buffer::open(const std::string &path, const char *mode, bool calc_size)
+bool file_buffer::open(const std::string &path, const char *mode)
 {
-    return this->open(path.c_str(), mode, calc_size);
+    return this->open(path.c_str(), mode);
 }
 
 int file_buffer::close()
 {
     int ret = 0;
 
-    if (this->m_file != nullptr)
-        if (!((this->m_file == stdout) || (this->m_file == stdin) || (this->m_file == stderr)))
-            ret = fclose(this->m_file);
+    if (this->owns_handle && this->handle != nullptr)
+        ret = fclose(this->handle);
 
-    this->m_file = nullptr;
+    this->handle = nullptr;
     this->m_size = 0;
 
     return ret;
@@ -98,7 +93,7 @@ int file_buffer::close()
 
 int file_buffer::seek(long offset, int whence)
 {
-    return fseeko(this->m_file, offset, whence);
+    return fseeko(this->handle, offset, whence);
 }
 
 int file_buffer::seek_block(long n, int whence)
@@ -118,7 +113,7 @@ int file_buffer::setpos(file_buffer::size_type offset)
 
 file_buffer::size_type file_buffer::tell()
 {
-    return ftello(this->m_file);
+    return ftello(this->handle);
 }
 
 file_buffer::size_type file_buffer::getpos()
@@ -156,27 +151,27 @@ file_buffer::size_type file_buffer::read(void *out, size_type size)
 
 file_buffer::size_type file_buffer::read(void *out, size_type size, size_type nmemb)
 {
-    return fread(out, size, nmemb, this->m_file);
+    return fread(out, size, nmemb, this->handle);
 }
 
 file_buffer::size_type file_buffer::write(const void *in, size_type size)
 {
-    return fwrite(in, size, 1, this->m_file);
+    return fwrite(in, size, 1, this->handle);
 }
 
 file_buffer::size_type file_buffer::write(const void *in, size_type size, size_type nmemb)
 {
-    return fwrite(in, size, nmemb, this->m_file);
+    return fwrite(in, size, nmemb, this->handle);
 }
 
 file_buffer::size_type file_buffer::write(const char *str)
 {
-    return fputs(str, this->m_file);
+    return fputs(str, this->handle);
 }
 
 file_buffer::size_type file_buffer::write(const std::string &str)
 {
-    return fputs(str.c_str(), this->m_file);
+    return fputs(str.c_str(), this->handle);
 }
 
 file_buffer::size_type file_buffer::read_block(void *out)
@@ -213,5 +208,5 @@ file_buffer::size_type file_buffer::write_blocks(const void *in, size_type n)
 
 int file_buffer::flush()
 {
-    return fflush(this->m_file);
+    return fflush(this->handle);
 }

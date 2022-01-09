@@ -156,6 +156,8 @@ try
 
     if (!in)
         throw std::runtime_error("could not open input file");
+
+    in.calculate_size();
     
     psp_elf_read_config rconf;
     rconf.in = &in;

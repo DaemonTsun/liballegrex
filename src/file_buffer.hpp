@@ -13,10 +13,13 @@ class file_buffer
 public:
     using size_type = size_t;
     size_type block_size = 1;
+    FILE *handle = nullptr;
+    bool owns_handle = false;
 
-    file_buffer(FILE *file_buffer, bool calc_size = true);
-    file_buffer(const char *path, const char *mode = MODE_READ, bool calc_size = true);
-    file_buffer(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
+    file_buffer();
+    file_buffer(FILE *file_buffer, bool owns = false);
+    file_buffer(const char *path, const char *mode = MODE_READ);
+    file_buffer(const std::string &path, const char *mode = MODE_READ);
     file_buffer(const file_buffer &other) = delete;
     file_buffer(file_buffer &&other);
 
@@ -30,10 +33,9 @@ public:
 
     bool is_open() const;
     size_type size() const;
-    FILE *stream() const;
 
-    bool open(const char *path, const char *mode = MODE_READ, bool calc_size = true);
-    bool open(const std::string &path, const char *mode = MODE_READ, bool calc_size = true);
+    bool open(const char *path, const char *mode = MODE_READ);
+    bool open(const std::string &path, const char *mode = MODE_READ);
     int close();
 
     int seek(long offset, int whence = SEEK_SET);
@@ -62,7 +64,7 @@ public:
     template<typename... Ts>
     size_type format(const char *format_string, Ts&&... args)
     {
-        return fprintf(this->m_file, format_string, std::forward<Ts>(args)...);
+        return fprintf(this->handle, format_string, std::forward<Ts>(args)...);
     }
 
     size_type read_block(void *out);
@@ -74,6 +76,5 @@ public:
     int flush();
 
 private:
-    FILE *m_file = nullptr;
     size_type m_size = 0;
 };
