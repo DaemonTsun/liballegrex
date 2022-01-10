@@ -10,9 +10,10 @@ struct psp_elf_read_config
 {
     file_buffer *in;
 
+    std::string section;
     u32 vaddr;
     bool verbose;
     file_buffer *log;
 };
 
-void read_elf(psp_elf_read_config *conf, void *out);
+void read_elf(const psp_elf_read_config *conf, void *out);

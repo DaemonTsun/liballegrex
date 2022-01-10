@@ -1,90 +1,34 @@
 
 #include <stdexcept>
+#include <vector>
+
+#include <elf.h>
 #include <string.h>
 
+#include "string.hpp"
 #include "psp_elf.hpp"
 
-#define LOG(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
-
-#define EI_DATA      5
-#define EI_NIDENT    16
-#define SHT_SYMTAB   2
-#define SHT_REL      9
-#define STN_UNDEF    0
-
-#define ELF32_R_SYM(info)  ((info) >> 8)
-#define ELF32_R_TYPE(info) ((info) & 0xff)
 
 #define R_MIPS_26    4
 #define R_MIPS_HI16  5
 #define R_MIPS_LO16  6
 
-#define ELFDATA2LSB  1
-#define EM_MIPS      8
+#define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
+#define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
-typedef uint32_t Elf32_Addr;
-typedef uint32_t Elf32_Off;
-
-typedef struct {
-   uint8_t    e_ident[EI_NIDENT];
-   uint16_t   e_type;
-   uint16_t   e_machine;
-   uint32_t   e_version;
-   Elf32_Addr e_entry;
-   Elf32_Off  e_phoff;
-   Elf32_Off  e_shoff;
-   uint32_t   e_flags;
-   uint16_t   e_ehsize;
-   uint16_t   e_phentsize;
-   uint16_t   e_phnum;
-   uint16_t   e_shentsize;
-   uint16_t   e_shnum;
-   uint16_t   e_shstrndx;
-} Elf32_Ehdr;
-
-typedef struct {
-   uint32_t   sh_name;
-   uint32_t   sh_type;
-   uint32_t   sh_flags;
-   Elf32_Addr sh_addr;
-   Elf32_Off  sh_offset;
-   uint32_t   sh_size;
-   uint32_t   sh_link;
-   uint32_t   sh_info;
-   uint32_t   sh_addralign;
-   uint32_t   sh_entsize;
-} Elf32_Shdr;
-
-typedef struct {
-   uint32_t   st_name;
-   Elf32_Addr st_value;
-   uint32_t   st_size;
-   uint8_t    st_info;
-   uint8_t    st_other;
-   uint16_t   st_shndx;
-} Elf32_Sym;
-
-typedef struct {
-   Elf32_Addr r_offset;
-   uint32_t   r_info;
-} Elf32_Rel;
-
-void read_elf(psp_elf_read_config *conf, void *out)
+void read_elf(const psp_elf_read_config *conf, void *out)
 {
     file_buffer *in = conf->in;
 
     Elf32_Ehdr elf_header;
-
-    int text_section_index = -1;
-    uint32_t vaddr_adj = 0;
 
     if (in->size() < sizeof(Elf32_Ehdr))
         throw std::runtime_error("input is not an ELF file");
 
     in->read(&elf_header);
 
-    // TODO: attempt decrypt
     if (strncmp((const char*)elf_header.e_ident, "\x7f" "ELF", 4))
+        // TODO: attempt decrypt
         throw std::runtime_error("input is not an ELF file or may be encrypted");
 
     // we want little endian
@@ -92,5 +36,50 @@ void read_elf(psp_elf_read_config *conf, void *out)
      || elf_header.e_machine != EM_MIPS)
         throw std::runtime_error("input is not little-endian MIPS");
 
-    LOG(conf, "%s\n", "got little-endian mips");
+    log(conf, "%s\n", "got little-endian mips");
+
+    if (elf_header.e_shstrndx == SHN_UNDEF)
+    {
+        // while we could look at program headers, PSP games
+        // can have strange sections (e.g. MHFU has ~600 sections)
+        // so we just rely on the name given by command line args.
+        throw std::runtime_error("no section header table index found");
+    }
+
+    Elf32_Shdr string_table_header;
+    read_section(in, elf_header, elf_header.e_shstrndx, &string_table_header);
+
+    std::vector<char> string_table;
+    string_table.resize(string_table_header.sh_size);
+
+    in->read_at(string_table.data(), string_table_header.sh_offset, string_table_header.sh_size);
+    
+    Elf32_Shdr section_header;
+
+    log(conf, "              %-20s: offset   - size\n", "name");
+
+    int section_index = -1;
+
+    for (int i = 0; i < elf_header.e_shnum; ++i)
+    {
+        read_section(in, elf_header, i, &section_header);
+        const char *section_name = string_table.data() + section_header.sh_name;
+
+        if (conf->section != section_name)
+            continue;
+
+        log(conf, "found section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
+        section_index = i;
+        break;
+    }
+
+    if (section_index < 0)
+        throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
+
+    u32 vaddr = conf->vaddr;
+
+    if (conf->vaddr == INFER_VADDR)
+        vaddr = section_header.sh_addr;
+
+    
 }

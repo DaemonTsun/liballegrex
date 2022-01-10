@@ -154,6 +154,18 @@ file_buffer::size_type file_buffer::read(void *out, size_type size, size_type nm
     return fread(out, size, nmemb, this->handle);
 }
 
+file_buffer::size_type file_buffer::read_at(void *out, size_type offset, size_type size)
+{
+    this->seek(offset, SEEK_SET);
+    return this->read(out, size, 1);
+}
+
+file_buffer::size_type file_buffer::read_at(void *out, size_type offset, size_type size, size_type nmemb)
+{
+    this->seek(offset, SEEK_SET);
+    return this->read(out, size, nmemb);
+}
+
 file_buffer::size_type file_buffer::write(const void *in, size_type size)
 {
     return fwrite(in, size, 1, this->handle);

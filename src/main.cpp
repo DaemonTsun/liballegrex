@@ -15,6 +15,7 @@ struct arguments
     bool emit_glabels;       // -g, --glabel
     std::string output_file; // -o, --output
     std::string log_file;    // --log
+    std::string section;     // -s, --section
     bool emit_pseudo;        // -p, --pseudo
     u32 vaddr;               // -a, --vaddr
     bool verbose;            // -v, --verbose
@@ -26,6 +27,7 @@ const arguments default_arguments{
     .emit_glabels = false,
     .output_file = "",
     .log_file = "",
+    .section = ".text",
     .emit_pseudo = false,
     .vaddr = INFER_VADDR,
     .verbose = false,
@@ -44,6 +46,7 @@ void print_usage()
          " -g, --glabel                emit \"glabel name\" for global labels\n"
          " -o OUTPUT, --output OUTPUT  output filename (default: stdout)\n"
          " --log LOGFILE               output all information messages to LOGFILE (stdout by default)\n"
+         " -s, --section NAME          disassemble the section with name NAME (\".text\" by default)\n"
          " -p, --pseudo                emit pseudoinstructions for related instructions\n"
          " -a VADDR, --vaddr VADDR     virtual address of the first instruction\n"
          "                             will be read from elf instead if not set\n"
@@ -89,6 +92,16 @@ void parse_arguments(int argc, const char **argv, arguments *out)
                 throw std::runtime_error(str(arg, " expects a positional argument: the log file"));
 
             out->log_file = argv[i+1];
+            i += 2;
+            continue;
+        }
+
+        if (arg == "-s" || arg == "--section")
+        {
+            if (i >= argc - 1)
+                throw std::runtime_error(str(arg, " expects a positional argument: the section name"));
+
+            out->section = argv[i+1];
             i += 2;
             continue;
         }
@@ -162,6 +175,7 @@ try
     psp_elf_read_config rconf;
     rconf.in = &in;
     rconf.log = &log;
+    rconf.section = args.section;
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
 

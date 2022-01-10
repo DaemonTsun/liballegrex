@@ -56,6 +56,15 @@ public:
         return this->read(out, sizeof(T));
     }
 
+    size_type read_at(void *out, size_type offset, size_type size);
+    size_type read_at(void *out, size_type offset, size_type size, size_type nmemb);
+
+    template<typename T>
+    size_type read_at(T *out, size_type offset)
+    {
+        return this->read_at(out, offset, sizeof(T));
+    }
+
     size_type write(const void *in, size_type size);
     size_type write(const void *in, size_type size, size_type nmemb);
     size_type write(const char *size);
