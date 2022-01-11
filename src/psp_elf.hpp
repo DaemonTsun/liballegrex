@@ -16,4 +16,10 @@ struct psp_elf_read_config
     file_buffer *log;
 };
 
+struct elf_symbol
+{
+    u32 address;
+    std::string name;
+};
+
 void read_elf(const psp_elf_read_config *conf, void *out);
