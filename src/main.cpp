@@ -5,7 +5,8 @@
 
 #include "psp_elf.hpp"
 
-#include "file_buffer.hpp"
+#include "file_stream.hpp"
+#include "memory_stream.hpp"
 #include "string.hpp"
 #include "number_types.hpp"
 #include "config.hpp"
@@ -160,12 +161,12 @@ try
     if (!args.log_file.empty())
         logfd = fopen(args.log_file.c_str(), "a");
 
-    file_buffer log(logfd);
+    file_stream log(logfd);
 
     if (!log)
         throw std::runtime_error("could not open file to log");
 
-    file_buffer in(args.input_file, "rb");
+    file_stream in(args.input_file, "rb");
 
     if (!in)
         throw std::runtime_error("could not open input file");
@@ -173,14 +174,13 @@ try
     in.calculate_size();
     
     psp_elf_read_config rconf;
-    rconf.in = &in;
     rconf.log = &log;
     rconf.section = args.section;
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
 
     u8 tmp;
-    read_elf(&rconf, &tmp);
+    read_elf(&in, &rconf, &tmp);
 
     /*
     FILE *outfd = stdout;
@@ -188,7 +188,7 @@ try
     if (!args.output_file.empty())
         outfd = fopen(args.output_file.c_str(), "w");
 
-    file_buffer out(outfd);
+    file_stream out(outfd);
     */
 
     return 0;

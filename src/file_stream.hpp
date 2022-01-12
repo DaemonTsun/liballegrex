@@ -8,7 +8,7 @@
 #define MODE_WRITE "w"
 #define MODE_BINARY "b"
 
-class file_buffer
+class file_stream
 {
 public:
     using size_type = size_t;
@@ -16,17 +16,17 @@ public:
     FILE *handle = nullptr;
     bool owns_handle = false;
 
-    file_buffer();
-    file_buffer(FILE *file_buffer, bool owns = false);
-    file_buffer(const char *path, const char *mode = MODE_READ);
-    file_buffer(const std::string &path, const char *mode = MODE_READ);
-    file_buffer(const file_buffer &other) = delete;
-    file_buffer(file_buffer &&other);
+    file_stream();
+    file_stream(FILE *file_stream, bool owns = false);
+    file_stream(const char *path, const char *mode = MODE_READ);
+    file_stream(const std::string &path, const char *mode = MODE_READ);
+    file_stream(const file_stream &other) = delete;
+    file_stream(file_stream &&other);
 
-    ~file_buffer();
+    ~file_stream();
 
-    file_buffer &operator=(const file_buffer &other) = delete;
-    file_buffer &operator=(file_buffer &&other);
+    file_stream &operator=(const file_stream &other) = delete;
+    file_stream &operator=(file_stream &&other);
 
     // operator FILE*() const;
     operator bool() const;

@@ -16,11 +16,10 @@
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
-void add_symbols(const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, std::vector<elf_symbol> &symbols)
+template<typename StreamT>
+void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, std::vector<elf_symbol> &symbols)
 {
     // there's a good chance symbols don't exist
-    auto *in = conf->in;
-
     for (int i = 0; i < elf_header.e_shnum; i++)
     {
         Elf32_Shdr sec_header;
@@ -64,10 +63,9 @@ void add_symbols(const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int se
 // TODO: actually add relocation information
 // currently only logs relocations
 // do games have relocations...?
-void add_relocations(const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, char *string_table_data)
+template<typename StreamT>
+void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, char *string_table_data)
 {
-    auto *in = conf->in;
-
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
         Elf32_Shdr sec_header;
@@ -100,10 +98,9 @@ void add_relocations(const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, ch
     }
 }
 
-void read_elf(const psp_elf_read_config *conf, void *out)
+template<typename StreamT>
+void read_elf(StreamT *in, const psp_elf_read_config *conf, void *out)
 {
-    file_buffer *in = conf->in;
-
     Elf32_Ehdr elf_header;
 
     if (in->size() < sizeof(Elf32_Ehdr))
@@ -165,7 +162,17 @@ void read_elf(const psp_elf_read_config *conf, void *out)
         vaddr = section_header.sh_addr;
 
     std::vector<elf_symbol> symbols;
-    add_symbols(conf, elf_header, section_index, string_table.data(), symbols);
+    add_symbols(in, conf, elf_header, section_index, string_table.data(), symbols);
 
-    add_relocations(conf, elf_header, string_table.data());
+    add_relocations(in, conf, elf_header, string_table.data());
+}
+
+void read_elf(file_stream *in, const psp_elf_read_config *conf, void *out)
+{
+    read_elf<file_stream>(in, conf, out);
+}
+
+void read_elf(memory_stream *in, const psp_elf_read_config *conf, void *out)
+{
+    read_elf<memory_stream>(in, conf, out);
 }
