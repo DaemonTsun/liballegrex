@@ -26,6 +26,8 @@ memory_stream::memory_stream(memory_stream &&other)
     this->m_data = other.m_data;
     this->m_owns_data = other.m_owns_data;
     this->m_size = other.m_size;
+
+    other.m_data = nullptr;
 }
 
 memory_stream::~memory_stream()
@@ -39,6 +41,7 @@ memory_stream &memory_stream::operator=(memory_stream &&other)
     this->m_data = other.m_data;
     this->m_owns_data = other.m_owns_data;
     this->m_size = other.m_size;
+    other.m_data = nullptr;
 
     return *this;
 }

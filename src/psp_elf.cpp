@@ -9,9 +9,11 @@
 #include "string.hpp"
 #include "psp_elf.hpp"
 
+/*
 #define R_MIPS_26    4
 #define R_MIPS_HI16  5
 #define R_MIPS_LO16  6
+*/
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
@@ -64,7 +66,7 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
 // currently only logs relocations
 // do games have relocations...?
 template<typename StreamT>
-void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, char *string_table_data)
+void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, char *string_table_data, std::vector<elf_relocation> &out)
 {
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
@@ -99,7 +101,7 @@ void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &e
 }
 
 template<typename StreamT>
-void read_elf(StreamT *in, const psp_elf_read_config *conf, void *out)
+void read_elf(StreamT *in, const psp_elf_read_config *conf, elf_section *out)
 {
     Elf32_Ehdr elf_header;
 
@@ -161,18 +163,21 @@ void read_elf(StreamT *in, const psp_elf_read_config *conf, void *out)
     if (conf->vaddr == INFER_VADDR)
         vaddr = section_header.sh_addr;
 
-    std::vector<elf_symbol> symbols;
-    add_symbols(in, conf, elf_header, section_index, string_table.data(), symbols);
+    out->vaddr = vaddr;
 
-    add_relocations(in, conf, elf_header, string_table.data());
+    add_symbols(in, conf, elf_header, section_index, string_table.data(), out->symbols);
+    add_relocations(in, conf, elf_header, string_table.data(), out->relocations);
+
+    out->content = memory_stream(section_header.sh_size);
+    in->read_at(out->content.data(), section_header.sh_offset, section_header.sh_size);
 }
 
-void read_elf(file_stream *in, const psp_elf_read_config *conf, void *out)
+void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out)
 {
     read_elf<file_stream>(in, conf, out);
 }
 
-void read_elf(memory_stream *in, const psp_elf_read_config *conf, void *out)
+void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out)
 {
     read_elf<memory_stream>(in, conf, out);
 }

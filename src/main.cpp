@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "psp_elf.hpp"
+#include "parse_allegrex.hpp"
 
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
@@ -179,8 +180,17 @@ try
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
 
-    u8 tmp;
-    read_elf(&in, &rconf, &tmp);
+    elf_section sec;
+    read_elf(&in, &rconf, &sec);
+    // TODO: process symbols & relocations
+
+    parse_config pconf;
+    pconf.log = &log;
+    pconf.vaddr = sec.vaddr;
+    pconf.verbose = args.verbose;
+
+    std::vector<instruction> instructions;
+    parse_allegrex(&sec.content, &pconf, instructions);
 
     /*
     FILE *outfd = stdout;

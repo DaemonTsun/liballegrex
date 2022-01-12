@@ -26,6 +26,8 @@ file_stream::file_stream(file_stream &&other)
     this->handle = other.handle;
     this->owns_handle = other.owns_handle;
     this->m_size = other.m_size;
+
+    other.handle = nullptr;
 }
 
 file_stream::~file_stream()
@@ -39,6 +41,8 @@ file_stream &file_stream::operator=(file_stream &&other)
     this->handle = other.handle;
     this->owns_handle = other.owns_handle;
     this->m_size = other.m_size;
+
+    other.handle = nullptr;
 
     return *this;
 }
