@@ -22,7 +22,15 @@ struct category
     std::vector<const category*> sub_categories;
 };
 
-const instruction_info nop{"nop", 0x00000000};
+const category Fixed{
+    .min  = 0x00000000,
+    .max  = 0xffffffff,
+    .mask = 0xffffffff,
+    .instructions = {
+        {"nop", 0x00000000}
+    },
+    .sub_categories = {}
+};
 
 const category SrlRotr{
     .min =  0x00000002,
@@ -340,7 +348,25 @@ const category VFPU4{
     .mask = 0xffff0000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        // TODO: add instructions
+        {"vmov",   0xd0000000},
+        {"vabs",   0xd0010000},
+        {"vneg",   0xd0020000},
+        {"vidt",   0xd0030000},
+        {"vsat0",  0xd0040000},
+        {"vsat1",  0xd0050000},
+        {"vzero",  0xd0060000},
+        {"vone",   0xd0070000},
+        {"vrcp",   0xd0100000},
+        {"vrsq",   0xd0110000},
+        {"vsin",   0xd0120000},
+        {"vcos",   0xd0130000},
+        {"vexp2",  0xd0140000},
+        {"vlog2",  0xd0150000},
+        {"vsqrt",  0xd0160000},
+        {"vasin",  0xd0170000},
+        {"vnrcp",  0xd0180000},
+        {"vnsin",  0xd01a0000},
+        {"vrexp2", 0xd01c0000}
     },
     .sub_categories = {
     }
@@ -352,7 +378,22 @@ const category VFPU7{
     .mask = 0xffff0000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        // TODO: add instructions
+        {"vrnds",  0xd0200000},
+        {"vrndi",  0xd0210000},
+        {"vrndf1", 0xd0220000},
+        {"vrndf2", 0xd0230000},
+        {"vf2h",   0xd0320000},
+        {"vh2f",   0xd0330000},
+        {"vsbz",   0xd0360000},
+        {"vlgb",   0xd0370000},
+        {"vuc2i",  0xd0380000},
+        {"vc2i",   0xd0390000},
+        {"vus2i",  0xd03a0000},
+        {"vs2i",   0xd03b0000},
+        {"vi2uc",  0xd03c0000},
+        {"vi2c",   0xd03d0000},
+        {"vi2us",  0xd03e0000},
+        {"vi2s",   0xd03f0000}
     },
     .sub_categories = {
     }
@@ -364,10 +405,35 @@ const category VFPU9{
     .mask = 0xffff0000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        // TODO: add instructions
+        {"vsrt1",  0xd0400000},
+        {"vsrt2",  0xd0410000},
+        {"vbfy1",  0xd0420000},
+        {"vbfy2",  0xd0430000},
+        {"vocp",   0xd0440000},
+        {"vsocp",  0xd0450000},
+        {"vfad",   0xd0460000},
+        {"vavg",   0xd0470000},
+        {"vsrt3",  0xd0480000},
+        {"vsrt4",  0xd0490000},
+        {"vsgn",   0xd04a0000},
+        {"vmfvc",  0xd0500000},
+        {"vmtvc",  0xd0510000},
+        {"vt4444", 0xd0590000},
+        {"vt5551", 0xd05a0000},
+        {"vt5650", 0xd05b0000},
     },
     .sub_categories = {
     }
+};
+
+const category vwbn{
+    .min =  0xd3000000,
+    .max =  0xd3000000,
+    .mask = 0xff000000,
+    .instructions = {
+        {"vwbn", 0xd3000000}
+    },
+    .sub_categories = {}
 };
 
 const category VFPU4Jump{
@@ -375,13 +441,85 @@ const category VFPU4Jump{
     .max =  0xd3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        // TODO: add instructions
+        // TODO: correct VFPU instruction name parsing
+        {"vcst",  0xd0600000},
+        {"vf2in", 0xd2000000},
+        {"vf2iz", 0xd2200000},
+        {"vf2iu", 0xd2400000},
+        {"vf2id", 0xd2600000},
+        {"vf2f",  0xd2800000},
+        {"vcmov", 0xd2a00000}
     },
     .sub_categories = {
         &VFPU4,
         &VFPU7,
         &VFPU9,
-        // TODO: &vwbn
+        &vwbn
+    }
+};
+
+const category VFPU5{
+    .min =  0xdc000000,
+    .max =  0xdf800000,
+    .mask = 0xff800000,
+    .instructions = {
+        // TODO: correct VFPU instruction name parsing
+        {"vpfxs", 0xdc000000},
+        {"vpfxs", 0xdc800000},
+        {"vpfxt", 0xdd000000},
+        {"vpfxt", 0xdd800000},
+        {"vpfxd", 0xde000000},
+        {"vpfxd", 0xde800000},
+        {"viim",  0xdf000000},
+        {"vfim",  0xdf800000}
+    },
+    .sub_categories = {}
+};
+
+const category VFPUMatrix{
+    .min =  0xf3800000,
+    .max =  0xf38f0000,
+    .mask = 0xffef0000,
+    .instructions = {
+        {"vmmov",  0xf3800000},
+        {"vmidt",  0xf3830000},
+        {"vmzero", 0xf3860000},
+        {"vmone",  0xf3870000},
+    },
+    .sub_categories = {}
+};
+
+const category VFPU6{
+    .min =  0xf0000000,
+    .max =  0xf3e00000,
+    .mask = 0xffe00000,
+    .instructions = {
+        // TODO: correct VFPU instruction name parsing
+        {"vmmul", 0xf0000000},
+        {"vmmul", 0xf0200000},
+        {"vmmul", 0xf0400000},
+        {"vmmul", 0xf0600000},
+        {"vtfm2", 0xf0800000},
+        {"vtfm2", 0xf0a00000},
+        {"vtfm2", 0xf0c00000},
+        {"vtfm2", 0xf0e00000},
+        {"vtfm3", 0xf1000000},
+        {"vtfm3", 0xf1200000},
+        {"vtfm3", 0xf1400000},
+        {"vtfm3", 0xf1600000},
+        {"vtfm4", 0xf1800000},
+        {"vtfm4", 0xf1a00000},
+        {"vtfm4", 0xf1c00000},
+        {"vtfm4", 0xf1e00000},
+        {"vmscl", 0xf2000000},
+        {"vmscl", 0xf2200000},
+        {"vmscl", 0xf2400000},
+        {"vmscl", 0xf2600000},
+        {"vcrsp", 0xf2800000},
+        {"vrot",  0xf3a00000},
+    },
+    .sub_categories = {
+        &VFPUMatrix
     }
 };
 
@@ -425,6 +563,14 @@ const category Immediate{
         {"ll",    0xc0000000},
         {"lwc1",  0xc4000000},
         {"lv.s",  0xc8000000},
+        {"lv",    0xd4000000},
+        {"lv.q",  0xd8000000},
+        {"sc",    0xe0000000},
+        {"swc1",  0xe4000000},
+        // TODO: correct VFPU instruction name parsing
+        {"sv.s",  0xe8000000},
+        {"svl.q", 0xf4000000},
+        {"sv.q", 0xf8000000},
     },
     .sub_categories = {
         &Special,
@@ -437,6 +583,57 @@ const category Immediate{
         &Special2,
         &Special3,
         &VFPU4Jump,
+        &VFPU5,
+        &VFPU6
+    }
+};
+
+const category RegisterImmediate{
+    .min =  0x04000000,
+    .max =  0x041f0000,
+    .mask = 0xfc1f0000,
+    .instructions = {
+        {"bltz", 0x04000000},
+        {"bgez", 0x04010000},
+        {"bltzl", 0x04020000},
+        {"bgezl", 0x04030000},
+        {"tgei", 0x04080000},
+        {"tgeiu", 0x04090000},
+        {"tlti", 0x040a0000},
+        {"tltiu", 0x040b0000},
+        {"teqi", 0x040c0000},
+        {"tnei", 0x040e0000},
+        {"bltzal", 0x04100000},
+        {"bgezal", 0x04110000},
+        {"bltzall", 0x04120000},
+        {"bgezall", 0x04130000},
+        {"synci", 0x041f0000}
+    },
+    .sub_categories = {}
+};
+
+const category VFPUSpecial{
+    .min  = 0xffff0000,
+    .max  = 0xffff04ff,
+    .mask = 0xffff07ff,
+    .instructions = {
+        {"vnop",   0xffff0000},
+        {"vsync",  0xffff0320},
+        {"vflush", 0xffff040d},
+    },
+    .sub_categories = {}
+};
+
+const category AllInstructions{
+    .min  = 0x00000000,
+    .max  = 0xffffffff,
+    .mask = 0xffffffff,
+    .instructions = {},
+    .sub_categories = {
+        &Fixed,
+        &Immediate,
+        &RegisterImmediate,
+        &VFPUSpecial
     }
 };
 
@@ -470,25 +667,11 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, const parse
     return false;
 }
 
-bool try_parse_special_instruction(u32 opcode, const parse_config *conf, instruction *out)
-{
-    if (opcode == nop.opcode)
-    {
-        populate_instruction(out, &nop);
-        return true;
-    }
-
-    // TODO: others (jalr)
-
-    return false;
-}
-
 void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
 {
-    bool found = try_parse_special_instruction(opcode, conf, out);
+    bool found;
 
-    if (!found)
-        found = try_parse_category_instruction(opcode, &Immediate, conf, out);
+    found = try_parse_category_instruction(opcode, &AllInstructions, conf, out);
 
     if (!found)
         out->name = "unknown";
