@@ -2,6 +2,7 @@
 #pragma once
 
 #include <vector>
+#include <variant>
 
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
@@ -15,18 +16,18 @@ struct parse_config
     // TODO: bool emit_pseudo;
 };
 
-struct instruction_argument
+using instruction_argument = std::variant<u32, const char*>;
+
+enum class instruction_type : u32
 {
-    // TODO: argument type (immediate, reg, etc)
-    u32 value;
-    const char *name;
+    None = 0
 };
 
 struct instruction
 {
-    // TODO: instruction type
     u32 opcode;
     u32 address;
+    instruction_type type;
     const char *name;
 
     std::vector<instruction_argument> arguments;

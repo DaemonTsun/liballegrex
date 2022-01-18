@@ -1,15 +1,20 @@
 
-#include <variant>
+#include <stdexcept>
 #include <assert.h>
+
+#include "string.hpp"
 #include "parse_allegrex.hpp"
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
+
+typedef void(*argument_parse_function_t)(u32 opcode, instruction*);
 
 struct instruction_info
 {
     const char *name;
     u32 opcode;
-    // TODO: type
+    instruction_type type;
+    argument_parse_function_t argument_parse_function;
 };
 
 struct category
@@ -22,12 +27,56 @@ struct category
     std::vector<const category*> sub_categories;
 };
 
+template<typename T>
+constexpr T bitmask(T from, T to)
+{
+    return (((1 << (1 + to)) - 1) ^ ((1 << (from)) - 1));
+}
+
+#define bitrange(val, from, to) ((val & bitmask(from, to)) >> from)
+
+const char *register_names[] = {
+    "zero",     // 0
+    "at",       // 1
+    "v0", "v1", // 2-3
+    "a0", "a1", "a2", "a3", // 4-7
+    "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", // 8-15
+    "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", // 16-23
+    "t8", "t9", // 24-25
+    "k0", "k1", // 26-27
+    "gp", // 28
+    "sp", // 29
+    "fp", // 30
+    "ra"  // 31
+};
+
+void add_register_argument(u32 reg, instruction *inst)
+{
+    if (reg > 31)
+        throw std::runtime_error(str("unknown normal register ", reg));
+
+    inst->arguments.push_back(register_names[reg]);
+}
+
+// argument parse functions
+void arg_parse_special_3regs(u32 opcode, instruction *inst)
+{
+    u32 rs = bitrange(opcode, 21u, 25u);
+    u32 rt = bitrange(opcode, 16u, 20u);
+    u32 rd = bitrange(opcode, 11u, 15u);
+
+    add_register_argument(rs, inst);
+    add_register_argument(rt, inst);
+    add_register_argument(rd, inst);
+};
+
+// categories
 const category Fixed{
     .min  = 0x00000000,
     .max  = 0xffffffff,
     .mask = 0xffffffff,
     .instructions = {
-        {"nop", 0x00000000}
+        {"nop", 0x00000000, instruction_type::None, nullptr}
     },
     .sub_categories = {}
 };
@@ -82,7 +131,7 @@ const category Special{
         {"divu",    0x0000001b},
         {"madd",    0x0000001c},
         {"maddu",   0x0000001d},
-        {"add",     0x00000020},
+        {"add",     0x00000020, instruction_type::None, arg_parse_special_3regs}, // TODO: type
         {"addu",    0x00000021},
         {"sub",     0x00000022},
         {"subu",    0x00000023},
@@ -189,7 +238,6 @@ const category Cop1S{
         {"c.nge.s",   0x4600003d},
         {"c.le.s",    0x4600003e},
         {"c.ngt.s",   0x4600003f}
-
     },
     .sub_categories = {}
 };
@@ -640,7 +688,10 @@ const category AllInstructions{
 void populate_instruction(instruction *instr, const instruction_info *info)
 {
     instr->name = info->name;
-    // TODO: instr->type = info->type;
+    instr->type = info->type;
+    
+    if (info->argument_parse_function != nullptr)
+        info->argument_parse_function(instr->opcode, instr);
 }
 
 bool try_parse_category_instruction(u32 opcode, const category *cat, const parse_config *conf, instruction *out)
@@ -696,6 +747,14 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
 
         parse_instruction(inst.opcode, conf, &inst);
 
-        log(conf, "%08x %08x   %s\n", inst.address, inst.opcode, inst.name);
+        log(conf, "%08x %08x   %s", inst.address, inst.opcode, inst.name);
+
+        for (auto arg : inst.arguments)
+        {
+            if (std::holds_alternative<const char*>(arg))
+                log(conf, " %s", std::get<const char*>(arg));
+        }
+
+        log(conf, "\n", 0);
     }
 }
