@@ -7,6 +7,26 @@
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 
+const char *register_names[] = {
+    "zero",     // 0
+    "at",       // 1
+    "v0", "v1", // 2-3
+    "a0", "a1", "a2", "a3", // 4-7
+    "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", // 8-15
+    "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", // 16-23
+    "t8", "t9", // 24-25
+    "k0", "k1", // 26-27
+    "gp", // 28
+    "sp", // 29
+    "fp", // 30
+    "ra"  // 31
+};
+
+const char *register_name(mips_register reg)
+{
+    return register_names[static_cast<u32>(reg)];
+}
+
 typedef void(*argument_parse_function_t)(u32 opcode, instruction*);
 
 struct instruction_info
@@ -34,40 +54,42 @@ constexpr T bitmask(T from, T to)
 }
 
 #define bitrange(val, from, to) ((val & bitmask(from, to)) >> from)
-
-const char *register_names[] = {
-    "zero",     // 0
-    "at",       // 1
-    "v0", "v1", // 2-3
-    "a0", "a1", "a2", "a3", // 4-7
-    "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", // 8-15
-    "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", // 16-23
-    "t8", "t9", // 24-25
-    "k0", "k1", // 26-27
-    "gp", // 28
-    "sp", // 29
-    "fp", // 30
-    "ra"  // 31
-};
+#define RS(opcode) bitrange(opcode, 21u, 25u)
+#define RT(opcode) bitrange(opcode, 16u, 20u)
+#define RD(opcode) bitrange(opcode, 11u, 15u)
 
 void add_register_argument(u32 reg, instruction *inst)
 {
     if (reg > 31)
         throw std::runtime_error(str("unknown normal register ", reg));
 
-    inst->arguments.push_back(register_names[reg]);
+    inst->arguments.push_back(static_cast<mips_register>(reg));
 }
 
 // argument parse functions
-void arg_parse_special_3regs(u32 opcode, instruction *inst)
+// R-type instruction: xxxxxx ..... ..... ..... ..... xxxxxx
+// 3: first 3 (from left to right) sets of 5 bits are parameters
+// the last one is shift (unused for most instructions)
+void arg_parse_R3(u32 opcode, instruction *inst)
 {
-    u32 rs = bitrange(opcode, 21u, 25u);
-    u32 rt = bitrange(opcode, 16u, 20u);
-    u32 rd = bitrange(opcode, 11u, 15u);
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 rd = RD(opcode);
 
+    // destination comes first
+    add_register_argument(rd, inst);
     add_register_argument(rs, inst);
     add_register_argument(rt, inst);
+};
+
+// only used by clz & clo...
+void arg_parse_R2(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rd = RD(opcode);
+
     add_register_argument(rd, inst);
+    add_register_argument(rs, inst);
 };
 
 // categories
@@ -97,8 +119,8 @@ const category SrlvRotrv{
     .max =  0x00000046,
     .mask = 0xfc00007f,
     .instructions = {
-        {"srlv",  0x00000006},
-        {"rotrv", 0x00000046}
+        {"srlv",  0x00000006, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"rotrv", 0x00000046, instruction_type::None, arg_parse_R3} // TODO: type
     },
     .sub_categories = {}
 };
@@ -110,12 +132,12 @@ const category Special{
     .instructions = {
         {"sll",     0x00000000},
         {"sra",     0x00000003},
-        {"sllv",    0x00000004},
-        {"srav",    0x00000007},
+        {"sllv",    0x00000004, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"srav",    0x00000007, instruction_type::None, arg_parse_R3}, // TODO: type
         {"jr",      0x00000008},
         {"jalr",    0x00000009},
-        {"movz",    0x0000000a},
-        {"movn",    0x0000000b},
+        {"movz",    0x0000000a, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"movn",    0x0000000b, instruction_type::None, arg_parse_R3}, // TODO: type
         {"syscall", 0x0000000c},
         {"break",   0x0000000d},
         {"sync",    0x0000000f},
@@ -123,26 +145,26 @@ const category Special{
         {"mthi",    0x00000011},
         {"mflo",    0x00000012},
         {"mtlo",    0x00000013},
-        {"clz",     0x00000016},
-        {"clo",     0x00000017},
+        {"clz",     0x00000016, instruction_type::None, arg_parse_R2},
+        {"clo",     0x00000017, instruction_type::None, arg_parse_R2},
         {"mult",    0x00000018},
         {"multu",   0x00000019},
         {"div",     0x0000001a},
         {"divu",    0x0000001b},
         {"madd",    0x0000001c},
         {"maddu",   0x0000001d},
-        {"add",     0x00000020, instruction_type::None, arg_parse_special_3regs}, // TODO: type
-        {"addu",    0x00000021},
-        {"sub",     0x00000022},
-        {"subu",    0x00000023},
-        {"and",     0x00000024},
-        {"or",      0x00000025},
-        {"xor",     0x00000026},
-        {"nor",     0x00000027},
-        {"slt",     0x0000002a},
-        {"sltu",    0x0000002b},
-        {"max",     0x0000002c},
-        {"min",     0x0000002d},
+        {"add",     0x00000020, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"addu",    0x00000021, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"sub",     0x00000022, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"subu",    0x00000023, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"and",     0x00000024, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"or",      0x00000025, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"xor",     0x00000026, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"nor",     0x00000027, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"slt",     0x0000002a, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"sltu",    0x0000002b, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"max",     0x0000002c, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"min",     0x0000002d, instruction_type::None, arg_parse_R3}, // TODO: type
         {"msub",    0x0000002e},
         {"msubu",   0x0000002f},
         {"tge",     0x00000030},
@@ -747,12 +769,18 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
 
         parse_instruction(inst.opcode, conf, &inst);
 
-        log(conf, "%08x %08x   %s", inst.address, inst.opcode, inst.name);
+        log(conf, "%06x %08x   %-10s", inst.address, inst.opcode, inst.name);
 
         for (auto arg : inst.arguments)
         {
             if (std::holds_alternative<const char*>(arg))
+            {
                 log(conf, " %s", std::get<const char*>(arg));
+            }
+            else if (std::holds_alternative<mips_register>(arg))
+            {
+                log(conf, " %s", register_name(std::get<mips_register>(arg)));
+            }
         }
 
         log(conf, "\n", 0);
