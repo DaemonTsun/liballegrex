@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "psp_elf.hpp"
-#include "parse_allegrex.hpp"
+#include "parse_instructions.hpp"
 
 #include "file_stream.hpp"
 #include "memory_stream.hpp"

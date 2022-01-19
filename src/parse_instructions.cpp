@@ -3,7 +3,8 @@
 #include <assert.h>
 
 #include "string.hpp"
-#include "parse_allegrex.hpp"
+#include "parse_instruction_arguments.hpp"
+#include "parse_instructions.hpp"
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 
@@ -27,8 +28,6 @@ const char *register_name(mips_register reg)
     return register_names[static_cast<u32>(reg)];
 }
 
-typedef void(*argument_parse_function_t)(u32 opcode, instruction*);
-
 struct instruction_info
 {
     const char *name;
@@ -45,51 +44,6 @@ struct category
 
     std::vector<instruction_info> instructions;
     std::vector<const category*> sub_categories;
-};
-
-template<typename T>
-constexpr T bitmask(T from, T to)
-{
-    return (((1 << (1 + to)) - 1) ^ ((1 << (from)) - 1));
-}
-
-#define bitrange(val, from, to) ((val & bitmask(from, to)) >> from)
-#define RS(opcode) bitrange(opcode, 21u, 25u)
-#define RT(opcode) bitrange(opcode, 16u, 20u)
-#define RD(opcode) bitrange(opcode, 11u, 15u)
-
-void add_register_argument(u32 reg, instruction *inst)
-{
-    if (reg > 31)
-        throw std::runtime_error(str("unknown normal register ", reg));
-
-    inst->arguments.push_back(static_cast<mips_register>(reg));
-}
-
-// argument parse functions
-// R-type instruction: xxxxxx ..... ..... ..... ..... xxxxxx
-// 3: first 3 (from left to right) sets of 5 bits are parameters
-// the last one is shift (unused for most instructions)
-void arg_parse_R3(u32 opcode, instruction *inst)
-{
-    u32 rs = RS(opcode);
-    u32 rt = RT(opcode);
-    u32 rd = RD(opcode);
-
-    // destination comes first
-    add_register_argument(rd, inst);
-    add_register_argument(rs, inst);
-    add_register_argument(rt, inst);
-};
-
-// only used by clz & clo...
-void arg_parse_R2(u32 opcode, instruction *inst)
-{
-    u32 rs = RS(opcode);
-    u32 rd = RD(opcode);
-
-    add_register_argument(rd, inst);
-    add_register_argument(rs, inst);
 };
 
 // categories
@@ -119,8 +73,8 @@ const category SrlvRotrv{
     .max =  0x00000046,
     .mask = 0xfc00007f,
     .instructions = {
-        {"srlv",  0x00000006, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"rotrv", 0x00000046, instruction_type::None, arg_parse_R3} // TODO: type
+        {"srlv",  0x00000006, instruction_type::None, arg_parse_VarShift}, // TODO: type
+        {"rotrv", 0x00000046, instruction_type::None, arg_parse_VarShift} // TODO: type
     },
     .sub_categories = {}
 };
@@ -130,10 +84,10 @@ const category Special{
     .max =  0x0000003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"sll",     0x00000000},
-        {"sra",     0x00000003},
-        {"sllv",    0x00000004, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"srav",    0x00000007, instruction_type::None, arg_parse_R3}, // TODO: type
+        {"sll",     0x00000000, instruction_type::None, arg_parse_RtRdShift}, // TODO: type
+        {"sra",     0x00000003, instruction_type::None, arg_parse_RtRdShift}, // TODO: type
+        {"sllv",    0x00000004, instruction_type::None, arg_parse_VarShift}, // TODO: type
+        {"srav",    0x00000007, instruction_type::None, arg_parse_VarShift}, // TODO: type
         {"jr",      0x00000008},
         {"jalr",    0x00000009},
         {"movz",    0x0000000a, instruction_type::None, arg_parse_R3}, // TODO: type
@@ -147,12 +101,12 @@ const category Special{
         {"mtlo",    0x00000013},
         {"clz",     0x00000016, instruction_type::None, arg_parse_R2},
         {"clo",     0x00000017, instruction_type::None, arg_parse_R2},
-        {"mult",    0x00000018},
-        {"multu",   0x00000019},
-        {"div",     0x0000001a},
-        {"divu",    0x0000001b},
-        {"madd",    0x0000001c},
-        {"maddu",   0x0000001d},
+        {"mult",    0x00000018, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"multu",   0x00000019, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"div",     0x0000001a, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"divu",    0x0000001b, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"madd",    0x0000001c, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"maddu",   0x0000001d, instruction_type::None, arg_parse_RsRt}, // TODO: type
         {"add",     0x00000020, instruction_type::None, arg_parse_R3}, // TODO: type
         {"addu",    0x00000021, instruction_type::None, arg_parse_R3}, // TODO: type
         {"sub",     0x00000022, instruction_type::None, arg_parse_R3}, // TODO: type
@@ -165,14 +119,14 @@ const category Special{
         {"sltu",    0x0000002b, instruction_type::None, arg_parse_R3}, // TODO: type
         {"max",     0x0000002c, instruction_type::None, arg_parse_R3}, // TODO: type
         {"min",     0x0000002d, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"msub",    0x0000002e},
-        {"msubu",   0x0000002f},
-        {"tge",     0x00000030},
-        {"tgeu",    0x00000031},
-        {"tlt",     0x00000032},
-        {"tltu",    0x00000033},
-        {"teq",     0x00000034},
-        {"tne",     0x00000036},
+        {"msub",    0x0000002e, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"msubu",   0x0000002f, instruction_type::None, arg_parse_RsRt}, // TODO: type
+        {"tge",     0x00000030, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
+        {"tgeu",    0x00000031, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
+        {"tlt",     0x00000032, instruction_type::None, arg_parse_RsRtCode}, // TODO: type 
+        {"tltu",    0x00000033, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
+        {"teq",     0x00000034, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
+        {"tne",     0x00000036, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
     },
     .sub_categories = {
         &SrlRotr,
@@ -780,6 +734,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             else if (std::holds_alternative<mips_register>(arg))
             {
                 log(conf, " %s", register_name(std::get<mips_register>(arg)));
+            }
+            else if (std::holds_alternative<shift>(arg))
+            {
+                log(conf, " %u", std::get<shift>(arg).data);
             }
         }
 
