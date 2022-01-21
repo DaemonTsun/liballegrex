@@ -36,12 +36,20 @@ const char *register_name(mips_register reg);
 
 #define DEFINE_TYPED_ARG(name, type) struct name {type data;}
 
-DEFINE_TYPED_ARG(shift, u32);
+DEFINE_TYPED_ARG(shift, u8);
+struct coprocessor_register
+{
+    u8 rd;
+    u8 sel;
+};
+
+// TODO: syscall
+
 // some instructions can have data (e.g. tge) that's not really
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
 
-using instruction_argument = std::variant<mips_register, const char*, shift, extra>;
+using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, extra>;
 
 enum class instruction_type : u32
 {

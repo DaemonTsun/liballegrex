@@ -62,8 +62,8 @@ const category SrlRotr{
     .max =  0x00200002,
     .mask = 0xffe0003f,
     .instructions = {
-        {"srl",  0x00000002},
-        {"rotr", 0x00200002}
+        {"srl",  0x00000002, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
+        {"rotr", 0x00200002, instruction_type::None, arg_parse_RdRtShift}  // TODO: type
     },
     .sub_categories = {}
 };
@@ -84,23 +84,23 @@ const category Special{
     .max =  0x0000003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"sll",     0x00000000, instruction_type::None, arg_parse_RtRdShift}, // TODO: type
-        {"sra",     0x00000003, instruction_type::None, arg_parse_RtRdShift}, // TODO: type
+        {"sll",     0x00000000, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
+        {"sra",     0x00000003, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
         {"sllv",    0x00000004, instruction_type::None, arg_parse_VarShift}, // TODO: type
         {"srav",    0x00000007, instruction_type::None, arg_parse_VarShift}, // TODO: type
-        {"jr",      0x00000008},
-        {"jalr",    0x00000009},
+        {"jr",      0x00000008, instruction_type::None, arg_parse_RegJumpRs}, // TODO: type
+        {"jalr",    0x00000009, instruction_type::None, arg_parse_RegJumpRdRs}, // TODO: type
         {"movz",    0x0000000a, instruction_type::None, arg_parse_R3}, // TODO: type
         {"movn",    0x0000000b, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"syscall", 0x0000000c},
-        {"break",   0x0000000d},
-        {"sync",    0x0000000f},
-        {"mfhi",    0x00000010},
-        {"mthi",    0x00000011},
-        {"mflo",    0x00000012},
-        {"mtlo",    0x00000013},
-        {"clz",     0x00000016, instruction_type::None, arg_parse_R2},
-        {"clo",     0x00000017, instruction_type::None, arg_parse_R2},
+        {"syscall", 0x0000000c, instruction_type::None, arg_parse_Syscall}, // TODO: type
+        {"break",   0x0000000d, instruction_type::None, nullptr},
+        {"sync",    0x0000000f, instruction_type::None, arg_parse_Sync}, // TODO: type
+        {"mfhi",    0x00000010, instruction_type::None, arg_parse_Rd}, // TODO: type
+        {"mthi",    0x00000011, instruction_type::None, arg_parse_Rs}, // TODO: type
+        {"mflo",    0x00000012, instruction_type::None, arg_parse_Rd}, // TODO: type
+        {"mtlo",    0x00000013, instruction_type::None, arg_parse_Rs}, // TODO: type
+        {"clz",     0x00000016, instruction_type::None, arg_parse_R2}, // TODO: type
+        {"clo",     0x00000017, instruction_type::None, arg_parse_R2}, // TODO: type
         {"mult",    0x00000018, instruction_type::None, arg_parse_RsRt}, // TODO: type
         {"multu",   0x00000019, instruction_type::None, arg_parse_RsRt}, // TODO: type
         {"div",     0x0000001a, instruction_type::None, arg_parse_RsRt}, // TODO: type
@@ -139,29 +139,28 @@ const category Cop0CO{
     .max =  0x4200003f,
     .mask = 0xfe00003f,
     .instructions = {
-        {"tlbr",  0x42000001},
-        {"tlbwi", 0x42000002},
-        {"tlbwr", 0x42000006},
-        {"tlbp",  0x42000008},
-        {"eret",  0x42000018},
-        {"iack",  0x42000019},
-        {"deret", 0x4200001f},
-        {"wait",  0x42000020},
+        {"tlbr",  0x42000001, instruction_type::None, nullptr}, // TODO: type
+        {"tlbwi", 0x42000002, instruction_type::None, nullptr}, // TODO: type
+        {"tlbwr", 0x42000006, instruction_type::None, nullptr}, // TODO: type
+        {"tlbp",  0x42000008, instruction_type::None, nullptr}, // TODO: type
+        {"eret",  0x42000018, instruction_type::None, nullptr}, // TODO: type
+        {"iack",  0x42000019, instruction_type::None, nullptr}, // TODO: type
+        {"deret", 0x4200001f, instruction_type::None, nullptr}, // TODO: type
+        {"wait",  0x42000020, instruction_type::None, nullptr}  // TODO: type
     },
     .sub_categories = {}
 };
-
 
 const category Cop0{
     .min =  0x40000000,
     .max =  0x43e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {"mfc0",   0x40000000},
-        {"mtc0",   0x40800000},
-        {"rdpgpr", 0x41600000},
-        {"mfmc0",  0x41800000},
-        {"wrpgpr", 0x41c00000},
+        {"mfc0",   0x40000000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
+        {"mtc0",   0x40800000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
+        {"rdpgpr", 0x41600000, instruction_type::None, arg_parse_Cop0RdRt}, // TODO: type
+        {"mfmc0",  0x41800000, instruction_type::None, nullptr}, // TODO: type
+        {"wrpgpr", 0x41c00000, instruction_type::None, arg_parse_Cop0RdRt}, // TODO: type
     },
     .sub_categories = {
         &Cop0CO
@@ -738,6 +737,11 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             else if (std::holds_alternative<shift>(arg))
             {
                 log(conf, " %u", std::get<shift>(arg).data);
+            }
+            else if (std::holds_alternative<coprocessor_register>(arg))
+            {
+                coprocessor_register &d = std::get<coprocessor_register>(arg);
+                log(conf, " [%u, %u]", d.rd, d.sel);
             }
         }
 

@@ -63,11 +63,11 @@ void arg_parse_RsRtCode(u32 opcode, instruction *inst)
     add_argument(extra{code}, inst);
 };
 
-void arg_parse_RtRdShift(u32 opcode, instruction *inst)
+void arg_parse_RdRtShift(u32 opcode, instruction *inst)
 {
     u32 rt = RT(opcode);
     u32 rd = RD(opcode);
-    u32 sa = SA(opcode);
+    u8 sa = SA(opcode);
 
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
@@ -84,4 +84,71 @@ void arg_parse_VarShift(u32 opcode, instruction *inst)
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
+};
+
+void arg_parse_RegJumpRs(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+
+    add_register_argument(rs, inst);
+};
+
+void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rd = RD(opcode);
+
+    add_register_argument(rd, inst);
+    add_register_argument(rs, inst);
+};
+
+void arg_parse_Syscall(u32 opcode, instruction *inst)
+{
+    u32 code = bitrange(opcode, 6, 25);
+    int funcnum = code & 0xFFF;
+	int modulenum = (code & 0xFF000) >> 12;
+    // TODO: get function name
+    // https://github.com/hrydgard/ppsspp/blob/c1a41bef72cb824eaa10e17790029866c4ed68da/Core/HLE/HLE.cpp
+
+    add_argument(extra{code}, inst);
+};
+
+void arg_parse_Sync(u32 opcode, instruction *inst)
+{
+    u32 stype = bitrange(opcode, 6, 10);
+
+    add_argument(extra{stype}, inst);
+};
+
+void arg_parse_Rd(u32 opcode, instruction *inst)
+{
+    u32 rd = RD(opcode);
+
+    add_register_argument(rd, inst);
+};
+
+void arg_parse_Rs(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+
+    add_register_argument(rs, inst);
+};
+
+void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst)
+{
+    u32 rt = RT(opcode);
+    u8 rd = RD(opcode);
+    u8 sel = bitrange(opcode, 0, 2);
+
+    add_register_argument(rt, inst);
+    add_argument(coprocessor_register{rd, sel}, inst);
+};
+
+void arg_parse_Cop0RdRt(u32 opcode, instruction *inst)
+{
+    u32 rt = RT(opcode);
+    u32 rd = RD(opcode);
+
+    add_register_argument(rd, inst);
+    add_register_argument(rt, inst);
 };
