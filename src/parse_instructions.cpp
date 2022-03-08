@@ -616,20 +616,20 @@ const category RegisterImmediate{
     .max =  0x041f0000,
     .mask = 0xfc1f0000,
     .instructions = {
-        {"bltz", 0x04000000},
-        {"bgez", 0x04010000},
-        {"bltzl", 0x04020000},
-        {"bgezl", 0x04030000},
+        {"bltz", 0x04000000, instruction_type::None, arg_parse_RelBranch}, // TODO: type
+        {"bgez", 0x04010000, instruction_type::None, arg_parse_RelBranch},
+        {"bltzl", 0x04020000, instruction_type::None, arg_parse_RelBranch},
+        {"bgezl", 0x04030000, instruction_type::None, arg_parse_RelBranch},
         {"tgei", 0x04080000},
         {"tgeiu", 0x04090000},
         {"tlti", 0x040a0000},
         {"tltiu", 0x040b0000},
         {"teqi", 0x040c0000},
         {"tnei", 0x040e0000},
-        {"bltzal", 0x04100000},
-        {"bgezal", 0x04110000},
-        {"bltzall", 0x04120000},
-        {"bgezall", 0x04130000},
+        {"bltzal", 0x04100000, instruction_type::None, arg_parse_RelBranch},
+        {"bgezal", 0x04110000, instruction_type::None, arg_parse_RelBranch},
+        {"bltzall", 0x04120000, instruction_type::None, arg_parse_RelBranch},
+        {"bgezall", 0x04130000, instruction_type::None, arg_parse_RelBranch},
         {"synci", 0x041f0000}
     },
     .sub_categories = {}
@@ -737,6 +737,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             else if (std::holds_alternative<shift>(arg))
             {
                 log(conf, " %u", std::get<shift>(arg).data);
+            }
+            else if (std::holds_alternative<address>(arg))
+            {
+                log(conf, " %x", std::get<address>(arg).data);
             }
             else if (std::holds_alternative<coprocessor_register>(arg))
             {

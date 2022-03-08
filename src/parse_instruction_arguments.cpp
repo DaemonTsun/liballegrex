@@ -152,3 +152,14 @@ void arg_parse_Cop0RdRt(u32 opcode, instruction *inst)
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
 };
+
+void arg_parse_RelBranch(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 off = inst->address;
+    s16 imm = (s16)(opcode & 0xFFFF) << 2;
+    off += imm + sizeof(opcode);
+
+    add_register_argument(rs, inst);
+    add_argument(address{off}, inst);
+};

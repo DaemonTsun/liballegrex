@@ -63,7 +63,6 @@ constexpr R bitrange_(T val)
 #define RD(opcode) bitrange(opcode, 11u, 15u)
 #define SA(opcode) bitrange(opcode, 6u, 10u)
 
-
 void arg_parse_R3(u32 opcode, instruction *inst);
 // clz, clo
 void arg_parse_R2(u32 opcode, instruction *inst);
@@ -85,3 +84,5 @@ void arg_parse_Rd(u32 opcode, instruction *inst);
 
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst);
 void arg_parse_Cop0RdRt(u32 opcode, instruction *inst);
+
+void arg_parse_RelBranch(u32 opcode, instruction *inst);
