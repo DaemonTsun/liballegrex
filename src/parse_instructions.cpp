@@ -616,20 +616,20 @@ const category RegisterImmediate{
     .max =  0x041f0000,
     .mask = 0xfc1f0000,
     .instructions = {
-        {"bltz", 0x04000000, instruction_type::None, arg_parse_RelBranch}, // TODO: type
-        {"bgez", 0x04010000, instruction_type::None, arg_parse_RelBranch},
-        {"bltzl", 0x04020000, instruction_type::None, arg_parse_RelBranch},
-        {"bgezl", 0x04030000, instruction_type::None, arg_parse_RelBranch},
-        {"tgei", 0x04080000},
-        {"tgeiu", 0x04090000},
-        {"tlti", 0x040a0000},
-        {"tltiu", 0x040b0000},
-        {"teqi", 0x040c0000},
-        {"tnei", 0x040e0000},
-        {"bltzal", 0x04100000, instruction_type::None, arg_parse_RelBranch},
-        {"bgezal", 0x04110000, instruction_type::None, arg_parse_RelBranch},
-        {"bltzall", 0x04120000, instruction_type::None, arg_parse_RelBranch},
-        {"bgezall", 0x04130000, instruction_type::None, arg_parse_RelBranch},
+        {"bltz", 0x04000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgez", 0x04010000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bltzl", 0x04020000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgezl", 0x04030000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"tgei", 0x04080000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"tgeiu", 0x04090000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"tlti", 0x040a0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"tltiu", 0x040b0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"teqi", 0x040c0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"tnei", 0x040e0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"bltzal", 0x04100000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgezal", 0x04110000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bltzall", 0x04120000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgezall", 0x04130000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"synci", 0x041f0000}
     },
     .sub_categories = {}
@@ -737,6 +737,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             else if (std::holds_alternative<shift>(arg))
             {
                 log(conf, " %u", std::get<shift>(arg).data);
+            }
+            else if (std::holds_alternative<immediate>(arg))
+            {
+                log(conf, " %u", std::get<immediate>(arg).data);
             }
             else if (std::holds_alternative<address>(arg))
             {

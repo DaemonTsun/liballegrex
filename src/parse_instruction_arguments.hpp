@@ -85,4 +85,5 @@ void arg_parse_Rd(u32 opcode, instruction *inst);
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst);
 void arg_parse_Cop0RdRt(u32 opcode, instruction *inst);
 
-void arg_parse_RelBranch(u32 opcode, instruction *inst);
+void arg_parse_RsRelAddress(u32 opcode, instruction *inst);
+void arg_parse_RsImmediate(u32 opcode, instruction *inst);
