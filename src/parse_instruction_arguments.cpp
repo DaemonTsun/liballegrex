@@ -153,6 +153,15 @@ void arg_parse_Cop0RdRt(u32 opcode, instruction *inst)
     add_register_argument(rt, inst);
 };
 
+void arg_parse_RsImmediate(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u16 imm = bitrange(opcode, 0, 16);
+
+    add_register_argument(rs, inst);
+    add_argument(immediate{imm}, inst);
+};
+
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
@@ -164,11 +173,13 @@ void arg_parse_RsRelAddress(u32 opcode, instruction *inst)
     add_argument(address{off}, inst);
 };
 
-void arg_parse_RsImmediate(u32 opcode, instruction *inst)
+void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
 {
-    u32 rs = RS(opcode);
-    u16 imm = bitrange(opcode, 0, 16);
+    u32 off = inst->address;
+    s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
+    off += imm + sizeof(opcode);
+    auto cc = bitrange(opcode, 18, 20); // can probably omit this
 
-    add_register_argument(rs, inst);
-    add_argument(immediate{imm}, inst);
+    add_argument(address{off}, inst);
+    add_argument(extra{cc}, inst);
 };

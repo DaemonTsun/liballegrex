@@ -93,7 +93,7 @@ const category Special{
         {"movz",    0x0000000a, instruction_type::None, arg_parse_R3}, // TODO: type
         {"movn",    0x0000000b, instruction_type::None, arg_parse_R3}, // TODO: type
         {"syscall", 0x0000000c, instruction_type::None, arg_parse_Syscall}, // TODO: type
-        {"break",   0x0000000d, instruction_type::None, nullptr},
+        {"break",   0x0000000d, instruction_type::None, nullptr}, // TODO: type
         {"sync",    0x0000000f, instruction_type::None, arg_parse_Sync}, // TODO: type
         {"mfhi",    0x00000010, instruction_type::None, arg_parse_Rd}, // TODO: type
         {"mthi",    0x00000011, instruction_type::None, arg_parse_Rs}, // TODO: type
@@ -172,10 +172,10 @@ const category Cop1BC{
     .max =  0x451f0000,
     .mask = 0xffff0000,
     .instructions = {
-        {"bc1f",  0x45000000},
-        {"bc1t",  0x45010000},
-        {"bc1fl", 0x45020000},
-        {"bc1tl", 0x45030000},
+        {"bc1f",  0x45000000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
+        {"bc1t",  0x45010000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
+        {"bc1fl", 0x45020000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
+        {"bc1tl", 0x45030000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
     },
     .sub_categories = {}
 };
@@ -630,7 +630,7 @@ const category RegisterImmediate{
         {"bgezal", 0x04110000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bltzall", 0x04120000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgezall", 0x04130000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"synci", 0x041f0000}
+        {"synci", 0x041f0000, instruction_type::None, nullptr} // TODO: type
     },
     .sub_categories = {}
 };
@@ -640,9 +640,9 @@ const category VFPUSpecial{
     .max  = 0xffff04ff,
     .mask = 0xffff07ff,
     .instructions = {
-        {"vnop",   0xffff0000},
-        {"vsync",  0xffff0320},
-        {"vflush", 0xffff040d},
+        {"vnop",   0xffff0000, instruction_type::None, nullptr}, // TODO: type
+        {"vsync",  0xffff0320, instruction_type::None, nullptr}, // TODO: type
+        {"vflush", 0xffff040d, instruction_type::None, nullptr} // TODO: type
     },
     .sub_categories = {}
 };
