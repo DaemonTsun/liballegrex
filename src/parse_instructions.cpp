@@ -158,9 +158,9 @@ const category Cop0{
     .instructions = {
         {"mfc0",   0x40000000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
         {"mtc0",   0x40800000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
-        {"rdpgpr", 0x41600000, instruction_type::None, arg_parse_Cop0RdRt}, // TODO: type
+        {"rdpgpr", 0x41600000, instruction_type::None, arg_parse_RdRt}, // TODO: type
         {"mfmc0",  0x41800000, instruction_type::None, nullptr}, // TODO: type
-        {"wrpgpr", 0x41c00000, instruction_type::None, arg_parse_Cop0RdRt}, // TODO: type
+        {"wrpgpr", 0x41c00000, instruction_type::None, arg_parse_RdRt}, // TODO: type
     },
     .sub_categories = {
         &Cop0CO
@@ -329,9 +329,9 @@ const category Special2{
     .max =  0x7000003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"halt", 0x70000000},
-        {"mfic", 0x70000024},
-        {"mtic", 0x70000026},
+        {"halt", 0x70000000, instruction_type::None, nullptr}, // TODO: type
+        {"mfic", 0x70000024, instruction_type::None, nullptr}, // TODO: type
+        {"mtic", 0x70000026, instruction_type::None, nullptr}, // TODO: type
     },
     .sub_categories = {
     }
@@ -342,11 +342,11 @@ const category Allegrex0{
     .max =  0x7c0007e0,
     .mask = 0xfc0007ff,
     .instructions = {
-        {"wsbh",   0x7c0000a0},
-        {"wsbw",   0x7c0000e0},
-        {"seb",    0x7c000420},
-        {"bitrev", 0x7c000520},
-        {"seh",    0x7c000620}
+        {"wsbh",   0x7c0000a0, instruction_type::None, arg_parse_RdRt}, // TODO: type
+        {"wsbw",   0x7c0000e0, instruction_type::None, arg_parse_RdRt}, // TODO: type
+        {"seb",    0x7c000420, instruction_type::None, arg_parse_RdRt}, // TODO: type
+        {"bitrev", 0x7c000520, instruction_type::None, arg_parse_RdRt}, // TODO: type
+        {"seh",    0x7c000620, instruction_type::None, arg_parse_RdRt}  // TODO: type
     },
     .sub_categories = {}
 };

@@ -120,6 +120,13 @@ void arg_parse_Sync(u32 opcode, instruction *inst)
     add_argument(extra{stype}, inst);
 };
 
+void arg_parse_Rs(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+
+    add_register_argument(rs, inst);
+};
+
 void arg_parse_Rd(u32 opcode, instruction *inst)
 {
     u32 rd = RD(opcode);
@@ -127,11 +134,13 @@ void arg_parse_Rd(u32 opcode, instruction *inst)
     add_register_argument(rd, inst);
 };
 
-void arg_parse_Rs(u32 opcode, instruction *inst)
+void arg_parse_RdRt(u32 opcode, instruction *inst)
 {
-    u32 rs = RS(opcode);
+    u32 rd = RD(opcode);
+    u32 rt = RT(opcode);
 
-    add_register_argument(rs, inst);
+    add_register_argument(rd, inst);
+    add_register_argument(rt, inst);
 };
 
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst)
@@ -142,15 +151,6 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst)
 
     add_register_argument(rt, inst);
     add_argument(coprocessor_register{rd, sel}, inst);
-};
-
-void arg_parse_Cop0RdRt(u32 opcode, instruction *inst)
-{
-    u32 rt = RT(opcode);
-    u32 rd = RD(opcode);
-
-    add_register_argument(rd, inst);
-    add_register_argument(rt, inst);
 };
 
 void arg_parse_RsImmediate(u32 opcode, instruction *inst)

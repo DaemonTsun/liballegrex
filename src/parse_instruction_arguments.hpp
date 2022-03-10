@@ -81,9 +81,9 @@ void arg_parse_Sync(u32 opcode, instruction *inst);
 
 void arg_parse_Rs(u32 opcode, instruction *inst);
 void arg_parse_Rd(u32 opcode, instruction *inst);
+void arg_parse_RdRt(u32 opcode, instruction *inst);
 
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst);
-void arg_parse_Cop0RdRt(u32 opcode, instruction *inst);
 
 void arg_parse_RsImmediate(u32 opcode, instruction *inst);
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst);
