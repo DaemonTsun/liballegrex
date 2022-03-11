@@ -89,3 +89,7 @@ void arg_parse_RsImmediate(u32 opcode, instruction *inst);
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst);
 
 void arg_parse_FPURelAddress(u32 opcode, instruction *inst);
+
+// special3
+void arg_parse_Ext(u32 opcode, instruction *inst);
+void arg_parse_Ins(u32 opcode, instruction *inst);

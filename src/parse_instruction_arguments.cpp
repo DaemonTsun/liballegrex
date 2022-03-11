@@ -183,3 +183,32 @@ void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
     add_argument(address{off}, inst);
     add_argument(extra{cc}, inst);
 };
+
+void arg_parse_Ext(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 pos = bitrange(opcode, 6, 10);
+    u32 sz = bitrange(opcode, 11, 15);
+    sz += 1;
+
+    add_register_argument(rs, inst);
+    add_register_argument(rt, inst);
+    add_argument(bitfield_pos{pos}, inst);
+    add_argument(bitfield_size{sz}, inst);
+}
+
+void arg_parse_Ins(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 pos = bitrange(opcode, 6, 10);
+    u32 sz = bitrange(opcode, 11, 15);
+    sz += 1;
+    sz -= pos;
+
+    add_register_argument(rs, inst);
+    add_register_argument(rt, inst);
+    add_argument(bitfield_pos{pos}, inst);
+    add_argument(bitfield_size{sz}, inst);
+}

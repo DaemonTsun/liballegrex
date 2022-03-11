@@ -48,11 +48,16 @@ DEFINE_TYPED_ARG(address, u32);
 // TODO: syscall
 
 DEFINE_TYPED_ARG(immediate, u32);
+
+// ext, ins
+DEFINE_TYPED_ARG(bitfield_size, u32);
+DEFINE_TYPED_ARG(bitfield_pos, u32);
+
 // some instructions can have data (e.g. tge) that's not really
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
 
-using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, address, immediate, extra>;
+using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, address, immediate, bitfield_pos, bitfield_size, extra>;
 
 enum class instruction_type : u32
 {

@@ -356,8 +356,8 @@ const category Special3{
     .max =  0x7c00003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"ext",   0x7c000000},
-        {"ins",   0x7c000004},
+        {"ext",   0x7c000000, instruction_type::None, arg_parse_Ext}, // TODO: type
+        {"ins",   0x7c000004, instruction_type::None, arg_parse_Ins}, // TODO: type
         {"rdhwr", 0x7c00003b}
     },
     .sub_categories = {
@@ -703,6 +703,12 @@ void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
         out->name = "unknown";
 }
 
+#define IF_ARG_TYPE_LOG(arg, T, FMT) \
+    if (std::holds_alternative<T>(arg)) \
+    { \
+        log(conf, FMT, std::get<T>(arg).data); \
+    }
+
 void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<instruction> &out)
 {
     size_t sz = in->size();
@@ -734,18 +740,11 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             {
                 log(conf, " %s", register_name(std::get<mips_register>(arg)));
             }
-            else if (std::holds_alternative<shift>(arg))
-            {
-                log(conf, " %u", std::get<shift>(arg).data);
-            }
-            else if (std::holds_alternative<immediate>(arg))
-            {
-                log(conf, " %u", std::get<immediate>(arg).data);
-            }
-            else if (std::holds_alternative<address>(arg))
-            {
-                log(conf, " %x", std::get<address>(arg).data);
-            }
+            else IF_ARG_TYPE_LOG(arg, shift, " %u")
+            else IF_ARG_TYPE_LOG(arg, immediate, " %u")
+            else IF_ARG_TYPE_LOG(arg, address, " %x")
+            else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
+            else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
             else if (std::holds_alternative<coprocessor_register>(arg))
             {
                 coprocessor_register &d = std::get<coprocessor_register>(arg);
