@@ -358,7 +358,7 @@ const category Special3{
     .instructions = {
         {"ext",   0x7c000000, instruction_type::None, arg_parse_Ext}, // TODO: type
         {"ins",   0x7c000004, instruction_type::None, arg_parse_Ins}, // TODO: type
-        {"rdhwr", 0x7c00003b}
+        {"rdhwr", 0x7c00003b, instruction_type::None, nullptr} // TODO: type
     },
     .sub_categories = {
         &Allegrex0
@@ -551,12 +551,12 @@ const category Immediate{
     .max =  0xfc000000,
     .mask = 0xfc000000,
     .instructions = {
-        {"j",     0x08000000},
-        {"jal",   0x0c000000},
+        {"j",     0x08000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
+        {"jal",   0x0c000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
         {"beq",   0x10000000},
         {"bne",   0x14000000},
-        {"blez",  0x18000000},
-        {"bgtz",  0x1c000000},
+        {"blez",  0x18000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgtz",  0x1c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"addi",  0x20000000},
         {"addiu", 0x24000000},
         {"slti",  0x28000000},
@@ -567,9 +567,8 @@ const category Immediate{
         {"lui",   0x3c000000},
         {"beql",  0x50000000},
         {"bnel",  0x54000000},
-        {"blezl", 0x58000000},
-        {"bgtzl", 0x5c000000},
-        {"bgtzl", 0x5c000000},
+        {"blezl", 0x58000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
+        {"bgtzl", 0x5c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"lb",    0x80000000},
         {"lh",    0x84000000},
         {"lwl",   0x88000000},

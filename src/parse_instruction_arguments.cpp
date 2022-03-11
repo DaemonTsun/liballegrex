@@ -156,7 +156,7 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst)
 void arg_parse_RsImmediate(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
-    u16 imm = bitrange(opcode, 0, 16);
+    u16 imm = bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
     add_argument(immediate{imm}, inst);
@@ -166,11 +166,19 @@ void arg_parse_RsRelAddress(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
     u32 off = inst->address;
-    s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
+    s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
     add_register_argument(rs, inst);
     add_argument(address{off}, inst);
+};
+
+void arg_parse_JumpAddress(u32 opcode, instruction *inst)
+{
+    u32 off = bitrange(opcode, 0, 25) << 2;
+    u32 addr = bitrange(inst->address, 28, 31) | off;
+
+    add_argument(address{addr}, inst);
 };
 
 void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
