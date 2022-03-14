@@ -153,13 +153,31 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst)
     add_argument(coprocessor_register{rd, sel}, inst);
 };
 
-void arg_parse_RsImmediate(u32 opcode, instruction *inst)
+void arg_parse_RsImmediateU(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
     u16 imm = bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
-    add_argument(immediate{imm}, inst);
+    add_argument(immediate<u16>{imm}, inst);
+};
+
+void arg_parse_RsImmediateS(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    s16 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rs, inst);
+    add_argument(immediate<s16>{imm}, inst);
+};
+
+void arg_parse_RtImmediateU(u32 opcode, instruction *inst)
+{
+    u32 rt = RT(opcode);
+    u16 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rt, inst);
+    add_argument(immediate<u16>{imm}, inst);
 };
 
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst)
@@ -190,6 +208,108 @@ void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
 
     add_argument(address{off}, inst);
     add_argument(extra{cc}, inst);
+};
+
+void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 off = inst->address;
+    s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
+    off += imm + sizeof(opcode);
+
+    add_register_argument(rs, inst);
+    add_register_argument(rt, inst);
+    add_argument(address{off}, inst);
+}
+
+void arg_parse_Beq(u32 opcode, instruction *inst)
+{
+    // TODO: pseudoinstruction B
+    /*
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+
+    if (rs == rt)
+        ...
+    */
+
+    arg_parse_RsRtRelAddress(opcode, inst);
+}
+
+void arg_parse_Beql(u32 opcode, instruction *inst)
+{
+    // TODO: pseudoinstruction BL
+    /*
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+
+    if (rs == rt)
+        ...
+    */
+
+    arg_parse_RsRtRelAddress(opcode, inst);
+}
+
+void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u16 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rt, inst);
+    add_register_argument(rs, inst);
+    add_argument(immediate<u16>{imm}, inst);
+};
+
+void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    s16 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rt, inst);
+    add_register_argument(rs, inst);
+    add_argument(immediate<s16>{imm}, inst);
+};
+
+void arg_parse_Addi(u32 opcode, instruction *inst)
+{
+    // TODO: pseudoinstruction LI
+    /*
+    u32 rs = RS(opcode);
+
+    if (rs == 0)
+        ...
+    */
+
+    arg_parse_RsRtImmediateS(opcode, inst);
+};
+
+void arg_parse_Addiu(u32 opcode, instruction *inst)
+{
+    // TODO: pseudoinstruction LI
+    /*
+    u32 rs = RS(opcode);
+
+    if (rs == 0)
+        ...
+    */
+
+    arg_parse_RsRtImmediateU(opcode, inst);
+};
+
+void arg_parse_Ori(u32 opcode, instruction *inst)
+{
+    // TODO: pseudoinstruction LI
+    /*
+    u32 rs = RS(opcode);
+
+    if (rs == 0)
+        ...
+    */
+
+    arg_parse_RsRtImmediateU(opcode, inst);
 };
 
 void arg_parse_Ext(u32 opcode, instruction *inst)

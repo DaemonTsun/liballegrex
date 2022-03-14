@@ -56,11 +56,27 @@ void arg_parse_RdRt(u32 opcode, instruction *inst);
 
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst);
 
-void arg_parse_RsImmediate(u32 opcode, instruction *inst);
+void arg_parse_RsImmediateU(u32 opcode, instruction *inst);
+void arg_parse_RsImmediateS(u32 opcode, instruction *inst);
+void arg_parse_RtImmediateU(u32 opcode, instruction *inst);
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst);
 void arg_parse_JumpAddress(u32 opcode, instruction *inst);
 
 void arg_parse_FPURelAddress(u32 opcode, instruction *inst);
+
+void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst);
+// B pseudoinstruction
+void arg_parse_Beq(u32 opcode, instruction *inst);
+// BL pseudoinstruction
+void arg_parse_Beql(u32 opcode, instruction *inst);
+
+void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst);
+void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst);
+// LI pseudoinstruction
+void arg_parse_Addi(u32 opcode, instruction *inst);
+void arg_parse_Addiu(u32 opcode, instruction *inst);
+void arg_parse_Ori(u32 opcode, instruction *inst); // technically same as Addiu
+
 
 // special3
 void arg_parse_Ext(u32 opcode, instruction *inst);

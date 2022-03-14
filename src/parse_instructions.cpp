@@ -553,20 +553,20 @@ const category Immediate{
     .instructions = {
         {"j",     0x08000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
         {"jal",   0x0c000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
-        {"beq",   0x10000000},
-        {"bne",   0x14000000},
+        {"beq",   0x10000000, instruction_type::None, arg_parse_Beq}, // TODO: type
+        {"bne",   0x14000000, instruction_type::None, arg_parse_RsRtRelAddress}, // TODO: type
         {"blez",  0x18000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgtz",  0x1c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"addi",  0x20000000},
-        {"addiu", 0x24000000},
-        {"slti",  0x28000000},
-        {"sltiu", 0x2c000000},
-        {"andi",  0x30000000},
-        {"ori",   0x34000000},
-        {"xori",  0x38000000},
-        {"lui",   0x3c000000},
-        {"beql",  0x50000000},
-        {"bnel",  0x54000000},
+        {"addi",  0x20000000, instruction_type::None, arg_parse_Addi}, // TODO: type
+        {"addiu", 0x24000000, instruction_type::None, arg_parse_Addiu}, // TODO: type
+        {"slti",  0x28000000, instruction_type::None, arg_parse_RsRtImmediateS}, // TODO: type
+        {"sltiu", 0x2c000000, instruction_type::None, arg_parse_RsRtImmediateU}, // TODO: type
+        {"andi",  0x30000000, instruction_type::None, arg_parse_RsRtImmediateS}, // TODO: type
+        {"ori",   0x34000000, instruction_type::None, arg_parse_Ori}, // TODO: type
+        {"xori",  0x38000000, instruction_type::None, arg_parse_RsRtImmediateU}, // TODO: type
+        {"lui",   0x3c000000, instruction_type::None, arg_parse_RtImmediateU}, // TODO: type
+        {"beql",  0x50000000, instruction_type::None, arg_parse_Beql}, // TODO: type
+        {"bnel",  0x54000000, instruction_type::None, arg_parse_RsRtRelAddress}, // TODO: type
         {"blezl", 0x58000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgtzl", 0x5c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"lb",    0x80000000},
@@ -619,12 +619,12 @@ const category RegisterImmediate{
         {"bgez", 0x04010000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bltzl", 0x04020000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgezl", 0x04030000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"tgei", 0x04080000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
-        {"tgeiu", 0x04090000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
-        {"tlti", 0x040a0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
-        {"tltiu", 0x040b0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
-        {"teqi", 0x040c0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
-        {"tnei", 0x040e0000, instruction_type::None, arg_parse_RsImmediate}, // TODO: type
+        {"tgei", 0x04080000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
+        {"tgeiu", 0x04090000, instruction_type::None, arg_parse_RsImmediateU}, // TODO: type
+        {"tlti", 0x040a0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
+        {"tltiu", 0x040b0000, instruction_type::None, arg_parse_RsImmediateU}, // TODO: type
+        {"teqi", 0x040c0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
+        {"tnei", 0x040e0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
         {"bltzal", 0x04100000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgezal", 0x04110000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bltzall", 0x04120000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
@@ -740,7 +740,9 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
                 log(conf, " %s", register_name(std::get<mips_register>(arg)));
             }
             else IF_ARG_TYPE_LOG(arg, shift, " %u")
-            else IF_ARG_TYPE_LOG(arg, immediate, " %u")
+            else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
+            else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
+            else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
             else IF_ARG_TYPE_LOG(arg, address, " %x")
             else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
             else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
