@@ -312,6 +312,28 @@ void arg_parse_Ori(u32 opcode, instruction *inst)
     arg_parse_RsRtImmediateU(opcode, inst);
 };
 
+void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    s16 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rt, inst);
+    add_argument(memory_offset{imm}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+};
+
+void arg_parse_Cache(u32 opcode, instruction *inst)
+{
+    s16 off = bitrange(opcode, 0, 15);
+    u32 rs = RS(opcode);
+    u32 func = bitrange(opcode, 16, 20);
+
+    add_argument(immediate<u32>{func}, inst);
+    add_argument(memory_offset{off}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+}
+
 void arg_parse_Ext(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);

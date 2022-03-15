@@ -43,7 +43,9 @@ struct coprocessor_register
     u8 sel;
 };
 
+DEFINE_TYPED_ARG(base_register, mips_register);
 DEFINE_TYPED_ARG(address, u32);
+DEFINE_TYPED_ARG(memory_offset, s16);
 
 // TODO: syscall
 
@@ -59,7 +61,7 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
 
-using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, address, immediate<u32>, immediate<u16>, immediate<s16>, bitfield_pos, bitfield_size, extra>;
+using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, bitfield_pos, bitfield_size, extra>;
 
 enum class instruction_type : u32
 {

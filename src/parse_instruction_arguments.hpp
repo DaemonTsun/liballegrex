@@ -77,6 +77,10 @@ void arg_parse_Addi(u32 opcode, instruction *inst);
 void arg_parse_Addiu(u32 opcode, instruction *inst);
 void arg_parse_Ori(u32 opcode, instruction *inst); // technically same as Addiu
 
+// lb, lh, lw, etc...
+void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst);
+
+void arg_parse_Cache(u32 opcode, instruction *inst);
 
 // special3
 void arg_parse_Ext(u32 opcode, instruction *inst);

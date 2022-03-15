@@ -569,19 +569,19 @@ const category Immediate{
         {"bnel",  0x54000000, instruction_type::None, arg_parse_RsRtRelAddress}, // TODO: type
         {"blezl", 0x58000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
         {"bgtzl", 0x5c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"lb",    0x80000000},
-        {"lh",    0x84000000},
-        {"lwl",   0x88000000},
-        {"lw",    0x8c000000},
-        {"lbu",   0x90000000},
-        {"lhu",   0x94000000},
-        {"lwr",   0x98000000},
-        {"sb",    0xa0000000},
-        {"sh",    0xa4000000},
-        {"swl",   0xa8000000},
-        {"sw",    0xac000000},
-        {"swr",   0xb8000000},
-        {"cache", 0xbc000000},
+        {"lb",    0x80000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lh",    0x84000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lwl",   0x88000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lw",    0x8c000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lbu",   0x90000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lhu",   0x94000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"lwr",   0x98000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"sb",    0xa0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"sh",    0xa4000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"swl",   0xa8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"sw",    0xac000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"swr",   0xb8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"cache", 0xbc000000, instruction_type::None, arg_parse_Cache}, // TODO: type
         {"ll",    0xc0000000},
         {"lwc1",  0xc4000000},
         {"lv.s",  0xc8000000},
@@ -739,11 +739,16 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             {
                 log(conf, " %s", register_name(std::get<mips_register>(arg)));
             }
+            else if (std::holds_alternative<base_register>(arg))
+            {
+                log(conf, "(%s)", register_name(std::get<base_register>(arg).data));
+            }
             else IF_ARG_TYPE_LOG(arg, shift, " %u")
+            else IF_ARG_TYPE_LOG(arg, address, " %x")
+            else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
             else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
             else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
             else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
-            else IF_ARG_TYPE_LOG(arg, address, " %x")
             else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
             else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
             else if (std::holds_alternative<coprocessor_register>(arg))
