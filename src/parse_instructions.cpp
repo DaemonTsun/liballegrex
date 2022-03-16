@@ -23,9 +23,21 @@ const char *register_names[] = {
     "ra"  // 31
 };
 
+const char *fpu_register_names[] = {
+    "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
+    "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
+    "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
+    "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
+};
+
 const char *register_name(mips_register reg)
 {
     return register_names[static_cast<u32>(reg)];
+}
+
+const char *register_name(mips_fpu_register reg)
+{
+    return fpu_register_names[static_cast<u32>(reg)];
 }
 
 struct instruction_info
@@ -582,7 +594,7 @@ const category Immediate{
         {"sw",    0xac000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
         {"swr",   0xb8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
         {"cache", 0xbc000000, instruction_type::None, arg_parse_Cache}, // TODO: type
-        {"ll",    0xc0000000},
+        {"ll",    0xc0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
         {"lwc1",  0xc4000000},
         {"lv.s",  0xc8000000},
         {"lv",    0xd4000000},
@@ -738,6 +750,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             else if (std::holds_alternative<mips_register>(arg))
             {
                 log(conf, " %s", register_name(std::get<mips_register>(arg)));
+            }
+            else if (std::holds_alternative<mips_fpu_register>(arg))
+            {
+                log(conf, " %s", register_name(std::get<mips_fpu_register>(arg)));
             }
             else if (std::holds_alternative<base_register>(arg))
             {

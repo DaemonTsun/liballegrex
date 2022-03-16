@@ -32,7 +32,16 @@ enum class mips_register : u32
     RA      // 31
 };
 
+enum class mips_fpu_register : u32
+{
+    F0, F1, F2, F3, F4, F5, F6, F7,
+    F8, F9, F10, F11, F12, F13, F14, F15,
+    F16, F17, F18, F19, F20, F21, F22, F23,
+    F24, F25, F26, F27, F28, F29, F30, F31
+};
+
 const char *register_name(mips_register reg);
+const char *register_name(mips_fpu_register reg);
 
 #define DEFINE_TYPED_ARG(name, type) struct name {type data;}
 
@@ -61,7 +70,7 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
 
-using instruction_argument = std::variant<mips_register, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, bitfield_pos, bitfield_size, extra>;
+using instruction_argument = std::variant<mips_register, mips_fpu_register, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, bitfield_pos, bitfield_size, extra>;
 
 enum class instruction_type : u32
 {
