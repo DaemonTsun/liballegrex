@@ -1,5 +1,5 @@
 
-#include <stdexcept>
+#include <assert.h>
 
 #include "parse_instruction_arguments.hpp"
 
@@ -11,10 +11,16 @@ void add_argument(T val, instruction *inst)
 
 void add_register_argument(u32 reg, instruction *inst)
 {
-    if (reg > 31)
-        throw std::runtime_error(str("unknown normal register ", reg));
+    assert(reg < 32);
 
     add_argument(static_cast<mips_register>(reg), inst);
+}
+
+void add_fpu_register_argument(u32 reg, instruction *inst)
+{
+    assert(reg < 32);
+
+    add_argument(static_cast<mips_fpu_register>(reg), inst);
 }
 
 // argument parse functions
@@ -199,17 +205,6 @@ void arg_parse_JumpAddress(u32 opcode, instruction *inst)
     add_argument(address{addr}, inst);
 };
 
-void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
-{
-    u32 off = inst->address;
-    s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
-    off += imm + sizeof(opcode);
-    auto cc = bitrange(opcode, 18, 20); // can probably omit this
-
-    add_argument(address{off}, inst);
-    add_argument(extra{cc}, inst);
-};
-
 void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
@@ -362,3 +357,26 @@ void arg_parse_Ins(u32 opcode, instruction *inst)
     add_argument(bitfield_pos{pos}, inst);
     add_argument(bitfield_size{sz}, inst);
 }
+
+void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
+{
+    u32 off = inst->address;
+    s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
+    off += imm + sizeof(opcode);
+    auto cc = bitrange(opcode, 18, 20); // can probably omit this
+
+    add_argument(address{off}, inst);
+    add_argument(extra{cc}, inst);
+};
+
+void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst)
+{
+    u32 rs = RS(opcode);
+    u32 ft = RT(opcode);
+    s16 imm = bitrange(opcode, 0, 15);
+
+    add_fpu_register_argument(ft, inst);
+    add_argument(memory_offset{imm}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+};
+

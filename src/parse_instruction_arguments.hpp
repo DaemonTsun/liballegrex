@@ -62,8 +62,6 @@ void arg_parse_RtImmediateU(u32 opcode, instruction *inst);
 void arg_parse_RsRelAddress(u32 opcode, instruction *inst);
 void arg_parse_JumpAddress(u32 opcode, instruction *inst);
 
-void arg_parse_FPURelAddress(u32 opcode, instruction *inst);
-
 void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst);
 // B pseudoinstruction
 void arg_parse_Beq(u32 opcode, instruction *inst);
@@ -85,3 +83,7 @@ void arg_parse_Cache(u32 opcode, instruction *inst);
 // special3
 void arg_parse_Ext(u32 opcode, instruction *inst);
 void arg_parse_Ins(u32 opcode, instruction *inst);
+
+// FPU
+void arg_parse_FPURelAddress(u32 opcode, instruction *inst);
+void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst);

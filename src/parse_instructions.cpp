@@ -595,12 +595,12 @@ const category Immediate{
         {"swr",   0xb8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
         {"cache", 0xbc000000, instruction_type::None, arg_parse_Cache}, // TODO: type
         {"ll",    0xc0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lwc1",  0xc4000000},
+        {"lwc1",  0xc4000000, instruction_type::None, arg_parse_RsFtMemOffset}, // TODO: type
         {"lv.s",  0xc8000000},
         {"lv",    0xd4000000},
         {"lv.q",  0xd8000000},
-        {"sc",    0xe0000000},
-        {"swc1",  0xe4000000},
+        {"sc",    0xe0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
+        {"swc1",  0xe4000000, instruction_type::None, arg_parse_RsFtMemOffset}, // TODO: type
         // TODO: correct VFPU instruction name parsing
         {"sv.s",  0xe8000000},
         {"svl.q", 0xf4000000},
