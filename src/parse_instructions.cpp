@@ -197,34 +197,34 @@ const category Cop1S{
     .max =  0x4600003f,
     .mask = 0xffe0003f,
     .instructions = {
-        {"add.s",     0x46000000},
-        {"sub.s",     0x46000001},
-        {"mul.s",     0x46000002},
-        {"div.s",     0x46000003},
-        {"sqrt.s",    0x46000004},
-        {"abs.s",     0x46000005},
-        {"mov.s",     0x46000006},
-        {"neg.s",     0x46000007},
-        {"round.w.s", 0x4600000c},
-        {"trunc.w.s", 0x4600000d},
-        {"ceil.w.s",  0x4600000e},
-        {"floor.w.s", 0x4600000f},
-        {"cvt.s.w",   0x46000024},
-        {"dis.int",   0x46000026},
-        {"c.f.s",     0x46000030},
-        {"c.un.s",    0x46000031},
-        {"c.eq.s",    0x46000032},
-        {"c.ueq.s",   0x46000033},
-        {"c.olt.s",   0x46000034},
-        {"c.ole.s",   0x46000036},
-        {"c.ule.s",   0x46000037},
-        {"c.sf.s",    0x46000038},
-        {"c.ngle.s",  0x46000039},
-        {"c.seq.s",   0x4600003a},
-        {"c.lt.s",    0x4600003c},
-        {"c.nge.s",   0x4600003d},
-        {"c.le.s",    0x4600003e},
-        {"c.ngt.s",   0x4600003f}
+        {"add.s",     0x46000000, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
+        {"sub.s",     0x46000001, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
+        {"mul.s",     0x46000002, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
+        {"div.s",     0x46000003, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
+        {"sqrt.s",    0x46000004, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"abs.s",     0x46000005, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"mov.s",     0x46000006, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"neg.s",     0x46000007, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"round.w.s", 0x4600000c, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"trunc.w.s", 0x4600000d, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"ceil.w.s",  0x4600000e, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"floor.w.s", 0x4600000f, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"cvt.s.w",   0x46000024, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {"dis.int",   0x46000026, instruction_type::None, nullptr}, // TODO: type
+        {"c.f.s",     0x46000030, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.un.s",    0x46000031, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.eq.s",    0x46000032, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.ueq.s",   0x46000033, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.olt.s",   0x46000034, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.ole.s",   0x46000036, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.ule.s",   0x46000037, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.sf.s",    0x46000038, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.ngle.s",  0x46000039, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.seq.s",   0x4600003a, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.lt.s",    0x4600003c, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.nge.s",   0x4600003d, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.le.s",    0x4600003e, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
+        {"c.ngt.s",   0x4600003f, instruction_type::None, arg_parse_FPUCompare}  // TODO: type
     },
     .sub_categories = {}
 };
@@ -234,7 +234,7 @@ const category Cop1W{
     .max =  0x4680003f,
     .mask = 0xffe0003f,
     .instructions = {
-        {"cvt.s.w", 0x46800020}
+        {"cvt.s.w", 0x46800020, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
     },
     .sub_categories = {}
 };
@@ -244,10 +244,10 @@ const category Cop1{
     .max =  0x47e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {"mfc1", 0x44000000},
-        {"cfc1", 0x44400000},
-        {"mtc1", 0x44800000},
-        {"ctc1", 0x44c00000},
+        {"mfc1", 0x44000000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
+        {"cfc1", 0x44400000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
+        {"mtc1", 0x44800000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
+        {"ctc1", 0x44c00000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
     },
     .sub_categories = {
         &Cop1BC,

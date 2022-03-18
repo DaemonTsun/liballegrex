@@ -24,6 +24,10 @@ constexpr T bitrange_(T val)
 #define RD(opcode) bitrange(opcode, 11u, 15u)
 #define SA(opcode) bitrange(opcode, 6u, 10u)
 
+#define FT(opcode) bitrange(opcode, 16u, 20u)
+#define FS(opcode) bitrange(opcode, 11u, 15u)
+#define FD(opcode) bitrange(opcode, 6u, 10u)
+
 static_assert(bitrange(0x00ff, 0, 0) == 0x1);
 static_assert(bitrange(0x00ff, 0, 1) == 0x3);
 static_assert(bitrange(0x00ff, 0, 3) == 0xf);
@@ -87,3 +91,7 @@ void arg_parse_Ins(u32 opcode, instruction *inst);
 // FPU
 void arg_parse_FPURelAddress(u32 opcode, instruction *inst);
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst);
+void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst);
+void arg_parse_FPUFsFd(u32 opcode, instruction *inst);
+void arg_parse_FPUCompare(u32 opcode, instruction *inst);
+void arg_parse_FPURtFs(u32 opcode, instruction *inst);

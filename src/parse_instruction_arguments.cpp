@@ -372,7 +372,7 @@ void arg_parse_FPURelAddress(u32 opcode, instruction *inst)
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst)
 {
     u32 rs = RS(opcode);
-    u32 ft = RT(opcode);
+    u32 ft = FT(opcode);
     s16 imm = bitrange(opcode, 0, 15);
 
     add_fpu_register_argument(ft, inst);
@@ -380,3 +380,44 @@ void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst)
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
+void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst)
+{
+    u32 ft = FT(opcode);
+    u32 fs = FS(opcode);
+    u32 fd = FD(opcode);
+    // u32 fmt = bitrange(opcode, 21, 25); // unused
+
+    add_fpu_register_argument(fd, inst);
+    add_fpu_register_argument(fs, inst);
+    add_fpu_register_argument(ft, inst);
+}
+
+void arg_parse_FPUFsFd(u32 opcode, instruction *inst)
+{
+    u32 fs = FS(opcode);
+    u32 fd = FD(opcode);
+    // u32 fmt = bitrange(opcode, 21, 25); // unused
+
+    add_fpu_register_argument(fd, inst);
+    add_fpu_register_argument(fs, inst);
+}
+
+void arg_parse_FPUCompare(u32 opcode, instruction *inst)
+{
+    u32 ft = FT(opcode);
+    u32 fs = FS(opcode);
+    u32 cc = bitrange(opcode, 8, 10);
+
+    add_fpu_register_argument(fs, inst);
+    add_fpu_register_argument(ft, inst);
+    add_argument(extra{cc}, inst);
+}
+
+void arg_parse_FPURtFs(u32 opcode, instruction *inst)
+{
+    u32 rt = RT(opcode);
+    u32 fs = FS(opcode);
+
+    add_register_argument(rt, inst);
+    add_fpu_register_argument(fs, inst);
+}
