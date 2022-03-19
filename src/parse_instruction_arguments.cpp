@@ -108,14 +108,16 @@ void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst)
     add_register_argument(rs, inst);
 };
 
+
 void arg_parse_Syscall(u32 opcode, instruction *inst)
 {
     u32 code = bitrange(opcode, 6, 25);
-    int funcnum = code & 0xFFF;
-	int modulenum = (code & 0xFF000) >> 12;
-    // TODO: get function name
-    // https://github.com/hrydgard/ppsspp/blob/c1a41bef72cb824eaa10e17790029866c4ed68da/Core/HLE/HLE.cpp
+    u16 funcnum = bitrange(code, 0, 11);
+	u16 modulenum = bitrange(code, 12, 19);
 
+    const syscall *sc = get_syscall(modulenum, funcnum);
+
+    add_argument(sc, inst);
     add_argument(extra{code}, inst);
 };
 

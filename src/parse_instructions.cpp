@@ -759,6 +759,11 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
             {
                 log(conf, "(%s)", register_name(std::get<base_register>(arg).data));
             }
+            else if (std::holds_alternative<const syscall*>(arg))
+            {
+                const syscall *sc = std::get<const syscall*>(arg);
+                log(conf, " %s <0x%08x>", sc->function_name, sc->id);
+            }
             else IF_ARG_TYPE_LOG(arg, shift, " %u")
             else IF_ARG_TYPE_LOG(arg, address, " %x")
             else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
