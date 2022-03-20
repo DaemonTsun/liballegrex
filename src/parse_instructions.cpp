@@ -8,43 +8,10 @@
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 
-const char *register_names[] = {
-    "zero",     // 0
-    "at",       // 1
-    "v0", "v1", // 2-3
-    "a0", "a1", "a2", "a3", // 4-7
-    "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", // 8-15
-    "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", // 16-23
-    "t8", "t9", // 24-25
-    "k0", "k1", // 26-27
-    "gp", // 28
-    "sp", // 29
-    "fp", // 30
-    "ra"  // 31
-};
-
-const char *fpu_register_names[] = {
-    "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
-    "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
-    "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
-    "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
-};
-
-const char *register_name(mips_register reg)
-{
-    return register_names[static_cast<u32>(reg)];
-}
-
-const char *register_name(mips_fpu_register reg)
-{
-    return fpu_register_names[static_cast<u32>(reg)];
-}
-
 struct instruction_info
 {
-    const char *name;
+    allegrex_mnemonic mnemonic;
     u32 opcode;
-    instruction_type type;
     argument_parse_function_t argument_parse_function;
 };
 
@@ -64,7 +31,7 @@ const category Fixed{
     .max  = 0xffffffff,
     .mask = 0xffffffff,
     .instructions = {
-        {"nop", 0x00000000, instruction_type::None, nullptr}
+        {allegrex_mnemonic::NOP, 0x00000000, nullptr}
     },
     .sub_categories = {}
 };
@@ -74,8 +41,8 @@ const category SrlRotr{
     .max =  0x00200002,
     .mask = 0xffe0003f,
     .instructions = {
-        {"srl",  0x00000002, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
-        {"rotr", 0x00200002, instruction_type::None, arg_parse_RdRtShift}  // TODO: type
+        {allegrex_mnemonic::SRL,  0x00000002, arg_parse_RdRtShift},
+        {allegrex_mnemonic::ROTR, 0x00200002, arg_parse_RdRtShift}
     },
     .sub_categories = {}
 };
@@ -85,8 +52,8 @@ const category SrlvRotrv{
     .max =  0x00000046,
     .mask = 0xfc00007f,
     .instructions = {
-        {"srlv",  0x00000006, instruction_type::None, arg_parse_VarShift}, // TODO: type
-        {"rotrv", 0x00000046, instruction_type::None, arg_parse_VarShift} // TODO: type
+        {allegrex_mnemonic::SRLV,  0x00000006, arg_parse_VarShift},
+        {allegrex_mnemonic::ROTRV, 0x00000046, arg_parse_VarShift}
     },
     .sub_categories = {}
 };
@@ -96,49 +63,49 @@ const category Special{
     .max =  0x0000003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"sll",     0x00000000, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
-        {"sra",     0x00000003, instruction_type::None, arg_parse_RdRtShift}, // TODO: type
-        {"sllv",    0x00000004, instruction_type::None, arg_parse_VarShift}, // TODO: type
-        {"srav",    0x00000007, instruction_type::None, arg_parse_VarShift}, // TODO: type
-        {"jr",      0x00000008, instruction_type::None, arg_parse_RegJumpRs}, // TODO: type
-        {"jalr",    0x00000009, instruction_type::None, arg_parse_RegJumpRdRs}, // TODO: type
-        {"movz",    0x0000000a, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"movn",    0x0000000b, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"syscall", 0x0000000c, instruction_type::None, arg_parse_Syscall}, // TODO: type
-        {"break",   0x0000000d, instruction_type::None, nullptr}, // TODO: type
-        {"sync",    0x0000000f, instruction_type::None, arg_parse_Sync}, // TODO: type
-        {"mfhi",    0x00000010, instruction_type::None, arg_parse_Rd}, // TODO: type
-        {"mthi",    0x00000011, instruction_type::None, arg_parse_Rs}, // TODO: type
-        {"mflo",    0x00000012, instruction_type::None, arg_parse_Rd}, // TODO: type
-        {"mtlo",    0x00000013, instruction_type::None, arg_parse_Rs}, // TODO: type
-        {"clz",     0x00000016, instruction_type::None, arg_parse_R2}, // TODO: type
-        {"clo",     0x00000017, instruction_type::None, arg_parse_R2}, // TODO: type
-        {"mult",    0x00000018, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"multu",   0x00000019, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"div",     0x0000001a, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"divu",    0x0000001b, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"madd",    0x0000001c, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"maddu",   0x0000001d, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"add",     0x00000020, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"addu",    0x00000021, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"sub",     0x00000022, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"subu",    0x00000023, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"and",     0x00000024, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"or",      0x00000025, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"xor",     0x00000026, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"nor",     0x00000027, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"slt",     0x0000002a, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"sltu",    0x0000002b, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"max",     0x0000002c, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"min",     0x0000002d, instruction_type::None, arg_parse_R3}, // TODO: type
-        {"msub",    0x0000002e, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"msubu",   0x0000002f, instruction_type::None, arg_parse_RsRt}, // TODO: type
-        {"tge",     0x00000030, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
-        {"tgeu",    0x00000031, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
-        {"tlt",     0x00000032, instruction_type::None, arg_parse_RsRtCode}, // TODO: type 
-        {"tltu",    0x00000033, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
-        {"teq",     0x00000034, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
-        {"tne",     0x00000036, instruction_type::None, arg_parse_RsRtCode}, // TODO: type
+        {allegrex_mnemonic::SLL,     0x00000000, arg_parse_RdRtShift},
+        {allegrex_mnemonic::SRA,     0x00000003, arg_parse_RdRtShift},
+        {allegrex_mnemonic::SLLV,    0x00000004, arg_parse_VarShift},
+        {allegrex_mnemonic::SRAV,    0x00000007, arg_parse_VarShift},
+        {allegrex_mnemonic::JR,      0x00000008, arg_parse_RegJumpRs},
+        {allegrex_mnemonic::JALR,    0x00000009, arg_parse_RegJumpRdRs},
+        {allegrex_mnemonic::MOVZ,    0x0000000a, arg_parse_R3},
+        {allegrex_mnemonic::MOVN,    0x0000000b, arg_parse_R3},
+        {allegrex_mnemonic::SYSCALL, 0x0000000c, arg_parse_Syscall},
+        {allegrex_mnemonic::BREAK,   0x0000000d, nullptr},
+        {allegrex_mnemonic::SYNC,    0x0000000f, arg_parse_Sync},
+        {allegrex_mnemonic::MFHI,    0x00000010, arg_parse_Rd},
+        {allegrex_mnemonic::MTHI,    0x00000011, arg_parse_Rs},
+        {allegrex_mnemonic::MFLO,    0x00000012, arg_parse_Rd},
+        {allegrex_mnemonic::MTLO,    0x00000013, arg_parse_Rs},
+        {allegrex_mnemonic::CLZ,     0x00000016, arg_parse_R2},
+        {allegrex_mnemonic::CLO,     0x00000017, arg_parse_R2},
+        {allegrex_mnemonic::MULT,    0x00000018, arg_parse_RsRt},
+        {allegrex_mnemonic::MULTU,   0x00000019, arg_parse_RsRt},
+        {allegrex_mnemonic::DIV,     0x0000001a, arg_parse_RsRt},
+        {allegrex_mnemonic::DIVU,    0x0000001b, arg_parse_RsRt},
+        {allegrex_mnemonic::MADD,    0x0000001c, arg_parse_RsRt},
+        {allegrex_mnemonic::MADDU,   0x0000001d, arg_parse_RsRt},
+        {allegrex_mnemonic::ADD,     0x00000020, arg_parse_R3},
+        {allegrex_mnemonic::ADDU,    0x00000021, arg_parse_R3},
+        {allegrex_mnemonic::SUB,     0x00000022, arg_parse_R3},
+        {allegrex_mnemonic::SUBU,    0x00000023, arg_parse_R3},
+        {allegrex_mnemonic::AND,     0x00000024, arg_parse_R3},
+        {allegrex_mnemonic::OR,      0x00000025, arg_parse_R3},
+        {allegrex_mnemonic::XOR,     0x00000026, arg_parse_R3},
+        {allegrex_mnemonic::NOR,     0x00000027, arg_parse_R3},
+        {allegrex_mnemonic::SLT,     0x0000002a, arg_parse_R3},
+        {allegrex_mnemonic::SLTU,    0x0000002b, arg_parse_R3},
+        {allegrex_mnemonic::MAX,     0x0000002c, arg_parse_R3},
+        {allegrex_mnemonic::MIN,     0x0000002d, arg_parse_R3},
+        {allegrex_mnemonic::MSUB,    0x0000002e, arg_parse_RsRt},
+        {allegrex_mnemonic::MSUBU,   0x0000002f, arg_parse_RsRt},
+        {allegrex_mnemonic::TGE,     0x00000030, arg_parse_RsRtCode},
+        {allegrex_mnemonic::TGEU,    0x00000031, arg_parse_RsRtCode},
+        {allegrex_mnemonic::TLT,     0x00000032, arg_parse_RsRtCode}, 
+        {allegrex_mnemonic::TLTU,    0x00000033, arg_parse_RsRtCode},
+        {allegrex_mnemonic::TEQ,     0x00000034, arg_parse_RsRtCode},
+        {allegrex_mnemonic::TNE,     0x00000036, arg_parse_RsRtCode},
     },
     .sub_categories = {
         &SrlRotr,
@@ -151,14 +118,14 @@ const category Cop0CO{
     .max =  0x4200003f,
     .mask = 0xfe00003f,
     .instructions = {
-        {"tlbr",  0x42000001, instruction_type::None, nullptr}, // TODO: type
-        {"tlbwi", 0x42000002, instruction_type::None, nullptr}, // TODO: type
-        {"tlbwr", 0x42000006, instruction_type::None, nullptr}, // TODO: type
-        {"tlbp",  0x42000008, instruction_type::None, nullptr}, // TODO: type
-        {"eret",  0x42000018, instruction_type::None, nullptr}, // TODO: type
-        {"iack",  0x42000019, instruction_type::None, nullptr}, // TODO: type
-        {"deret", 0x4200001f, instruction_type::None, nullptr}, // TODO: type
-        {"wait",  0x42000020, instruction_type::None, nullptr}  // TODO: type
+        {allegrex_mnemonic::TLBR,  0x42000001, nullptr},
+        {allegrex_mnemonic::TLBWI, 0x42000002, nullptr},
+        {allegrex_mnemonic::TLBWR, 0x42000006, nullptr},
+        {allegrex_mnemonic::TLBP,  0x42000008, nullptr},
+        {allegrex_mnemonic::ERET,  0x42000018, nullptr},
+        {allegrex_mnemonic::IACK,  0x42000019, nullptr},
+        {allegrex_mnemonic::DERET, 0x4200001f, nullptr},
+        {allegrex_mnemonic::WAIT,  0x42000020, nullptr}
     },
     .sub_categories = {}
 };
@@ -168,11 +135,11 @@ const category Cop0{
     .max =  0x43e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {"mfc0",   0x40000000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
-        {"mtc0",   0x40800000, instruction_type::None, arg_parse_Cop0RtRdSel}, // TODO: type
-        {"rdpgpr", 0x41600000, instruction_type::None, arg_parse_RdRt}, // TODO: type
-        {"mfmc0",  0x41800000, instruction_type::None, nullptr}, // TODO: type
-        {"wrpgpr", 0x41c00000, instruction_type::None, arg_parse_RdRt}, // TODO: type
+        {allegrex_mnemonic::MFC0,   0x40000000, arg_parse_Cop0RtRdSel},
+        {allegrex_mnemonic::MTC0,   0x40800000, arg_parse_Cop0RtRdSel},
+        {allegrex_mnemonic::RDPGPR, 0x41600000, arg_parse_RdRt},
+        {allegrex_mnemonic::MFMC0,  0x41800000, nullptr},
+        {allegrex_mnemonic::WRPGPR, 0x41c00000, arg_parse_RdRt},
     },
     .sub_categories = {
         &Cop0CO
@@ -184,10 +151,10 @@ const category Cop1BC{
     .max =  0x451f0000,
     .mask = 0xffff0000,
     .instructions = {
-        {"bc1f",  0x45000000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
-        {"bc1t",  0x45010000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
-        {"bc1fl", 0x45020000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
-        {"bc1tl", 0x45030000, instruction_type::None, arg_parse_FPURelAddress}, // TODO: type
+        {allegrex_mnemonic::BC1F,  0x45000000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BC1T,  0x45010000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BC1FL, 0x45020000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BC1TL, 0x45030000, arg_parse_FPURelAddress},
     },
     .sub_categories = {}
 };
@@ -197,34 +164,34 @@ const category Cop1S{
     .max =  0x4600003f,
     .mask = 0xffe0003f,
     .instructions = {
-        {"add.s",     0x46000000, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
-        {"sub.s",     0x46000001, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
-        {"mul.s",     0x46000002, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
-        {"div.s",     0x46000003, instruction_type::None, arg_parse_FPUFtFsFd}, // TODO: type
-        {"sqrt.s",    0x46000004, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"abs.s",     0x46000005, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"mov.s",     0x46000006, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"neg.s",     0x46000007, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"round.w.s", 0x4600000c, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"trunc.w.s", 0x4600000d, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"ceil.w.s",  0x4600000e, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"floor.w.s", 0x4600000f, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"cvt.s.w",   0x46000024, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
-        {"dis.int",   0x46000026, instruction_type::None, nullptr}, // TODO: type
-        {"c.f.s",     0x46000030, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.un.s",    0x46000031, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.eq.s",    0x46000032, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.ueq.s",   0x46000033, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.olt.s",   0x46000034, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.ole.s",   0x46000036, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.ule.s",   0x46000037, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.sf.s",    0x46000038, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.ngle.s",  0x46000039, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.seq.s",   0x4600003a, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.lt.s",    0x4600003c, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.nge.s",   0x4600003d, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.le.s",    0x4600003e, instruction_type::None, arg_parse_FPUCompare}, // TODO: type
-        {"c.ngt.s",   0x4600003f, instruction_type::None, arg_parse_FPUCompare}  // TODO: type
+        {allegrex_mnemonic::ADD_S,     0x46000000, arg_parse_FPUFtFsFd},
+        {allegrex_mnemonic::SUB_S,     0x46000001, arg_parse_FPUFtFsFd},
+        {allegrex_mnemonic::MUL_S,     0x46000002, arg_parse_FPUFtFsFd},
+        {allegrex_mnemonic::DIV_S,     0x46000003, arg_parse_FPUFtFsFd},
+        {allegrex_mnemonic::SQRT_S,    0x46000004, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::ABS_S,     0x46000005, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::MOV_S,     0x46000006, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::NEG_S,     0x46000007, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::ROUND_W_S, 0x4600000c, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::TRUNC_W_S, 0x4600000d, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::CEIL_W_S,  0x4600000e, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::FLOOR_W_S, 0x4600000f, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::CVT_W_S,   0x46000024, arg_parse_FPUFsFd},
+        {allegrex_mnemonic::DIS_INT,   0x46000026, nullptr},
+        {allegrex_mnemonic::C_F_S,     0x46000030, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_UN_S,    0x46000031, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_EQ_S,    0x46000032, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_UEQ_S,   0x46000033, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_OLT_S,   0x46000034, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_OLE_S,   0x46000036, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_ULE_S,   0x46000037, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_SF_S,    0x46000038, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_NGLE_S,  0x46000039, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_SEQ_S,   0x4600003a, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_LT_S,    0x4600003c, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_NGE_S,   0x4600003d, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_LE_S,    0x4600003e, arg_parse_FPUCompare},
+        {allegrex_mnemonic::C_NGT_S,   0x4600003f, arg_parse_FPUCompare}
     },
     .sub_categories = {}
 };
@@ -234,7 +201,7 @@ const category Cop1W{
     .max =  0x4680003f,
     .mask = 0xffe0003f,
     .instructions = {
-        {"cvt.s.w", 0x46800020, instruction_type::None, arg_parse_FPUFsFd}, // TODO: type
+        {allegrex_mnemonic::CVT_S_W, 0x46800020, arg_parse_FPUFsFd},
     },
     .sub_categories = {}
 };
@@ -244,10 +211,10 @@ const category Cop1{
     .max =  0x47e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {"mfc1", 0x44000000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
-        {"cfc1", 0x44400000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
-        {"mtc1", 0x44800000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
-        {"ctc1", 0x44c00000, instruction_type::None, arg_parse_FPURtFs}, // TODO: type
+        {allegrex_mnemonic::MFC1, 0x44000000, arg_parse_FPURtFs},
+        {allegrex_mnemonic::CFC1, 0x44400000, arg_parse_FPURtFs},
+        {allegrex_mnemonic::MTC1, 0x44800000, arg_parse_FPURtFs},
+        {allegrex_mnemonic::CTC1, 0x44c00000, arg_parse_FPURtFs},
     },
     .sub_categories = {
         &Cop1BC,
@@ -261,10 +228,10 @@ const category Cop2BC2{
     .max =  0x49030000,
     .mask = 0xffe30000,
     .instructions = {
-        {"bvf",  0x49000000},
-        {"bvt",  0x49010000},
-        {"bvfl", 0x49020000},
-        {"bvtl", 0x49030000},
+        {allegrex_mnemonic::BVF,  0x49000000},
+        {allegrex_mnemonic::BVT,  0x49010000},
+        {allegrex_mnemonic::BVFL, 0x49020000},
+        {allegrex_mnemonic::BVTL, 0x49030000},
     },
     .sub_categories = {}
 };
@@ -274,12 +241,12 @@ const category Cop2{
     .max =  0x4be00000,
     .mask = 0xffe00000,
     .instructions = {
-        {"mfc2", 0x48000000},
-        {"cfc2", 0x48400000},
-        {"mfv",  0x48600000},
-        {"mtc2", 0x48800000},
-        {"ctc2", 0x48c00000},
-        {"mtv",  0x48e00000},
+        {allegrex_mnemonic::MFC2, 0x48000000},
+        {allegrex_mnemonic::CFC2, 0x48400000},
+        {allegrex_mnemonic::MFV,  0x48600000},
+        {allegrex_mnemonic::MTC2, 0x48800000},
+        {allegrex_mnemonic::CTC2, 0x48c00000},
+        {allegrex_mnemonic::MTV,  0x48e00000},
 
     },
     .sub_categories = {
@@ -293,10 +260,10 @@ const category VFPU0{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {"vadd", 0x60000000},
-        {"vsub", 0x60800000},
-        {"vsbn", 0x61000000},
-        {"vdiv", 0x63800000},
+        {allegrex_mnemonic::VADD, 0x60000000},
+        {allegrex_mnemonic::VSUB, 0x60800000},
+        {allegrex_mnemonic::VSBN, 0x61000000},
+        {allegrex_mnemonic::VDIV, 0x63800000},
     },
     .sub_categories = {
     }
@@ -308,12 +275,12 @@ const category VFPU1{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {"vmul", 0x64000000},
-        {"vdot", 0x64800000},
-        {"vscl", 0x65000000},
-        {"vhdp", 0x66000000},
-        {"vcrs", 0x66800000},
-        {"vdet", 0x67000000},
+        {allegrex_mnemonic::VMUL, 0x64000000},
+        {allegrex_mnemonic::VDOT, 0x64800000},
+        {allegrex_mnemonic::VSCL, 0x65000000},
+        {allegrex_mnemonic::VHDP, 0x66000000},
+        {allegrex_mnemonic::VCRS, 0x66800000},
+        {allegrex_mnemonic::VDET, 0x67000000},
     },
     .sub_categories = {
     }
@@ -325,12 +292,12 @@ const category VFPU3{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {"vcmp",  0x6c000000},
-        {"vmin",  0x6d000000},
-        {"vmax",  0x6d800000},
-        {"vscmp", 0x6e800000},
-        {"vsge",  0x6f000000},
-        {"vslt",  0x6f800000},
+        {allegrex_mnemonic::VCMP,  0x6c000000},
+        {allegrex_mnemonic::VMIN,  0x6d000000},
+        {allegrex_mnemonic::VMAX,  0x6d800000},
+        {allegrex_mnemonic::VSCMP, 0x6e800000},
+        {allegrex_mnemonic::VSGE,  0x6f000000},
+        {allegrex_mnemonic::VSLT,  0x6f800000},
     },
     .sub_categories = {
     }
@@ -341,9 +308,9 @@ const category Special2{
     .max =  0x7000003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"halt", 0x70000000, instruction_type::None, nullptr}, // TODO: type
-        {"mfic", 0x70000024, instruction_type::None, nullptr}, // TODO: type
-        {"mtic", 0x70000026, instruction_type::None, nullptr}, // TODO: type
+        {allegrex_mnemonic::HALT, 0x70000000, nullptr},
+        {allegrex_mnemonic::MFIC, 0x70000024, nullptr},
+        {allegrex_mnemonic::MTIC, 0x70000026, nullptr},
     },
     .sub_categories = {
     }
@@ -354,11 +321,11 @@ const category Allegrex0{
     .max =  0x7c0007e0,
     .mask = 0xfc0007ff,
     .instructions = {
-        {"wsbh",   0x7c0000a0, instruction_type::None, arg_parse_RdRt}, // TODO: type
-        {"wsbw",   0x7c0000e0, instruction_type::None, arg_parse_RdRt}, // TODO: type
-        {"seb",    0x7c000420, instruction_type::None, arg_parse_RdRt}, // TODO: type
-        {"bitrev", 0x7c000520, instruction_type::None, arg_parse_RdRt}, // TODO: type
-        {"seh",    0x7c000620, instruction_type::None, arg_parse_RdRt}  // TODO: type
+        {allegrex_mnemonic::WSBH,   0x7c0000a0, arg_parse_RdRt},
+        {allegrex_mnemonic::WSBW,   0x7c0000e0, arg_parse_RdRt},
+        {allegrex_mnemonic::SEB,    0x7c000420, arg_parse_RdRt},
+        {allegrex_mnemonic::BITREV, 0x7c000520, arg_parse_RdRt},
+        {allegrex_mnemonic::SEH,    0x7c000620, arg_parse_RdRt}
     },
     .sub_categories = {}
 };
@@ -368,9 +335,9 @@ const category Special3{
     .max =  0x7c00003f,
     .mask = 0xfc00003f,
     .instructions = {
-        {"ext",   0x7c000000, instruction_type::None, arg_parse_Ext}, // TODO: type
-        {"ins",   0x7c000004, instruction_type::None, arg_parse_Ins}, // TODO: type
-        {"rdhwr", 0x7c00003b, instruction_type::None, nullptr} // TODO: type
+        {allegrex_mnemonic::EXT,   0x7c000000, arg_parse_Ext},
+        {allegrex_mnemonic::INS,   0x7c000004, arg_parse_Ins},
+        {allegrex_mnemonic::RDHWR, 0x7c00003b, nullptr}
     },
     .sub_categories = {
         &Allegrex0
@@ -382,26 +349,25 @@ const category VFPU4{
     .max =  0xd01f0000,
     .mask = 0xffff0000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vmov",   0xd0000000},
-        {"vabs",   0xd0010000},
-        {"vneg",   0xd0020000},
-        {"vidt",   0xd0030000},
-        {"vsat0",  0xd0040000},
-        {"vsat1",  0xd0050000},
-        {"vzero",  0xd0060000},
-        {"vone",   0xd0070000},
-        {"vrcp",   0xd0100000},
-        {"vrsq",   0xd0110000},
-        {"vsin",   0xd0120000},
-        {"vcos",   0xd0130000},
-        {"vexp2",  0xd0140000},
-        {"vlog2",  0xd0150000},
-        {"vsqrt",  0xd0160000},
-        {"vasin",  0xd0170000},
-        {"vnrcp",  0xd0180000},
-        {"vnsin",  0xd01a0000},
-        {"vrexp2", 0xd01c0000}
+        {allegrex_mnemonic::VMOV,   0xd0000000},
+        {allegrex_mnemonic::VABS,   0xd0010000},
+        {allegrex_mnemonic::VNEG,   0xd0020000},
+        {allegrex_mnemonic::VIDT,   0xd0030000},
+        {allegrex_mnemonic::VSAT0,  0xd0040000},
+        {allegrex_mnemonic::VSAT1,  0xd0050000},
+        {allegrex_mnemonic::VZERO,  0xd0060000},
+        {allegrex_mnemonic::VONE,   0xd0070000},
+        {allegrex_mnemonic::VRCP,   0xd0100000},
+        {allegrex_mnemonic::VRSQ,   0xd0110000},
+        {allegrex_mnemonic::VSIN,   0xd0120000},
+        {allegrex_mnemonic::VCOS,   0xd0130000},
+        {allegrex_mnemonic::VEXP2,  0xd0140000},
+        {allegrex_mnemonic::VLOG2,  0xd0150000},
+        {allegrex_mnemonic::VSQRT,  0xd0160000},
+        {allegrex_mnemonic::VASIN,  0xd0170000},
+        {allegrex_mnemonic::VNRCP,  0xd0180000},
+        {allegrex_mnemonic::VNSIN,  0xd01a0000},
+        {allegrex_mnemonic::VREXP2, 0xd01c0000}
     },
     .sub_categories = {
     }
@@ -412,23 +378,22 @@ const category VFPU7{
     .max =  0xd03f0000,
     .mask = 0xffff0000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vrnds",  0xd0200000},
-        {"vrndi",  0xd0210000},
-        {"vrndf1", 0xd0220000},
-        {"vrndf2", 0xd0230000},
-        {"vf2h",   0xd0320000},
-        {"vh2f",   0xd0330000},
-        {"vsbz",   0xd0360000},
-        {"vlgb",   0xd0370000},
-        {"vuc2i",  0xd0380000},
-        {"vc2i",   0xd0390000},
-        {"vus2i",  0xd03a0000},
-        {"vs2i",   0xd03b0000},
-        {"vi2uc",  0xd03c0000},
-        {"vi2c",   0xd03d0000},
-        {"vi2us",  0xd03e0000},
-        {"vi2s",   0xd03f0000}
+        {allegrex_mnemonic::VRNDS,  0xd0200000},
+        {allegrex_mnemonic::VRNDI,  0xd0210000},
+        {allegrex_mnemonic::VRNDF1, 0xd0220000},
+        {allegrex_mnemonic::VRNDF2, 0xd0230000},
+        {allegrex_mnemonic::VF2H,   0xd0320000},
+        {allegrex_mnemonic::VH2F,   0xd0330000},
+        {allegrex_mnemonic::VSBZ,   0xd0360000},
+        {allegrex_mnemonic::VLGB,   0xd0370000},
+        {allegrex_mnemonic::VUC2I,  0xd0380000},
+        {allegrex_mnemonic::VC2I,   0xd0390000},
+        {allegrex_mnemonic::VUS2I,  0xd03a0000},
+        {allegrex_mnemonic::VS2I,   0xd03b0000},
+        {allegrex_mnemonic::VI2UC,  0xd03c0000},
+        {allegrex_mnemonic::VI2C,   0xd03d0000},
+        {allegrex_mnemonic::VI2US,  0xd03e0000},
+        {allegrex_mnemonic::VI2S,   0xd03f0000}
     },
     .sub_categories = {
     }
@@ -439,23 +404,22 @@ const category VFPU9{
     .max =  0xd05f0000,
     .mask = 0xffff0000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vsrt1",  0xd0400000},
-        {"vsrt2",  0xd0410000},
-        {"vbfy1",  0xd0420000},
-        {"vbfy2",  0xd0430000},
-        {"vocp",   0xd0440000},
-        {"vsocp",  0xd0450000},
-        {"vfad",   0xd0460000},
-        {"vavg",   0xd0470000},
-        {"vsrt3",  0xd0480000},
-        {"vsrt4",  0xd0490000},
-        {"vsgn",   0xd04a0000},
-        {"vmfvc",  0xd0500000},
-        {"vmtvc",  0xd0510000},
-        {"vt4444", 0xd0590000},
-        {"vt5551", 0xd05a0000},
-        {"vt5650", 0xd05b0000},
+        {allegrex_mnemonic::VSRT1,  0xd0400000},
+        {allegrex_mnemonic::VSRT2,  0xd0410000},
+        {allegrex_mnemonic::VBFY1,  0xd0420000},
+        {allegrex_mnemonic::VBFY2,  0xd0430000},
+        {allegrex_mnemonic::VOCP,   0xd0440000},
+        {allegrex_mnemonic::VSOCP,  0xd0450000},
+        {allegrex_mnemonic::VFAD,   0xd0460000},
+        {allegrex_mnemonic::VAVG,   0xd0470000},
+        {allegrex_mnemonic::VSRT3,  0xd0480000},
+        {allegrex_mnemonic::VSRT4,  0xd0490000},
+        {allegrex_mnemonic::VSGN,   0xd04a0000},
+        {allegrex_mnemonic::VMFVC,  0xd0500000},
+        {allegrex_mnemonic::VMTVC,  0xd0510000},
+        {allegrex_mnemonic::VT4444, 0xd0590000},
+        {allegrex_mnemonic::VT5551, 0xd05a0000},
+        {allegrex_mnemonic::VT5650, 0xd05b0000},
     },
     .sub_categories = {
     }
@@ -466,7 +430,7 @@ const category vwbn{
     .max =  0xd3000000,
     .mask = 0xff000000,
     .instructions = {
-        {"vwbn", 0xd3000000}
+        {allegrex_mnemonic::VWBN, 0xd3000000}
     },
     .sub_categories = {}
 };
@@ -476,14 +440,13 @@ const category VFPU4Jump{
     .max =  0xd3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vcst",  0xd0600000},
-        {"vf2in", 0xd2000000},
-        {"vf2iz", 0xd2200000},
-        {"vf2iu", 0xd2400000},
-        {"vf2id", 0xd2600000},
-        {"vf2f",  0xd2800000},
-        {"vcmov", 0xd2a00000}
+        {allegrex_mnemonic::VCST,  0xd0600000},
+        {allegrex_mnemonic::VF2IN, 0xd2000000},
+        {allegrex_mnemonic::VF2IZ, 0xd2200000},
+        {allegrex_mnemonic::VF2IU, 0xd2400000},
+        {allegrex_mnemonic::VF2ID, 0xd2600000},
+        {allegrex_mnemonic::VF2F,  0xd2800000},
+        {allegrex_mnemonic::VCMOV, 0xd2a00000}
     },
     .sub_categories = {
         &VFPU4,
@@ -498,15 +461,14 @@ const category VFPU5{
     .max =  0xdf800000,
     .mask = 0xff800000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vpfxs", 0xdc000000},
-        {"vpfxs", 0xdc800000},
-        {"vpfxt", 0xdd000000},
-        {"vpfxt", 0xdd800000},
-        {"vpfxd", 0xde000000},
-        {"vpfxd", 0xde800000},
-        {"viim",  0xdf000000},
-        {"vfim",  0xdf800000}
+        {allegrex_mnemonic::VPFXS, 0xdc000000},
+        {allegrex_mnemonic::VPFXS, 0xdc800000},
+        {allegrex_mnemonic::VPFXT, 0xdd000000},
+        {allegrex_mnemonic::VPFXT, 0xdd800000},
+        {allegrex_mnemonic::VPFXD, 0xde000000},
+        {allegrex_mnemonic::VPFXD, 0xde800000},
+        {allegrex_mnemonic::VIIM,  0xdf000000},
+        {allegrex_mnemonic::VFIM,  0xdf800000}
     },
     .sub_categories = {}
 };
@@ -516,10 +478,10 @@ const category VFPUMatrix{
     .max =  0xf38f0000,
     .mask = 0xffef0000,
     .instructions = {
-        {"vmmov",  0xf3800000},
-        {"vmidt",  0xf3830000},
-        {"vmzero", 0xf3860000},
-        {"vmone",  0xf3870000},
+        {allegrex_mnemonic::VMMOV,  0xf3800000},
+        {allegrex_mnemonic::VMIDT,  0xf3830000},
+        {allegrex_mnemonic::VMZERO, 0xf3860000},
+        {allegrex_mnemonic::VMONE,  0xf3870000},
     },
     .sub_categories = {}
 };
@@ -529,29 +491,28 @@ const category VFPU6{
     .max =  0xf3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
-        {"vmmul", 0xf0000000},
-        {"vmmul", 0xf0200000},
-        {"vmmul", 0xf0400000},
-        {"vmmul", 0xf0600000},
-        {"vtfm2", 0xf0800000},
-        {"vtfm2", 0xf0a00000},
-        {"vtfm2", 0xf0c00000},
-        {"vtfm2", 0xf0e00000},
-        {"vtfm3", 0xf1000000},
-        {"vtfm3", 0xf1200000},
-        {"vtfm3", 0xf1400000},
-        {"vtfm3", 0xf1600000},
-        {"vtfm4", 0xf1800000},
-        {"vtfm4", 0xf1a00000},
-        {"vtfm4", 0xf1c00000},
-        {"vtfm4", 0xf1e00000},
-        {"vmscl", 0xf2000000},
-        {"vmscl", 0xf2200000},
-        {"vmscl", 0xf2400000},
-        {"vmscl", 0xf2600000},
-        {"vcrsp", 0xf2800000},
-        {"vrot",  0xf3a00000},
+        {allegrex_mnemonic::VMMUL, 0xf0000000},
+        {allegrex_mnemonic::VMMUL, 0xf0200000},
+        {allegrex_mnemonic::VMMUL, 0xf0400000},
+        {allegrex_mnemonic::VMMUL, 0xf0600000},
+        {allegrex_mnemonic::VTFM2, 0xf0800000},
+        {allegrex_mnemonic::VTFM2, 0xf0a00000},
+        {allegrex_mnemonic::VTFM2, 0xf0c00000},
+        {allegrex_mnemonic::VTFM2, 0xf0e00000},
+        {allegrex_mnemonic::VTFM3, 0xf1000000},
+        {allegrex_mnemonic::VTFM3, 0xf1200000},
+        {allegrex_mnemonic::VTFM3, 0xf1400000},
+        {allegrex_mnemonic::VTFM3, 0xf1600000},
+        {allegrex_mnemonic::VTFM4, 0xf1800000},
+        {allegrex_mnemonic::VTFM4, 0xf1a00000},
+        {allegrex_mnemonic::VTFM4, 0xf1c00000},
+        {allegrex_mnemonic::VTFM4, 0xf1e00000},
+        {allegrex_mnemonic::VMSCL, 0xf2000000},
+        {allegrex_mnemonic::VMSCL, 0xf2200000},
+        {allegrex_mnemonic::VMSCL, 0xf2400000},
+        {allegrex_mnemonic::VMSCL, 0xf2600000},
+        {allegrex_mnemonic::VCRSP, 0xf2800000},
+        {allegrex_mnemonic::VROT,  0xf3a00000},
     },
     .sub_categories = {
         &VFPUMatrix
@@ -563,48 +524,47 @@ const category Immediate{
     .max =  0xfc000000,
     .mask = 0xfc000000,
     .instructions = {
-        {"j",     0x08000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
-        {"jal",   0x0c000000, instruction_type::None, arg_parse_JumpAddress}, // TODO: type
-        {"beq",   0x10000000, instruction_type::None, arg_parse_Beq}, // TODO: type
-        {"bne",   0x14000000, instruction_type::None, arg_parse_RsRtRelAddress}, // TODO: type
-        {"blez",  0x18000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgtz",  0x1c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"addi",  0x20000000, instruction_type::None, arg_parse_Addi}, // TODO: type
-        {"addiu", 0x24000000, instruction_type::None, arg_parse_Addiu}, // TODO: type
-        {"slti",  0x28000000, instruction_type::None, arg_parse_RsRtImmediateS}, // TODO: type
-        {"sltiu", 0x2c000000, instruction_type::None, arg_parse_RsRtImmediateU}, // TODO: type
-        {"andi",  0x30000000, instruction_type::None, arg_parse_RsRtImmediateS}, // TODO: type
-        {"ori",   0x34000000, instruction_type::None, arg_parse_Ori}, // TODO: type
-        {"xori",  0x38000000, instruction_type::None, arg_parse_RsRtImmediateU}, // TODO: type
-        {"lui",   0x3c000000, instruction_type::None, arg_parse_RtImmediateU}, // TODO: type
-        {"beql",  0x50000000, instruction_type::None, arg_parse_Beql}, // TODO: type
-        {"bnel",  0x54000000, instruction_type::None, arg_parse_RsRtRelAddress}, // TODO: type
-        {"blezl", 0x58000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgtzl", 0x5c000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"lb",    0x80000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lh",    0x84000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lwl",   0x88000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lw",    0x8c000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lbu",   0x90000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lhu",   0x94000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lwr",   0x98000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"sb",    0xa0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"sh",    0xa4000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"swl",   0xa8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"sw",    0xac000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"swr",   0xb8000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"cache", 0xbc000000, instruction_type::None, arg_parse_Cache}, // TODO: type
-        {"ll",    0xc0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"lwc1",  0xc4000000, instruction_type::None, arg_parse_RsFtMemOffset}, // TODO: type
-        {"lv.s",  0xc8000000},
-        {"lv",    0xd4000000},
-        {"lv.q",  0xd8000000},
-        {"sc",    0xe0000000, instruction_type::None, arg_parse_RsRtMemOffset}, // TODO: type
-        {"swc1",  0xe4000000, instruction_type::None, arg_parse_RsFtMemOffset}, // TODO: type
-        // TODO: correct VFPU instruction name parsing
-        {"sv.s",  0xe8000000},
-        {"svl.q", 0xf4000000},
-        {"sv.q", 0xf8000000},
+        {allegrex_mnemonic::J,     0x08000000, arg_parse_JumpAddress},
+        {allegrex_mnemonic::JAL,   0x0c000000, arg_parse_JumpAddress},
+        {allegrex_mnemonic::BEQ,   0x10000000, arg_parse_Beq},
+        {allegrex_mnemonic::BNE,   0x14000000, arg_parse_RsRtRelAddress},
+        {allegrex_mnemonic::BLEZ,  0x18000000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGTZ,  0x1c000000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::ADDI,  0x20000000, arg_parse_Addi},
+        {allegrex_mnemonic::ADDIU, 0x24000000, arg_parse_Addiu},
+        {allegrex_mnemonic::SLTI,  0x28000000, arg_parse_RsRtImmediateS},
+        {allegrex_mnemonic::SLTIU, 0x2c000000, arg_parse_RsRtImmediateU},
+        {allegrex_mnemonic::ANDI,  0x30000000, arg_parse_RsRtImmediateS},
+        {allegrex_mnemonic::ORI,   0x34000000, arg_parse_Ori},
+        {allegrex_mnemonic::XORI,  0x38000000, arg_parse_RsRtImmediateU},
+        {allegrex_mnemonic::LUI,   0x3c000000, arg_parse_RtImmediateU},
+        {allegrex_mnemonic::BEQL,  0x50000000, arg_parse_Beql},
+        {allegrex_mnemonic::BNEL,  0x54000000, arg_parse_RsRtRelAddress},
+        {allegrex_mnemonic::BLEZL, 0x58000000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGTZL, 0x5c000000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::LB,    0x80000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LH,    0x84000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LWL,   0x88000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LW,    0x8c000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LBU,   0x90000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LHU,   0x94000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LWR,   0x98000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SB,    0xa0000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SH,    0xa4000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SWL,   0xa8000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SW,    0xac000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SWR,   0xb8000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::CACHE, 0xbc000000, arg_parse_Cache},
+        {allegrex_mnemonic::LL,    0xc0000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::LWC1,  0xc4000000, arg_parse_RsFtMemOffset},
+        {allegrex_mnemonic::LV_S,  0xc8000000},
+        {allegrex_mnemonic::LV,    0xd4000000},
+        {allegrex_mnemonic::LV_Q,  0xd8000000},
+        {allegrex_mnemonic::SC,    0xe0000000, arg_parse_RsRtMemOffset},
+        {allegrex_mnemonic::SWC1,  0xe4000000, arg_parse_RsFtMemOffset},
+        {allegrex_mnemonic::SV_S,  0xe8000000},
+        {allegrex_mnemonic::SVL_Q, 0xf4000000},
+        {allegrex_mnemonic::SV_Q,  0xf8000000},
     },
     .sub_categories = {
         &Special,
@@ -627,21 +587,21 @@ const category RegisterImmediate{
     .max =  0x041f0000,
     .mask = 0xfc1f0000,
     .instructions = {
-        {"bltz", 0x04000000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgez", 0x04010000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bltzl", 0x04020000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgezl", 0x04030000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"tgei", 0x04080000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
-        {"tgeiu", 0x04090000, instruction_type::None, arg_parse_RsImmediateU}, // TODO: type
-        {"tlti", 0x040a0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
-        {"tltiu", 0x040b0000, instruction_type::None, arg_parse_RsImmediateU}, // TODO: type
-        {"teqi", 0x040c0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
-        {"tnei", 0x040e0000, instruction_type::None, arg_parse_RsImmediateS}, // TODO: type
-        {"bltzal", 0x04100000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgezal", 0x04110000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bltzall", 0x04120000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"bgezall", 0x04130000, instruction_type::None, arg_parse_RsRelAddress}, // TODO: type
-        {"synci", 0x041f0000, instruction_type::None, nullptr} // TODO: type
+        {allegrex_mnemonic::BLTZ,    0x04000000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGEZ,    0x04010000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BLTZL,   0x04020000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGEZL,   0x04030000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::TGEI,    0x04080000, arg_parse_RsImmediateS},
+        {allegrex_mnemonic::TGEIU,   0x04090000, arg_parse_RsImmediateU},
+        {allegrex_mnemonic::TLTI,    0x040a0000, arg_parse_RsImmediateS},
+        {allegrex_mnemonic::TLTIU,   0x040b0000, arg_parse_RsImmediateU},
+        {allegrex_mnemonic::TEQI,    0x040c0000, arg_parse_RsImmediateS},
+        {allegrex_mnemonic::TNEI,    0x040e0000, arg_parse_RsImmediateS},
+        {allegrex_mnemonic::BLTZAL,  0x04100000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGEZAL,  0x04110000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BLTZALL, 0x04120000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::BGEZALL, 0x04130000, arg_parse_RsRelAddress},
+        {allegrex_mnemonic::SYNCI,   0x041f0000, nullptr}
     },
     .sub_categories = {}
 };
@@ -651,9 +611,9 @@ const category VFPUSpecial{
     .max  = 0xffff04ff,
     .mask = 0xffff07ff,
     .instructions = {
-        {"vnop",   0xffff0000, instruction_type::None, nullptr}, // TODO: type
-        {"vsync",  0xffff0320, instruction_type::None, nullptr}, // TODO: type
-        {"vflush", 0xffff040d, instruction_type::None, nullptr} // TODO: type
+        {allegrex_mnemonic::VNOP,   0xffff0000, nullptr},
+        {allegrex_mnemonic::VSYNC,  0xffff0320, nullptr},
+        {allegrex_mnemonic::VFLUSH, 0xffff040d, nullptr}
     },
     .sub_categories = {}
 };
@@ -671,13 +631,12 @@ const category AllInstructions{
     }
 };
 
-void populate_instruction(instruction *instr, const instruction_info *info)
+void populate_instruction(instruction *instr, const instruction_info *info, const parse_config *conf)
 {
-    instr->name = info->name;
-    instr->type = info->type;
+    instr->mnemonic = info->mnemonic;
     
     if (info->argument_parse_function != nullptr)
-        info->argument_parse_function(instr->opcode, instr);
+        info->argument_parse_function(instr->opcode, instr, conf);
 }
 
 bool try_parse_category_instruction(u32 opcode, const category *cat, const parse_config *conf, instruction *out)
@@ -697,7 +656,7 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, const parse
     for (auto &instr : cat->instructions)
         if (mop == instr.opcode)
         {
-            populate_instruction(out, &instr);
+            populate_instruction(out, &instr, conf);
             return true;
         }
 
@@ -711,7 +670,7 @@ void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
     found = try_parse_category_instruction(opcode, &AllInstructions, conf, out);
 
     if (!found)
-        out->name = "unknown";
+        out->mnemonic = allegrex_mnemonic::_UNKNOWN;
 }
 
 #define IF_ARG_TYPE_LOG(arg, T, FMT) \
@@ -719,6 +678,52 @@ void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
     { \
         log(conf, FMT, std::get<T>(arg).data); \
     }
+
+void log_instruction(const instruction *inst, const parse_config *conf)
+{
+    const char *name = get_mnemonic_name(inst->mnemonic);
+    log(conf, "%06x %08x   %-10s", inst->address, inst->opcode, name);
+
+    for (auto arg : inst->arguments)
+    {
+        if (std::holds_alternative<const char*>(arg))
+        {
+            log(conf, " %s", std::get<const char*>(arg));
+        }
+        else if (std::holds_alternative<mips_register>(arg))
+        {
+            log(conf, " %s", register_name(std::get<mips_register>(arg)));
+        }
+        else if (std::holds_alternative<mips_fpu_register>(arg))
+        {
+            log(conf, " %s", register_name(std::get<mips_fpu_register>(arg)));
+        }
+        else if (std::holds_alternative<base_register>(arg))
+        {
+            log(conf, "(%s)", register_name(std::get<base_register>(arg).data));
+        }
+        else if (std::holds_alternative<const syscall*>(arg))
+        {
+            const syscall *sc = std::get<const syscall*>(arg);
+            log(conf, " %s <0x%08x>", sc->function_name, sc->id);
+        }
+        else IF_ARG_TYPE_LOG(arg, shift, " %u")
+        else IF_ARG_TYPE_LOG(arg, address, " %x")
+        else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
+        else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
+        else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
+        else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
+        else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
+        else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
+        else if (std::holds_alternative<coprocessor_register>(arg))
+        {
+            coprocessor_register &d = std::get<coprocessor_register>(arg);
+            log(conf, " [%u, %u]", d.rd, d.sel);
+        }
+    }
+
+    log(conf, "\n", 0);
+}
 
 void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<instruction> &out)
 {
@@ -739,46 +744,6 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
 
         parse_instruction(inst.opcode, conf, &inst);
 
-        log(conf, "%06x %08x   %-10s", inst.address, inst.opcode, inst.name);
-
-        for (auto arg : inst.arguments)
-        {
-            if (std::holds_alternative<const char*>(arg))
-            {
-                log(conf, " %s", std::get<const char*>(arg));
-            }
-            else if (std::holds_alternative<mips_register>(arg))
-            {
-                log(conf, " %s", register_name(std::get<mips_register>(arg)));
-            }
-            else if (std::holds_alternative<mips_fpu_register>(arg))
-            {
-                log(conf, " %s", register_name(std::get<mips_fpu_register>(arg)));
-            }
-            else if (std::holds_alternative<base_register>(arg))
-            {
-                log(conf, "(%s)", register_name(std::get<base_register>(arg).data));
-            }
-            else if (std::holds_alternative<const syscall*>(arg))
-            {
-                const syscall *sc = std::get<const syscall*>(arg);
-                log(conf, " %s <0x%08x>", sc->function_name, sc->id);
-            }
-            else IF_ARG_TYPE_LOG(arg, shift, " %u")
-            else IF_ARG_TYPE_LOG(arg, address, " %x")
-            else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
-            else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
-            else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
-            else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
-            else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
-            else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
-            else if (std::holds_alternative<coprocessor_register>(arg))
-            {
-                coprocessor_register &d = std::get<coprocessor_register>(arg);
-                log(conf, " [%u, %u]", d.rd, d.sel);
-            }
-        }
-
-        log(conf, "\n", 0);
+        log_instruction(&inst, conf);
     }
 }
