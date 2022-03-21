@@ -29,6 +29,7 @@ const char *mnemonic_names[] = {
     "madd",
     "maddu",
     "add",
+    "move",
     "addu",
     "sub",
     "subu",

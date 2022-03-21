@@ -3,6 +3,25 @@
 
 #include "parse_instruction_arguments.hpp"
 
+#define RS(opcode) bitrange(opcode, 21u, 25u)
+#define RT(opcode) bitrange(opcode, 16u, 20u)
+#define RD(opcode) bitrange(opcode, 11u, 15u)
+#define SA(opcode) bitrange(opcode, 6u, 10u)
+
+#define FT(opcode) bitrange(opcode, 16u, 20u)
+#define FS(opcode) bitrange(opcode, 11u, 15u)
+#define FD(opcode) bitrange(opcode, 6u, 10u)
+
+static_assert(bitrange(0x00ff, 0, 0) == 0x1);
+static_assert(bitrange(0x00ff, 0, 1) == 0x3);
+static_assert(bitrange(0x00ff, 0, 3) == 0xf);
+static_assert(bitrange(0x00ff, 0, 7) == 0xff);
+static_assert(bitrange(0x01ff, 0, 7) == 0xff);
+static_assert(bitrange(0x00ff, 0, 8) == 0xff);
+static_assert(bitrange(0x01ff, 1, 8) == 0xff);
+static_assert(bitrange(0x0ff0, 4, 11) == 0xff);
+static_assert(bitrange(0xff00, 8, 15) == 0xff);
+
 template<typename T>
 void add_argument(T val, instruction *inst)
 {
@@ -27,20 +46,56 @@ void add_fpu_register_argument(u32 reg, instruction *inst)
 // R-type instruction: xxxxxx ..... ..... ..... ..... xxxxxx
 // 3: first 3 (from left to right) sets of 5 bits are parameters
 // the last one is shift (unused for most instructions)
-void arg_parse_R3(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
     u32 rd = RD(opcode);
 
-    // destination comes first
     add_register_argument(rd, inst);
     add_register_argument(rs, inst);
     add_register_argument(rt, inst);
 };
 
+void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    if (!conf->emit_pseudo)
+    {
+        arg_parse_RsRtRd(opcode, inst, conf);
+        return;
+    }
+
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 rd = RD(opcode);
+
+    if (rs == 0 && rt == 0)
+    {
+        inst->mnemonic = allegrex_mnemonic::LI;
+        add_register_argument(rd, inst);
+        add_argument(immediate<s16>{0}, inst);
+        return;
+    }
+    else if (rs == 0)
+    {
+        inst->mnemonic = allegrex_mnemonic::MOVE;
+        add_register_argument(rd, inst);
+        add_register_argument(rt, inst);
+        return;
+    }
+    else if (rt == 0)
+    {
+        inst->mnemonic = allegrex_mnemonic::MOVE;
+        add_register_argument(rd, inst);
+        add_register_argument(rs, inst);
+        return;
+    }
+
+    arg_parse_RsRtRd(opcode, inst, conf);
+};
+
 // only used by clz & clo...
-void arg_parse_R2(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf)
 {
     u32 rs = RS(opcode);
     u32 rd = RD(opcode);
@@ -86,7 +141,7 @@ void arg_parse_VarShift(u32 opcode, instruction *inst, const parse_config *conf)
     u32 rt = RT(opcode);
     u32 rd = RD(opcode);
 
-    // almost the same as R3, except rt comes before rs
+    // almost the same as RsRtRd, except rt comes before rs
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
@@ -238,29 +293,38 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf)
         return;
     }
 
-    /*
-     * TODO: implement
-    inst->name = "b";
+    inst->mnemonic = allegrex_mnemonic::B;
     u32 off = inst->address;
     s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
     add_argument(address{off}, inst);
-    */
 }
 
 void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf)
 {
-    // TODO: pseudoinstruction BL
-    /*
+    if (!conf->emit_pseudo)
+    {
+        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        return;
+    }
+    
+    // pseudoinstruction BL
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
 
-    if (rs == rt)
-        ...
-    */
+    if (rs != rt)
+    {
+        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        return;
+    }
 
-    arg_parse_RsRtRelAddress(opcode, inst, conf);
+    inst->mnemonic = allegrex_mnemonic::BL;
+    u32 off = inst->address;
+    s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
+    off += imm + sizeof(opcode);
+
+    add_argument(address{off}, inst);
 }
 
 void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf)
@@ -287,41 +351,50 @@ void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config 
 
 void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf)
 {
-    // TODO: pseudoinstruction LI
-    /*
+    if (!conf->emit_pseudo)
+    {
+        arg_parse_RsRtImmediateS(opcode, inst, conf);
+        return;
+    }
+    
+    // pseudoinstruction LI
     u32 rs = RS(opcode);
 
-    if (rs == 0)
-        ...
-    */
+    if (rs != 0)
+    {
+        arg_parse_RsRtImmediateS(opcode, inst, conf);
+        return;
+    }
 
-    arg_parse_RsRtImmediateS(opcode, inst, conf);
-};
-
-void arg_parse_Addiu(u32 opcode, instruction *inst, const parse_config *conf)
-{
-    // TODO: pseudoinstruction LI
-    /*
-    u32 rs = RS(opcode);
-
-    if (rs == 0)
-        ...
-    */
-
-    arg_parse_RsRtImmediateU(opcode, inst, conf);
+    inst->mnemonic = allegrex_mnemonic::LI;
+    u32 rt = RT(opcode);
+    s16 imm = bitrange(opcode, 0, 15);
+    add_register_argument(rt, inst);
+    add_argument(immediate<s16>{imm}, inst);
 };
 
 void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf)
 {
-    // TODO: pseudoinstruction LI
-    /*
+    if (!conf->emit_pseudo)
+    {
+        arg_parse_RsRtImmediateU(opcode, inst, conf);
+        return;
+    }
+    
+    // pseudoinstruction LI
     u32 rs = RS(opcode);
 
-    if (rs == 0)
-        ...
-    */
+    if (rs != 0)
+    {
+        arg_parse_RsRtImmediateU(opcode, inst, conf);
+        return;
+    }
 
-    arg_parse_RsRtImmediateU(opcode, inst, conf);
+    inst->mnemonic = allegrex_mnemonic::LI;
+    u32 rt = RT(opcode);
+    u32 imm = bitrange(opcode, 0, 15);
+    add_register_argument(rt, inst);
+    add_argument(immediate<u32>{imm}, inst);
 };
 
 void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_config *conf)

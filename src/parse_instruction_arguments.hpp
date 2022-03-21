@@ -19,28 +19,11 @@ constexpr T bitrange_(T val)
 }
 
 #define bitrange(val, from, to) bitrange_<decltype(val), from, to>(val)
-#define RS(opcode) bitrange(opcode, 21u, 25u)
-#define RT(opcode) bitrange(opcode, 16u, 20u)
-#define RD(opcode) bitrange(opcode, 11u, 15u)
-#define SA(opcode) bitrange(opcode, 6u, 10u)
 
-#define FT(opcode) bitrange(opcode, 16u, 20u)
-#define FS(opcode) bitrange(opcode, 11u, 15u)
-#define FD(opcode) bitrange(opcode, 6u, 10u)
-
-static_assert(bitrange(0x00ff, 0, 0) == 0x1);
-static_assert(bitrange(0x00ff, 0, 1) == 0x3);
-static_assert(bitrange(0x00ff, 0, 3) == 0xf);
-static_assert(bitrange(0x00ff, 0, 7) == 0xff);
-static_assert(bitrange(0x01ff, 0, 7) == 0xff);
-static_assert(bitrange(0x00ff, 0, 8) == 0xff);
-static_assert(bitrange(0x01ff, 1, 8) == 0xff);
-static_assert(bitrange(0x0ff0, 4, 11) == 0xff);
-static_assert(bitrange(0xff00, 8, 15) == 0xff);
-
-void arg_parse_R3(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf);
 // clz, clo
-void arg_parse_R2(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_RsRt(u32 opcode, instruction *inst, const parse_config *conf);
 
 // tge, tgeu etc
@@ -76,7 +59,6 @@ void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config 
 void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config *conf);
 // LI pseudoinstruction
 void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf);
-void arg_parse_Addiu(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf); // technically same as Addiu
 
 // lb, lh, lw, etc...

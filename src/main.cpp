@@ -188,6 +188,7 @@ try
     pconf.log = &log;
     pconf.vaddr = sec.vaddr;
     pconf.verbose = args.verbose;
+    pconf.emit_pseudo = args.emit_pseudo;
 
     std::vector<instruction> instructions;
     parse_allegrex(&sec.content, &pconf, instructions);

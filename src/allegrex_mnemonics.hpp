@@ -35,6 +35,7 @@ enum class allegrex_mnemonic : u32
     MADD,
     MADDU,
     ADD,
+    MOVE,
     ADDU,
     SUB,
     SUBU,
@@ -287,3 +288,5 @@ enum class allegrex_mnemonic : u32
 
 // does not include VFPU vector size suffixes
 const char *get_mnemonic_name(allegrex_mnemonic mne);
+
+// TODO: VFPU vector size name
