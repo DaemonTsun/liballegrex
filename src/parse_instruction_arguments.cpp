@@ -3,6 +3,8 @@
 
 #include "parse_instruction_arguments.hpp"
 
+// TODO: write tests for all instruction parsings...
+
 #define RS(opcode) bitrange(opcode, 21u, 25u)
 #define RT(opcode) bitrange(opcode, 16u, 20u)
 #define RD(opcode) bitrange(opcode, 11u, 15u)
@@ -453,10 +455,10 @@ void arg_parse_FPURelAddress(u32 opcode, instruction *inst, const parse_config *
     u32 off = inst->address;
     s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
     off += imm + sizeof(opcode);
-    auto cc = bitrange(opcode, 18, 20); // can probably omit this
+    u8 cc = bitrange(opcode, 18, 20);
 
     add_argument(address{off}, inst);
-    add_argument(extra{cc}, inst);
+    add_argument(condition_code{cc}, inst);
 };
 
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *conf)
@@ -511,3 +513,5 @@ void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rt, inst);
     add_fpu_register_argument(fs, inst);
 }
+
+// VFPU

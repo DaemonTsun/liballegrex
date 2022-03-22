@@ -19,6 +19,8 @@ struct parse_config
     bool emit_pseudo;
 };
 
+
+
 #define DEFINE_TYPED_ARG(name, type) struct name {type data;}
 
 DEFINE_TYPED_ARG(shift, u8);
@@ -36,6 +38,7 @@ DEFINE_TYPED_ARG(memory_offset, s16);
 // immediates
 template<typename T = u32>
 DEFINE_TYPED_ARG(immediate, T);
+DEFINE_TYPED_ARG(condition_code, u8);
 
 // ext, ins
 DEFINE_TYPED_ARG(bitfield_size, u32);
@@ -45,7 +48,7 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
 
-using instruction_argument = std::variant<mips_register, mips_fpu_register, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, bitfield_pos, bitfield_size, extra>;
+using instruction_argument = std::variant<mips_register, mips_fpu_register, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, condition_code, bitfield_pos, bitfield_size, extra>;
 
 struct instruction
 {

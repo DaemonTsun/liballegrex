@@ -148,8 +148,8 @@ const category Cop0{
 
 const category Cop1BC{
     .min =  0x45000000,
-    .max =  0x451f0000,
-    .mask = 0xffff0000,
+    .max =  0x45030000,
+    .mask = 0xffe30000,
     .instructions = {
         {allegrex_mnemonic::BC1F,  0x45000000, arg_parse_FPURelAddress},
         {allegrex_mnemonic::BC1T,  0x45010000, arg_parse_FPURelAddress},
@@ -228,10 +228,10 @@ const category Cop2BC2{
     .max =  0x49030000,
     .mask = 0xffe30000,
     .instructions = {
-        {allegrex_mnemonic::BVF,  0x49000000},
-        {allegrex_mnemonic::BVT,  0x49010000},
-        {allegrex_mnemonic::BVFL, 0x49020000},
-        {allegrex_mnemonic::BVTL, 0x49030000},
+        {allegrex_mnemonic::BVF,  0x49000000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BVT,  0x49010000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BVFL, 0x49020000, arg_parse_FPURelAddress},
+        {allegrex_mnemonic::BVTL, 0x49030000, arg_parse_FPURelAddress},
     },
     .sub_categories = {}
 };
@@ -713,6 +713,7 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
+        else IF_ARG_TYPE_LOG(arg, condition_code, " (CC[%x])")
         else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
         else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
         else if (std::holds_alternative<coprocessor_register>(arg))
