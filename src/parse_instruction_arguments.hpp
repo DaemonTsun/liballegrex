@@ -6,20 +6,6 @@
 
 typedef void(*argument_parse_function_t)(u32 opcode, instruction*, const parse_config *conf);
 
-template<typename T>
-constexpr T bitmask(T from, T to)
-{
-    return (((1 << (1 + to)) - 1) ^ ((1 << (from)) - 1));
-}
-
-template<typename T, T From, T To>
-constexpr T bitrange_(T val)
-{
-    return static_cast<T>((val & bitmask(From, To)) >> From);
-}
-
-#define bitrange(val, from, to) bitrange_<decltype(val), from, to>(val)
-
 void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf);
 // clz, clo
@@ -77,3 +63,7 @@ void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf
 void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf);
+
+// VFPU
+void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf);

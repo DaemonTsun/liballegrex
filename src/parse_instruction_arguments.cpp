@@ -44,6 +44,21 @@ void add_fpu_register_argument(u32 reg, instruction *inst)
     add_argument(static_cast<mips_fpu_register>(reg), inst);
 }
 
+void add_vfpu_register_argument(u32 reg, vfpu_size size, instruction *inst)
+{
+    assert(reg < 256);
+
+    add_argument(vfpu_register{static_cast<u8>(reg), size}, inst);
+}
+
+void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
+{
+    if (size > static_cast<u32>(vfpu_size::Unknown))
+        size = static_cast<u32>(vfpu_size::Unknown);
+
+    add_vfpu_register_argument(reg, static_cast<vfpu_size>(size), inst);
+}
+
 // argument parse functions
 // R-type instruction: xxxxxx ..... ..... ..... ..... xxxxxx
 // 3: first 3 (from left to right) sets of 5 bits are parameters
@@ -515,3 +530,21 @@ void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf)
 }
 
 // VFPU
+void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 rt = RT(opcode);
+    u16 unk = bitrange(opcode, 0u, 15u);
+
+    add_register_argument(rt, inst);
+    add_argument(immediate<u16>{unk}, inst);
+}
+
+void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    // ppsspp
+    u32 rt = RT(opcode);
+    u32 vr = bitrange(opcode, 0, 7);
+
+    add_register_argument(rt, inst);
+    add_vfpu_register_argument(vr, vfpu_size::Single, inst);
+}

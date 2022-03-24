@@ -241,12 +241,13 @@ const category Cop2{
     .max =  0x4be00000,
     .mask = 0xffe00000,
     .instructions = {
-        {allegrex_mnemonic::MFC2, 0x48000000},
-        {allegrex_mnemonic::CFC2, 0x48400000},
-        {allegrex_mnemonic::MFV,  0x48600000},
-        {allegrex_mnemonic::MTC2, 0x48800000},
-        {allegrex_mnemonic::CTC2, 0x48c00000},
-        {allegrex_mnemonic::MTV,  0x48e00000},
+        // not really sure with MFC2/CFC2/MTC2/CTC2
+        {allegrex_mnemonic::MFC2, 0x48000000, arg_parse_VFPU_Cop2},
+        {allegrex_mnemonic::CFC2, 0x48400000, arg_parse_VFPU_Cop2},
+        {allegrex_mnemonic::MFV,  0x48600000, arg_parse_VFPU_MFTV},
+        {allegrex_mnemonic::MTC2, 0x48800000, arg_parse_VFPU_Cop2},
+        {allegrex_mnemonic::CTC2, 0x48c00000, arg_parse_VFPU_Cop2},
+        {allegrex_mnemonic::MTV,  0x48e00000, arg_parse_VFPU_MFTV},
 
     },
     .sub_categories = {
@@ -697,6 +698,10 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else if (std::holds_alternative<mips_fpu_register>(arg))
         {
             log(conf, " %s", register_name(std::get<mips_fpu_register>(arg)));
+        }
+        else if (std::holds_alternative<vfpu_register>(arg))
+        {
+            log(conf, " %s", register_name(std::get<vfpu_register>(arg)));
         }
         else if (std::holds_alternative<base_register>(arg))
         {
