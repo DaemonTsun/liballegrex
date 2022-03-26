@@ -617,3 +617,21 @@ void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf
     add_vfpu_register_argument(vs, sz, inst);
     add_vfpu_register_argument(vt, sz, inst);
 }
+
+void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+}
+
+void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+
+    add_vfpu_register_argument(vd, sz, inst);
+}

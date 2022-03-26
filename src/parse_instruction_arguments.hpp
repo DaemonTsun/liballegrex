@@ -75,3 +75,9 @@ void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_co
 
 void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf);
+
+// 2op, e.g. vmov
+void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *conf);
+
+// 1op, e.g. vidt
+void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf);
