@@ -13,6 +13,7 @@ struct instruction_info
     allegrex_mnemonic mnemonic;
     u32 opcode;
     argument_parse_function_t argument_parse_function;
+    /* TODO: format / string function */
 };
 
 struct category
@@ -261,10 +262,10 @@ const category VFPU0{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {allegrex_mnemonic::VADD, 0x60000000},
-        {allegrex_mnemonic::VSUB, 0x60800000},
-        {allegrex_mnemonic::VSBN, 0x61000000},
-        {allegrex_mnemonic::VDIV, 0x63800000},
+        {allegrex_mnemonic::VADD, 0x60000000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VSUB, 0x60800000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VSBN, 0x61000000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VDIV, 0x63800000, arg_parse_VFPU_Vd_Vs_Vt},
     },
     .sub_categories = {
     }
@@ -276,12 +277,12 @@ const category VFPU1{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {allegrex_mnemonic::VMUL, 0x64000000},
-        {allegrex_mnemonic::VDOT, 0x64800000},
-        {allegrex_mnemonic::VSCL, 0x65000000},
-        {allegrex_mnemonic::VHDP, 0x66000000},
-        {allegrex_mnemonic::VCRS, 0x66800000},
-        {allegrex_mnemonic::VDET, 0x67000000},
+        {allegrex_mnemonic::VMUL, 0x64000000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VDOT, 0x64800000, arg_parse_VFPU_VdSingle_Vs_Vt},
+        {allegrex_mnemonic::VSCL, 0x65000000, arg_parse_VFPU_Vd_Vs_VtSingle},
+        {allegrex_mnemonic::VHDP, 0x66000000, arg_parse_VFPU_VdSingle_Vs_Vt},
+        {allegrex_mnemonic::VCRS, 0x66800000, arg_parse_VFPU_Vcrs},
+        {allegrex_mnemonic::VDET, 0x67000000, arg_parse_VFPU_VdSingle_Vs_Vt},
     },
     .sub_categories = {
     }
@@ -293,12 +294,12 @@ const category VFPU3{
     .mask = 0xff800000,
     .instructions = {
         // TODO: correct VFPU instruction name parsing
-        {allegrex_mnemonic::VCMP,  0x6c000000},
-        {allegrex_mnemonic::VMIN,  0x6d000000},
-        {allegrex_mnemonic::VMAX,  0x6d800000},
-        {allegrex_mnemonic::VSCMP, 0x6e800000},
-        {allegrex_mnemonic::VSGE,  0x6f000000},
-        {allegrex_mnemonic::VSLT,  0x6f800000},
+        {allegrex_mnemonic::VCMP,  0x6c000000, arg_parse_VFPU_Vcmp},
+        {allegrex_mnemonic::VMIN,  0x6d000000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VMAX,  0x6d800000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VSCMP, 0x6e800000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VSGE,  0x6f000000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VSLT,  0x6f800000, arg_parse_VFPU_Vd_Vs_Vt},
     },
     .sub_categories = {
     }
@@ -702,6 +703,10 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else if (std::holds_alternative<vfpu_register>(arg))
         {
             log(conf, " %s", register_name(std::get<vfpu_register>(arg)));
+        }
+        else if (std::holds_alternative<vfpu_condition>(arg))
+        {
+            log(conf, " %s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
         }
         else if (std::holds_alternative<base_register>(arg))
         {

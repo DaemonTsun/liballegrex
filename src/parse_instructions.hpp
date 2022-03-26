@@ -5,8 +5,9 @@
 #include <variant>
 
 #include "psp_syscalls.hpp"
+#include "mips_registers.hpp"
 #include "allegrex_mnemonics.hpp"
-#include "allegrex_registers.hpp"
+#include "allegrex_vfpu.hpp"
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
 #include "number_types.hpp"
@@ -45,8 +46,10 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 // some instructions can have data (e.g. tge) that's not really
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
+// error handling
+DEFINE_TYPED_ARG(error, const char *);
 
-using instruction_argument = std::variant<mips_register, mips_fpu_register, vfpu_register, vfpu_matrix, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, condition_code, bitfield_pos, bitfield_size, extra>;
+using instruction_argument = std::variant<mips_register, mips_fpu_register, vfpu_register, vfpu_matrix, vfpu_condition, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, condition_code, bitfield_pos, bitfield_size, extra, error>;
 
 struct instruction
 {

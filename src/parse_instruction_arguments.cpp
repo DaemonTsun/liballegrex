@@ -14,6 +14,10 @@
 #define FS(opcode) bitrange(opcode, 11u, 15u)
 #define FD(opcode) bitrange(opcode, 6u, 10u)
 
+#define VD(opcode) bitrange(opcode, 0u, 6u)
+#define VS(opcode) bitrange(opcode, 8u, 14u)
+#define VT(opcode) bitrange(opcode, 16u, 22u)
+
 static_assert(bitrange(0x00ff, 0, 0) == 0x1);
 static_assert(bitrange(0x00ff, 0, 1) == 0x3);
 static_assert(bitrange(0x00ff, 0, 3) == 0xf);
@@ -547,4 +551,69 @@ void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf
 
     add_register_argument(rt, inst);
     add_vfpu_register_argument(vr, vfpu_size::Single, inst);
+}
+
+void arg_parse_VFPU_Vd_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_vfpu_register_argument(vt, sz, inst);
+}
+
+void arg_parse_VFPU_VdSingle_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+
+    add_vfpu_register_argument(vd, vfpu_size::Single, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_vfpu_register_argument(vt, sz, inst);
+}
+
+void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_vfpu_register_argument(vt, vfpu_size::Single, inst);
+}
+
+void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+
+    if (sz != vfpu_size::Triple)
+        add_argument(error{"vector size not triple"}, inst);
+    else
+    {
+        add_vfpu_register_argument(vd, sz, inst);
+        add_vfpu_register_argument(vs, sz, inst);
+        add_vfpu_register_argument(vt, sz, inst);
+    }
+}
+
+void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+    u32 cond = bitrange(opcode, 0, 3);
+
+    add_argument(static_cast<vfpu_condition>(cond), inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_vfpu_register_argument(vt, sz, inst);
 }

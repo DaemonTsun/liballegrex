@@ -67,3 +67,11 @@ void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf);
 // VFPU
 void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf);
+
+// 3op, e.g. vadd
+void arg_parse_VFPU_Vd_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_VdSingle_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf);
+
+void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf);

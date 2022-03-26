@@ -27,28 +27,5 @@ enum class mips_fpu_register : u32
     F24, F25, F26, F27, F28, F29, F30, F31
 };
 
-enum class vfpu_size : u32
-{
-    Single, // M1x1
-    Pair,   // M2x2
-    Triple, // M3x3
-    Quad,   // M4x4
-    Unknown
-};
-
-struct vfpu_register
-{
-    u8 num;
-    vfpu_size size;
-};
-
-struct vfpu_matrix
-{
-    u8 num;
-    vfpu_size size;
-};
-
 const char *register_name(mips_register reg);
 const char *register_name(mips_fpu_register reg);
-const char *register_name(vfpu_register reg);
-const char *matrix_name(vfpu_matrix mat);
