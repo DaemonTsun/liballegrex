@@ -9,8 +9,28 @@ enum class vfpu_size : u32
     Pair,   // M2x2
     Triple, // M3x3
     Quad,   // M4x4
-    Unknown
+    Invalid
 };
+
+constexpr vfpu_size half_size(vfpu_size sz)
+{
+    switch (sz)
+    {
+    case vfpu_size::Pair: return vfpu_size::Single;
+    case vfpu_size::Quad: return vfpu_size::Pair;
+    default: return vfpu_size::Invalid;
+    }
+}
+
+constexpr vfpu_size double_size(vfpu_size sz)
+{
+    switch (sz)
+    {
+    case vfpu_size::Single: return vfpu_size::Pair;
+    case vfpu_size::Pair: return vfpu_size::Quad;
+    default: return vfpu_size::Invalid;
+    }
+}
 
 struct vfpu_register
 {

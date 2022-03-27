@@ -57,8 +57,8 @@ void add_vfpu_register_argument(u32 reg, vfpu_size size, instruction *inst)
 
 void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
 {
-    if (size > static_cast<u32>(vfpu_size::Unknown))
-        size = static_cast<u32>(vfpu_size::Unknown);
+    if (size > static_cast<u32>(vfpu_size::Invalid))
+        size = static_cast<u32>(vfpu_size::Invalid);
 
     add_vfpu_register_argument(reg, static_cast<vfpu_size>(size), inst);
 }
@@ -634,4 +634,38 @@ void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf)
     u32 vd = VD(opcode);
 
     add_vfpu_register_argument(vd, sz, inst);
+}
+
+void arg_parse_VFPU_VdSingle(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vd = VD(opcode);
+
+    add_vfpu_register_argument(vd, vfpu_size::Single, inst);
+}
+
+void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    vfpu_size hsz = half_size(sz);
+
+    if (bitrange(opcode, 16, 17) == 0)
+        hsz = vfpu_size::Single;
+
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vd, hsz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+}
+
+void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    vfpu_size dsz = double_size(sz);
+
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vd, dsz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
 }

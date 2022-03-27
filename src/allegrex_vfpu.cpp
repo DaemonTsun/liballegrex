@@ -558,7 +558,7 @@ const char *register_name(vfpu_register reg)
             return "(interlock)";
     }
 
-    if (reg.num >= 128 || reg.size == vfpu_size::Unknown)
+    if (reg.num >= 128 || reg.size == vfpu_size::Invalid)
         return "?";
 
 	return vfpu_register_names[static_cast<u32>(reg.size)][reg.num]; 

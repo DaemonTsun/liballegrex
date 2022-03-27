@@ -81,3 +81,7 @@ void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *con
 
 // 1op, e.g. vidt
 void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_VdSingle(u32 opcode, instruction *inst, const parse_config *conf);
+
+void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_config *conf);
