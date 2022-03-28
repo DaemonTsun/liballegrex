@@ -406,22 +406,22 @@ const category VFPU9{
     .max =  0xd05f0000,
     .mask = 0xffff0000,
     .instructions = {
-        {allegrex_mnemonic::VSRT1,  0xd0400000},
-        {allegrex_mnemonic::VSRT2,  0xd0410000},
-        {allegrex_mnemonic::VBFY1,  0xd0420000},
-        {allegrex_mnemonic::VBFY2,  0xd0430000},
-        {allegrex_mnemonic::VOCP,   0xd0440000},
-        {allegrex_mnemonic::VSOCP,  0xd0450000},
-        {allegrex_mnemonic::VFAD,   0xd0460000},
-        {allegrex_mnemonic::VAVG,   0xd0470000},
-        {allegrex_mnemonic::VSRT3,  0xd0480000},
-        {allegrex_mnemonic::VSRT4,  0xd0490000},
-        {allegrex_mnemonic::VSGN,   0xd04a0000},
-        {allegrex_mnemonic::VMFVC,  0xd0500000},
-        {allegrex_mnemonic::VMTVC,  0xd0510000},
-        {allegrex_mnemonic::VT4444, 0xd0590000},
-        {allegrex_mnemonic::VT5551, 0xd05a0000},
-        {allegrex_mnemonic::VT5650, 0xd05b0000},
+        {allegrex_mnemonic::VSRT1,  0xd0400000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VSRT2,  0xd0410000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VBFY1,  0xd0420000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VBFY2,  0xd0430000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VOCP,   0xd0440000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VSOCP,  0xd0450000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VFAD,   0xd0460000, arg_parse_VFPU_VdSingle_Vs},
+        {allegrex_mnemonic::VAVG,   0xd0470000, arg_parse_VFPU_VdSingle_Vs},
+        {allegrex_mnemonic::VSRT3,  0xd0480000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VSRT4,  0xd0490000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VSGN,   0xd04a0000, arg_parse_VFPU_Vd_Vs},
+        {allegrex_mnemonic::VMFVC,  0xd0500000, arg_parse_VFPU_Vmfvc},
+        {allegrex_mnemonic::VMTVC,  0xd0510000, arg_parse_VFPU_Vmtvc},
+        {allegrex_mnemonic::VT4444, 0xd0590000, arg_parse_VFPU_ColorConv},
+        {allegrex_mnemonic::VT5551, 0xd05a0000, arg_parse_VFPU_ColorConv},
+        {allegrex_mnemonic::VT5650, 0xd05b0000, arg_parse_VFPU_ColorConv}
     },
     .sub_categories = {
     }
@@ -432,7 +432,7 @@ const category vwbn{
     .max =  0xd3000000,
     .mask = 0xff000000,
     .instructions = {
-        {allegrex_mnemonic::VWBN, 0xd3000000}
+        {allegrex_mnemonic::VWBN, 0xd3000000, arg_parse_VFPU_Vwbn}
     },
     .sub_categories = {}
 };
@@ -723,6 +723,7 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
+        else IF_ARG_TYPE_LOG(arg, immediate<u8>, " %u")
         else IF_ARG_TYPE_LOG(arg, condition_code, " (CC[%x])")
         else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
         else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")

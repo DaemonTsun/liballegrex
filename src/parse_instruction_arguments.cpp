@@ -628,6 +628,16 @@ void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *con
     add_vfpu_register_argument(vs, sz, inst);
 }
 
+void arg_parse_VFPU_VdSingle_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vd, vfpu_size::Single, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+}
+
 void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf)
 {
     vfpu_size sz = get_vfpu_size(opcode);
@@ -669,3 +679,47 @@ void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_confi
     add_vfpu_register_argument(vd, dsz, inst);
     add_vfpu_register_argument(vs, sz, inst);
 }
+
+void arg_parse_VFPU_Vmfvc(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vd = VD(opcode);
+    u32 vr = VS(opcode) + 128;
+
+    add_vfpu_register_argument(vd, vfpu_size::Single, inst);
+    add_vfpu_register_argument(vr, vfpu_size::Single, inst);
+}
+
+void arg_parse_VFPU_Vmtvc(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vr = VD(opcode) + 128;
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vs, vfpu_size::Single, inst);
+    add_vfpu_register_argument(vr, vfpu_size::Single, inst);
+}
+
+void arg_parse_VFPU_ColorConv(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    vfpu_size hsz = half_size(sz);
+
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_register_argument(vd, hsz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+}
+
+void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u8 imm = bitrange(opcode, 16, 23);
+
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_argument(immediate<u8>{imm}, inst);
+}
+

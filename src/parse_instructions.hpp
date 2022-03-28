@@ -49,7 +49,7 @@ DEFINE_TYPED_ARG(extra, u32);
 // error handling
 DEFINE_TYPED_ARG(error, const char *);
 
-using instruction_argument = std::variant<mips_register, mips_fpu_register, vfpu_register, vfpu_matrix, vfpu_condition, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, condition_code, bitfield_pos, bitfield_size, extra, error>;
+using instruction_argument = std::variant<mips_register, mips_fpu_register, vfpu_register, vfpu_matrix, vfpu_condition, const syscall*, const char*, shift, coprocessor_register, base_register, address, memory_offset, immediate<u32>, immediate<u16>, immediate<s16>, immediate<u8>, condition_code, bitfield_pos, bitfield_size, extra, error>;
 
 struct instruction
 {
