@@ -1,4 +1,5 @@
 
+#include <assert.h>
 #include "allegrex_vfpu.hpp"
 
 #define MAX_CONTROL_REGISTERS 16
@@ -586,4 +587,33 @@ const char *vfpu_condition_names[] = {"FL","EQ","LT","LE","TR","NE","GE","GT","E
 const char *vfpu_condition_name(vfpu_condition cond)
 {
     return vfpu_condition_names[static_cast<u32>(cond)];
+}
+
+const char *vfpu_constant_names[] = {
+    "(undefined)",
+    "MaxFloat",
+    "Sqrt(2)",
+    "Sqrt(1/2)",
+    "2/Sqrt(PI)",
+    "2/PI",
+    "1/PI",
+    "PI/4",
+    "PI/2",
+    "PI",
+    "e",
+    "Log2(e)",
+    "Log10(e)",
+    "ln(2)",
+    "ln(10)",
+    "2*PI",
+    "PI/6",
+    "Log10(2)",
+    "Log2(10)",
+    "Sqrt(3)/2"
+};
+
+const char *vfpu_constant_name(u32 constant)
+{
+    assert(constant < 32);
+    return vfpu_constant_names[constant];
 }

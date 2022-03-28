@@ -79,6 +79,7 @@ void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf
 // 2op, e.g. vmov
 void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_VdSingle_Vs(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_config *conf);
 
 // 1op, e.g. vidt
 void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf);
@@ -91,3 +92,4 @@ void arg_parse_VFPU_Vmfvc(u32 opcode, instruction *inst, const parse_config *con
 void arg_parse_VFPU_Vmtvc(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_ColorConv(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf);

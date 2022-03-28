@@ -80,3 +80,5 @@ enum class vfpu_condition : u32
 };
 
 const char *vfpu_condition_name(vfpu_condition cond);
+
+const char *vfpu_constant_name(u32 constant);

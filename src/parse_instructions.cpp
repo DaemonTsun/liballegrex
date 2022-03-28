@@ -442,12 +442,12 @@ const category VFPU4Jump{
     .max =  0xd3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {allegrex_mnemonic::VCST,  0xd0600000},
-        {allegrex_mnemonic::VF2IN, 0xd2000000},
-        {allegrex_mnemonic::VF2IZ, 0xd2200000},
-        {allegrex_mnemonic::VF2IU, 0xd2400000},
-        {allegrex_mnemonic::VF2ID, 0xd2600000},
-        {allegrex_mnemonic::VF2F,  0xd2800000},
+        {allegrex_mnemonic::VCST,  0xd0600000, arg_parse_VFPU_Vcst},
+        {allegrex_mnemonic::VF2IN, 0xd2000000, arg_parse_VFPU_Vd_Vs_Imm5},
+        {allegrex_mnemonic::VF2IZ, 0xd2200000, arg_parse_VFPU_Vd_Vs_Imm5},
+        {allegrex_mnemonic::VF2IU, 0xd2400000, arg_parse_VFPU_Vd_Vs_Imm5},
+        {allegrex_mnemonic::VF2ID, 0xd2600000, arg_parse_VFPU_Vd_Vs_Imm5},
+        {allegrex_mnemonic::VF2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5},
         {allegrex_mnemonic::VCMOV, 0xd2a00000}
     },
     .sub_categories = {
@@ -707,6 +707,10 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else if (std::holds_alternative<vfpu_condition>(arg))
         {
             log(conf, " %s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
+        }
+        else if (std::holds_alternative<vfpu_constant>(arg))
+        {
+            log(conf, " %s", vfpu_constant_name(std::get<vfpu_constant>(arg).data));
         }
         else if (std::holds_alternative<base_register>(arg))
         {
