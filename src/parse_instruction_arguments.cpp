@@ -746,3 +746,100 @@ void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(vfpu_constant{constant}, inst);
 }
 
+
+void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 tf = bitrange(opcode, 19, 20);
+    u8 imm = bitrange(opcode, 16, 18);
+
+    if (imm > 6)
+    {
+        add_argument(error{"invalid immediate"}, inst);
+        return;
+    }
+
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, sz, inst);
+    add_argument(immediate<u8>{imm}, inst);
+}
+
+void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vt = VT(opcode);
+    u16 imm = bitrange(opcode, 0, 15);
+
+    add_vfpu_register_argument(vt, vfpu_size::Single, inst);
+    add_argument(immediate<u16>{imm}, inst);
+}
+
+float Float16ToFloat32(u16 l)
+{
+    // https://github.com/hrydgard/ppsspp/blob/748eef05d0c64b7aa5be6714fa52fa84a5977f05/Core/MIPS/MIPSVFPUUtils.cpp#L616
+    union float2int {
+        uint32_t i;
+        float f;
+    };
+
+#define VFPU_FLOAT16_EXP_MAX    0x1f
+#define VFPU_SH_FLOAT16_SIGN    15
+#define VFPU_MASK_FLOAT16_SIGN  0x1
+#define VFPU_SH_FLOAT16_EXP     10
+#define VFPU_MASK_FLOAT16_EXP   0x1f
+#define VFPU_SH_FLOAT16_FRAC    0
+#define VFPU_MASK_FLOAT16_FRAC  0x3ff
+
+	float2int f2i;
+
+	unsigned short float16 = l;
+	unsigned int sign = (float16 >> VFPU_SH_FLOAT16_SIGN) & VFPU_MASK_FLOAT16_SIGN;
+	int exponent = (float16 >> VFPU_SH_FLOAT16_EXP) & VFPU_MASK_FLOAT16_EXP;
+	unsigned int fraction = float16 & VFPU_MASK_FLOAT16_FRAC;
+
+	float f;
+	if (exponent == VFPU_FLOAT16_EXP_MAX)
+	{
+		f2i.i = sign << 31;
+		f2i.i |= 255 << 23;
+		f2i.i |= fraction;
+		f = f2i.f;
+	}
+	else if (exponent == 0 && fraction == 0)
+	{
+		f = sign == 1 ? -0.0f : 0.0f;
+	}
+	else
+	{
+		if (exponent == 0)
+		{
+			do
+			{
+				fraction <<= 1;
+				exponent--;
+			}
+			while (!(fraction & (VFPU_MASK_FLOAT16_FRAC + 1)));
+
+			fraction &= VFPU_MASK_FLOAT16_FRAC;
+		}
+
+		/* Convert to 32-bit single-precision IEEE754. */
+		f2i.i = sign << 31;
+		f2i.i |= (exponent + 112) << 23;
+		f2i.i |= fraction << 13;
+		f=f2i.f;
+	}
+
+	return f;
+}
+
+void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vt = VT(opcode);
+    u16 imm = bitrange(opcode, 0, 15);
+
+    add_vfpu_register_argument(vt, vfpu_size::Single, inst);
+    add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
+}

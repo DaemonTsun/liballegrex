@@ -254,6 +254,8 @@ enum class allegrex_mnemonic : u32
     VF2ID,
     VF2F,
     VCMOV,
+    VCMOVT,
+    VCMOVF,
     VWBN,
     LV,
     LV_Q,

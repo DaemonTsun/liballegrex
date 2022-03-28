@@ -248,6 +248,8 @@ const char *mnemonic_names[] = {
     "vf2id",
     "vf2f",
     "vcmov",
+    "vcmovt",
+    "vcmovf",
     "vwbn",
     "lv",
     "lv.q",

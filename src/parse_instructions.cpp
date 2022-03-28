@@ -437,6 +437,17 @@ const category vwbn{
     .sub_categories = {}
 };
 
+const category vcmov{
+    .min =  0xd2a00000,
+    .max =  0xd2b80000,
+    .mask = 0xfff80000,
+    .instructions = {
+        {allegrex_mnemonic::VCMOVT, 0xd2a00000, arg_parse_VFPU_Vcmov},
+        {allegrex_mnemonic::VCMOVF, 0xd2a80000, arg_parse_VFPU_Vcmov}
+    },
+    .sub_categories = {}
+};
+
 const category VFPU4Jump{
     .min =  0xd0000000,
     .max =  0xd3e00000,
@@ -447,14 +458,14 @@ const category VFPU4Jump{
         {allegrex_mnemonic::VF2IZ, 0xd2200000, arg_parse_VFPU_Vd_Vs_Imm5},
         {allegrex_mnemonic::VF2IU, 0xd2400000, arg_parse_VFPU_Vd_Vs_Imm5},
         {allegrex_mnemonic::VF2ID, 0xd2600000, arg_parse_VFPU_Vd_Vs_Imm5},
-        {allegrex_mnemonic::VF2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5},
-        {allegrex_mnemonic::VCMOV, 0xd2a00000}
+        {allegrex_mnemonic::VF2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5}
     },
     .sub_categories = {
         &VFPU4,
         &VFPU7,
         &VFPU9,
-        &vwbn
+        &vwbn,
+        &vcmov
     }
 };
 
@@ -469,8 +480,8 @@ const category VFPU5{
         {allegrex_mnemonic::VPFXT, 0xdd800000},
         {allegrex_mnemonic::VPFXD, 0xde000000},
         {allegrex_mnemonic::VPFXD, 0xde800000},
-        {allegrex_mnemonic::VIIM,  0xdf000000},
-        {allegrex_mnemonic::VFIM,  0xdf800000}
+        {allegrex_mnemonic::VIIM,  0xdf000000, arg_parse_VFPU_Viim},
+        {allegrex_mnemonic::VFIM,  0xdf800000, arg_parse_VFPU_Vfim}
     },
     .sub_categories = {}
 };
@@ -728,6 +739,7 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<u8>, " %u")
+        else IF_ARG_TYPE_LOG(arg, immediate<float>, " %f")
         else IF_ARG_TYPE_LOG(arg, condition_code, " (CC[%x])")
         else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
         else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
