@@ -843,3 +843,39 @@ void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
     add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
 }
+
+void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 rs = RS(opcode);
+    u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 1) << 5);
+    s16 offset = bitrange(opcode, 2, 15) << 2;
+
+    add_vfpu_register_argument(vt, vfpu_size::Single, inst);
+    add_argument(immediate<s16>{offset}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+}
+
+void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 rs = RS(opcode);
+    u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
+    s16 offset = bitrange(opcode, 2, 15) << 2;
+
+    add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
+    add_argument(immediate<s16>{offset}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+
+    if (bitrange(opcode, 1, 1))
+        add_argument("wb", inst); // ??
+}
+
+void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 rs = RS(opcode);
+    u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
+    s16 offset = bitrange(opcode, 2, 15) << 2;
+
+    add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
+    add_argument(immediate<s16>{offset}, inst);
+    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+}

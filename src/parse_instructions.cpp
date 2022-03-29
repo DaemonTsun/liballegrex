@@ -532,6 +532,20 @@ const category VFPU6{
     }
 };
 
+const category lvsvrl{
+    .min =  0xd4000000,
+    .max =  0xf4000002,
+    .mask = 0xfc000002,
+    .instructions = {
+        {allegrex_mnemonic::LVL, 0xd4000000, arg_parse_VFPU_LvSv_LRQ},
+        {allegrex_mnemonic::LVR, 0xd4000002, arg_parse_VFPU_LvSv_LRQ},
+        {allegrex_mnemonic::SVL, 0xf4000000, arg_parse_VFPU_LvSv_LRQ},
+        {allegrex_mnemonic::SVR, 0xf4000002, arg_parse_VFPU_LvSv_LRQ},
+    },
+    .sub_categories = {
+    }
+};
+
 const category Immediate{
     .min =  0x00000000,
     .max =  0xfc000000,
@@ -570,14 +584,12 @@ const category Immediate{
         {allegrex_mnemonic::CACHE, 0xbc000000, arg_parse_Cache},
         {allegrex_mnemonic::LL,    0xc0000000, arg_parse_RsRtMemOffset},
         {allegrex_mnemonic::LWC1,  0xc4000000, arg_parse_RsFtMemOffset},
-        {allegrex_mnemonic::LV_S,  0xc8000000},
-        {allegrex_mnemonic::LV,    0xd4000000},
-        {allegrex_mnemonic::LV_Q,  0xd8000000},
+        {allegrex_mnemonic::LV_S,  0xc8000000, arg_parse_VFPU_LvSv_S},
+        {allegrex_mnemonic::LV_Q,  0xd8000000, arg_parse_VFPU_LvSv_Q},
         {allegrex_mnemonic::SC,    0xe0000000, arg_parse_RsRtMemOffset},
         {allegrex_mnemonic::SWC1,  0xe4000000, arg_parse_RsFtMemOffset},
-        {allegrex_mnemonic::SV_S,  0xe8000000},
-        {allegrex_mnemonic::SVL_Q, 0xf4000000},
-        {allegrex_mnemonic::SV_Q,  0xf8000000},
+        {allegrex_mnemonic::SV_S,  0xe8000000, arg_parse_VFPU_LvSv_S},
+        {allegrex_mnemonic::SV_Q,  0xf8000000, arg_parse_VFPU_LvSv_Q},
     },
     .sub_categories = {
         &Special,
@@ -591,7 +603,8 @@ const category Immediate{
         &Special3,
         &VFPU4Jump,
         &VFPU5,
-        &VFPU6
+        &VFPU6,
+        &lvsvrl
     }
 };
 
@@ -737,7 +750,7 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
         else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
-        else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %u")
+        else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %d")
         else IF_ARG_TYPE_LOG(arg, immediate<u8>, " %u")
         else IF_ARG_TYPE_LOG(arg, immediate<float>, " %f")
         else IF_ARG_TYPE_LOG(arg, condition_code, " (CC[%x])")

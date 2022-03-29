@@ -7,13 +7,13 @@
 # dis.int - not recognized by psp-gcc or psp-objdump
 # halt - not recognized by psp-gcc or psp-objdump
 # iack - not recognized by psp-gcc or psp-objdump
-# lv - not recognized by psp-gcc or psp-objdump
+# lv - not recognized by psp-gcc or psp-objdump -> lvl and lvr
 # mfmc0 - not recognized by psp-gcc or psp-objdump
 # rdhwr - unsupported by psp-gcc and psp-objdump
 # rdpgpr - unsupported by psp-gcc and psp-objdump
 # sll with no arguments is nop
 # sub with no arguments is neg
-# sv - is "svl.q" in psp-gcc and psp-objdump
+# sv - is "svl.q" in psp-gcc and psp-objdump -> svl and svr
 # synci - unsupported by psp-gcc and psp-objdump
 # vc2i(.s/p/t/q) - not recognized by psp-gcc or psp-objdump
 # vuc2i - not recognized by psp-gcc or psp-objdump
@@ -181,20 +181,23 @@ ll $zero, 0                   # c0000000 / 110000 ..... ..... ................
 lwc1 $f0, 0                   # c4000000 / 110001 ..... ..... ................
 lv.s S000.s, 0                # c8000000 / 110010 ..... ..... ................
 #-> VFPU4Jump                 # d0000000 - d3e00000
-# lv C000, 0                  # d4000000 / 110101 ..... ..... ................
-.byte 0x00
-.byte 0x00
-.byte 0x00
-.byte 0xd4
+#-> lvsvrl                    # TODO
 lv.q C000.q, 0                # d8000000 / 110110 ..... ..... ................
 #-> VFPU5                     # dc000000 - df800000
 sc $zero, 0                   # e0000000 / 111000 ..... ..... ................
 swc1 $f0, 0                   # e4000000 / 111001 ..... ..... ................
 sv.s S000.s, 0                # e8000000 / 111010 ..... ..... ................
-svl.q C000.q, 0               # f4000000 / 111101 ..... ..... ................
-# sv S000.s, 0                # f4000000 / 111101 ..... ..... ................
 #-> VFPU6                     # f0000000 - f3e00000
 sv.q C000.q, 0                # f8000000 / 111110 ..... ..... ................
+
+### lvsvrl                 
+##                        min # d4000000 / 110101 ..... ..... .............. 0 .
+##                        max # f4000002 / 111101 ..... ..... .............. 1 .
+##                       mask # fc000002 / 111111 00000 00000 00000000000000 1 0
+lvl.q C000, 0                 # d4000000 / 110101 ..... ..... .............. 0 .
+lvr.q C000, 0                 # d4000002 / 110101 ..... ..... .............. 1 .
+svl.q C000, 0                 # f4000000 / 111101 ..... ..... .............. 0 .
+svr.q C000, 0                 # f4000002 / 111101 ..... ..... .............. 1 .
 
 ### Cop0                 
 ##                        min # 40000000 / 010000 00000 ..... ................

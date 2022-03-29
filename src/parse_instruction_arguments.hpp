@@ -96,3 +96,6 @@ void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf
 void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf);
