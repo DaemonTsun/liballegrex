@@ -617,3 +617,37 @@ const char *vfpu_constant_name(u32 constant)
     assert(constant < 32);
     return vfpu_constant_names[constant];
 }
+
+
+const char *vfpu_prefix_names[] = {
+    "x",
+    "y",
+    "z",
+    "w",
+    "-x",
+    "-y",
+    "-z",
+    "-w",
+    "|x|",
+    "|y|",
+    "|z|",
+    "|w|",
+    "-|x|",
+    "-|y|",
+    "-|z|",
+    "-|w|",
+    "0",
+    "1",
+    "2",
+    "1/2",
+    "3",
+    "1/3",
+    "1/4",
+    "1/6"
+};
+
+const char *vfpu_prefix_name(vfpu_prefix pfx)
+{
+    assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_prefix::_MAX));
+    return vfpu_prefix_names[static_cast<u8>(pfx)];
+}

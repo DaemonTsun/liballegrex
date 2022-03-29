@@ -58,6 +58,7 @@ using instruction_argument =
                  vfpu_matrix,
                  vfpu_condition,
                  vfpu_constant,
+                 vfpu_prefix_array,
                  const syscall*,
                  const char*,
                  shift,

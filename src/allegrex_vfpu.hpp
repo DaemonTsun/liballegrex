@@ -82,3 +82,39 @@ enum class vfpu_condition : u32
 const char *vfpu_condition_name(vfpu_condition cond);
 
 const char *vfpu_constant_name(u32 constant);
+
+enum class vfpu_prefix : u8
+{
+    X,
+    Y,
+    Z,
+    W,
+    NEG_X,
+    NEG_Y,
+    NEG_Z,
+    NEG_W,
+    ABS_X,
+    ABS_Y,
+    ABS_Z,
+    ABS_W,
+    NEG_ABS_X,
+    NEG_ABS_Y,
+    NEG_ABS_Z,
+    NEG_ABS_W,
+    ZERO,
+    ONE,
+    TWO,
+    HALF,
+    THREE,
+    THIRD,
+    FOURTH,
+    SIXTH,
+    _MAX
+};
+
+const char *vfpu_prefix_name(vfpu_prefix pfx);
+
+struct vfpu_prefix_array
+{
+    vfpu_prefix data[4];
+};
