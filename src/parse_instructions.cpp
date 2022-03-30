@@ -478,8 +478,8 @@ const category VFPU5{
         {allegrex_mnemonic::VPFXS, 0xdc800000, arg_parse_VFPU_PrefixST},
         {allegrex_mnemonic::VPFXT, 0xdd000000, arg_parse_VFPU_PrefixST},
         {allegrex_mnemonic::VPFXT, 0xdd800000, arg_parse_VFPU_PrefixST},
-        {allegrex_mnemonic::VPFXD, 0xde000000},
-        {allegrex_mnemonic::VPFXD, 0xde800000},
+        {allegrex_mnemonic::VPFXD, 0xde000000, arg_parse_VFPU_PrefixDest},
+        {allegrex_mnemonic::VPFXD, 0xde800000, arg_parse_VFPU_PrefixDest},
         {allegrex_mnemonic::VIIM,  0xdf000000, arg_parse_VFPU_Viim},
         {allegrex_mnemonic::VFIM,  0xdf800000, arg_parse_VFPU_Vfim}
     },
@@ -734,7 +734,7 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         }
         else if (std::holds_alternative<vfpu_constant>(arg))
         {
-            log(conf, " %s", vfpu_constant_name(std::get<vfpu_constant>(arg).data));
+            log(conf, " %s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
         }
         else if (std::holds_alternative<vfpu_prefix_array>(arg))
         {
@@ -743,6 +743,15 @@ void log_instruction(const instruction *inst, const parse_config *conf)
                                       , vfpu_prefix_name(arr[1])
                                       , vfpu_prefix_name(arr[2])
                                       , vfpu_prefix_name(arr[3])
+               );
+        }
+        else if (std::holds_alternative<vfpu_destination_prefix_array>(arg))
+        {
+            auto &arr = std::get<vfpu_destination_prefix_array>(arg).data;
+            log(conf, " [%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
+                                      , vfpu_destination_prefix_name(arr[1])
+                                      , vfpu_destination_prefix_name(arr[2])
+                                      , vfpu_destination_prefix_name(arr[3])
                );
         }
         else if (std::holds_alternative<base_register>(arg))

@@ -95,6 +95,7 @@ void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf
 void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *conf);

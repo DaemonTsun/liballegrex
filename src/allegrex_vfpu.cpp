@@ -612,12 +612,10 @@ const char *vfpu_constant_names[] = {
     "Sqrt(3)/2"
 };
 
-const char *vfpu_constant_name(u32 constant)
+const char *vfpu_constant_name(vfpu_constant constant)
 {
-    assert(constant < 32);
-    return vfpu_constant_names[constant];
+    return vfpu_constant_names[static_cast<u8>(constant)];
 }
-
 
 const char *vfpu_prefix_names[] = {
     "x",
@@ -650,4 +648,21 @@ const char *vfpu_prefix_name(vfpu_prefix pfx)
 {
     assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_prefix::_MAX));
     return vfpu_prefix_names[static_cast<u8>(pfx)];
+}
+
+const char *vfpu_destination_prefix_names[] = {
+    "",
+    "0:1",
+    "X",
+    "-1:1",
+    "M",
+    "0:1M",
+    "XM",
+    "-1:1M"
+};
+
+const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx)
+{
+    assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_destination_prefix::_MAX));
+    return vfpu_destination_prefix_names[static_cast<u8>(pfx)];
 }

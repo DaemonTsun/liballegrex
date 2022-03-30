@@ -743,9 +743,8 @@ void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf
     u32 constant = bitrange(opcode, 16, 20);
 
     add_vfpu_register_argument(vd, sz, inst);
-    add_argument(vfpu_constant{constant}, inst);
+    add_argument(static_cast<vfpu_constant>(constant), inst);
 }
-
 
 void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf)
 {
@@ -786,6 +785,23 @@ void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_config *
             pfx = regnum + 16 + abs * 4;
 
         arr.data[i] = static_cast<vfpu_prefix>(pfx);
+    }
+
+    add_argument(arr, inst);
+}
+
+void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 data = bitrange(opcode, 0, 19);
+    vfpu_destination_prefix_array arr;
+
+    for (u32 i = 0; i < 4; ++i)
+    {
+        u32 sat  = (data >> (i * 2)) & 3;
+        u32 mask = (data >> (8 + i)) & 1;
+        u32 pfx = sat + mask * 4;
+
+        arr.data[i] = static_cast<vfpu_destination_prefix>(pfx);
     }
 
     add_argument(arr, inst);

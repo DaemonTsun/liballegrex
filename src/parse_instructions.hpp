@@ -43,8 +43,6 @@ DEFINE_TYPED_ARG(condition_code, u8);
 DEFINE_TYPED_ARG(bitfield_size, u32);
 DEFINE_TYPED_ARG(bitfield_pos, u32);
 
-DEFINE_TYPED_ARG(vfpu_constant, u32);
-
 // some instructions can have data (e.g. tge) that's not really
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
@@ -59,6 +57,7 @@ using instruction_argument =
                  vfpu_condition,
                  vfpu_constant,
                  vfpu_prefix_array,
+                 vfpu_destination_prefix_array,
                  const syscall*,
                  const char*,
                  shift,

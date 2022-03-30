@@ -81,7 +81,31 @@ enum class vfpu_condition : u32
 
 const char *vfpu_condition_name(vfpu_condition cond);
 
-const char *vfpu_constant_name(u32 constant);
+enum class vfpu_constant : u8
+{
+    VFPU_UNDEFINED,
+    VFPU_HUGE,
+    VFPU_SQRT2,
+    VFPU_SQRT1_2,
+    VFPU_2_SQRTPI,
+    VFPU_PI,
+    VFPU_2_PI,
+    VFPU_1_PI,
+    VFPU_PI_4,
+    VFPU_PI_2,
+    VFPU_E,
+    VFPU_LOG2E,
+    VFPU_LOG10E,
+    VFPU_LN2,
+    VFPU_LN10,
+    VFPU_2PI,
+    VFPU_PI_6,
+    VFPU_LOG10TWO,
+    VFPU_LOG2TEN,
+    VFPU_SQRT3_2
+};
+
+const char *vfpu_constant_name(vfpu_constant constant);
 
 enum class vfpu_prefix : u8
 {
@@ -117,4 +141,24 @@ const char *vfpu_prefix_name(vfpu_prefix pfx);
 struct vfpu_prefix_array
 {
     vfpu_prefix data[4];
+};
+
+enum class vfpu_destination_prefix : u8
+{
+    DEFAULT,
+    CLAMP_0_1,
+    X,
+    CLAMP_NEG_1_1,
+    M,
+    M_CLAMP_0_1,
+    M_X,
+    M_CLAMP_NEG_1_1,
+    _MAX
+};
+
+const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx);
+
+struct vfpu_destination_prefix_array
+{
+    vfpu_destination_prefix data[4];
 };
