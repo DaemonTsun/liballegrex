@@ -491,10 +491,10 @@ const category VFPUMatrix{
     .max =  0xf38f0000,
     .mask = 0xffef0000,
     .instructions = {
-        {allegrex_mnemonic::VMMOV,  0xf3800000},
-        {allegrex_mnemonic::VMIDT,  0xf3830000},
-        {allegrex_mnemonic::VMZERO, 0xf3860000},
-        {allegrex_mnemonic::VMONE,  0xf3870000},
+        {allegrex_mnemonic::VMMOV,  0xf3800000, arg_parse_VFPU_MVd_MVs},
+        {allegrex_mnemonic::VMIDT,  0xf3830000, arg_parse_VFPU_MVd},
+        {allegrex_mnemonic::VMZERO, 0xf3860000, arg_parse_VFPU_MVd},
+        {allegrex_mnemonic::VMONE,  0xf3870000, arg_parse_VFPU_MVd},
     },
     .sub_categories = {}
 };
@@ -504,10 +504,10 @@ const category VFPU6{
     .max =  0xf3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {allegrex_mnemonic::VMMUL, 0xf0000000},
-        {allegrex_mnemonic::VMMUL, 0xf0200000},
-        {allegrex_mnemonic::VMMUL, 0xf0400000},
-        {allegrex_mnemonic::VMMUL, 0xf0600000},
+        {allegrex_mnemonic::VMMUL, 0xf0000000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL, 0xf0200000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL, 0xf0400000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL, 0xf0600000, arg_parse_VFPU_MVd_XVs_MVt},
         {allegrex_mnemonic::VTFM2, 0xf0800000},
         {allegrex_mnemonic::VTFM2, 0xf0a00000},
         {allegrex_mnemonic::VTFM2, 0xf0c00000},
@@ -727,6 +727,10 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         else if (std::holds_alternative<vfpu_register>(arg))
         {
             log(conf, " %s", register_name(std::get<vfpu_register>(arg)));
+        }
+        else if (std::holds_alternative<vfpu_matrix>(arg))
+        {
+            log(conf, " %s", matrix_name(std::get<vfpu_matrix>(arg)));
         }
         else if (std::holds_alternative<vfpu_condition>(arg))
         {

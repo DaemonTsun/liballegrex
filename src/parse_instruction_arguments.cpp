@@ -55,6 +55,13 @@ void add_vfpu_register_argument(u32 reg, vfpu_size size, instruction *inst)
     add_argument(vfpu_register{static_cast<u8>(reg), size}, inst);
 }
 
+void add_vfpu_matrix_argument(u32 mtx, vfpu_size size, instruction *inst)
+{
+    assert(mtx < 128);
+
+    add_argument(vfpu_matrix{static_cast<u8>(mtx), size}, inst);
+}
+
 void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
 {
     if (size > static_cast<u32>(vfpu_size::Invalid))
@@ -919,3 +926,35 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *
     add_argument(immediate<s16>{offset}, inst);
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
+
+void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+
+    add_vfpu_matrix_argument(vd, sz, inst);
+}
+
+void arg_parse_VFPU_MVd_MVs(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+
+    add_vfpu_matrix_argument(vd, sz, inst);
+    add_vfpu_matrix_argument(vs, sz, inst);
+}
+
+void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    // https://github.com/hrydgard/ppsspp/blob/6f04f52f5ca51b60c719e074199691b2ccf32860/Core/MIPS/MIPSDisVFPU.cpp#L291
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode) ^ 0x20; // Xpose??
+    u32 vt = VT(opcode);
+
+    add_vfpu_matrix_argument(vd, sz, inst);
+    add_vfpu_matrix_argument(vs, sz, inst);
+    add_vfpu_matrix_argument(vt, sz, inst);
+}
+
