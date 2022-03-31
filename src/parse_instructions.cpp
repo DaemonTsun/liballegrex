@@ -508,18 +508,18 @@ const category VFPU6{
         {allegrex_mnemonic::VMMUL, 0xf0200000, arg_parse_VFPU_MVd_XVs_MVt},
         {allegrex_mnemonic::VMMUL, 0xf0400000, arg_parse_VFPU_MVd_XVs_MVt},
         {allegrex_mnemonic::VMMUL, 0xf0600000, arg_parse_VFPU_MVd_XVs_MVt},
-        {allegrex_mnemonic::VTFM2, 0xf0800000},
-        {allegrex_mnemonic::VTFM2, 0xf0a00000},
-        {allegrex_mnemonic::VTFM2, 0xf0c00000},
-        {allegrex_mnemonic::VTFM2, 0xf0e00000},
-        {allegrex_mnemonic::VTFM3, 0xf1000000},
-        {allegrex_mnemonic::VTFM3, 0xf1200000},
-        {allegrex_mnemonic::VTFM3, 0xf1400000},
-        {allegrex_mnemonic::VTFM3, 0xf1600000},
-        {allegrex_mnemonic::VTFM4, 0xf1800000},
-        {allegrex_mnemonic::VTFM4, 0xf1a00000},
-        {allegrex_mnemonic::VTFM4, 0xf1c00000},
-        {allegrex_mnemonic::VTFM4, 0xf1e00000},
+        {allegrex_mnemonic::VHTFM2, 0xf0800000, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VHTFM2, 0xf0a00000, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VHTFM2, 0xf0c00000, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VHTFM2, 0xf0e00000, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VHTFM3, 0xf1000000, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VHTFM3, 0xf1200000, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VHTFM3, 0xf1400000, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VHTFM3, 0xf1600000, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VHTFM4, 0xf1800000, arg_parse_VFPU_Vhtfm4},
+        {allegrex_mnemonic::VHTFM4, 0xf1a00000, arg_parse_VFPU_Vhtfm4},
+        {allegrex_mnemonic::VHTFM4, 0xf1c00000, arg_parse_VFPU_Vhtfm4},
+        {allegrex_mnemonic::VHTFM4, 0xf1e00000, arg_parse_VFPU_Vhtfm4},
         {allegrex_mnemonic::VMSCL, 0xf2000000},
         {allegrex_mnemonic::VMSCL, 0xf2200000},
         {allegrex_mnemonic::VMSCL, 0xf2400000},
@@ -726,11 +726,15 @@ void log_instruction(const instruction *inst, const parse_config *conf)
         }
         else if (std::holds_alternative<vfpu_register>(arg))
         {
-            log(conf, " %s", register_name(std::get<vfpu_register>(arg)));
+            auto &reg = std::get<vfpu_register>(arg);
+            log(conf, " %s%s", register_name(reg)
+                             , size_suffix(reg.size));
         }
         else if (std::holds_alternative<vfpu_matrix>(arg))
         {
-            log(conf, " %s", matrix_name(std::get<vfpu_matrix>(arg)));
+            auto &mtx = std::get<vfpu_matrix>(arg);
+            log(conf, " %s%s", matrix_name(mtx)
+                             , size_suffix(mtx.size));
         }
         else if (std::holds_alternative<vfpu_condition>(arg))
         {

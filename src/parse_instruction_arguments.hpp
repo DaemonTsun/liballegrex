@@ -106,4 +106,9 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *
 void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_config *conf);
 void arg_parse_VFPU_MVd_MVs(u32 opcode, instruction *inst, const parse_config *conf);
 
+// may as well be called vmmul
 void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_config *conf);
+
+void arg_parse_VFPU_Vhtfm2(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *conf);
+void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *conf);
