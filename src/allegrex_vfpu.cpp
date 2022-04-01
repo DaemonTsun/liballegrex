@@ -1063,3 +1063,17 @@ const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx)
     assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_destination_prefix::_MAX));
     return vfpu_destination_prefix_names[static_cast<u8>(pfx)];
 }
+
+const char *vfpu_rotation_names[] = {
+    "0",
+    "c",
+    "s",
+    "-s"
+};
+
+const char *vfpu_rotation_name(vfpu_rotation rot)
+{
+    assert(static_cast<u8>(rot) < static_cast<u8>(vfpu_rotation::_MAX));
+
+    return vfpu_rotation_names[static_cast<u8>(rot)];
+}

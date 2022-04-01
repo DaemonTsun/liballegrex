@@ -162,3 +162,20 @@ struct vfpu_destination_prefix_array
 {
     vfpu_destination_prefix data[4];
 };
+
+enum class vfpu_rotation : u8
+{
+    ZERO,
+    COS,
+    SIN,
+    NEG_SIN,
+    _MAX
+};
+
+const char *vfpu_rotation_name(vfpu_rotation rot);
+
+struct vfpu_rotation_array
+{
+    vfpu_rotation data[4];
+    u32 size;
+};

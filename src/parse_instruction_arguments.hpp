@@ -114,3 +114,5 @@ void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *co
 void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *conf);
 
 void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf);
+
+void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf);

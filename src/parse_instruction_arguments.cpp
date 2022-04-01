@@ -1002,3 +1002,32 @@ void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_
     add_vfpu_matrix_argument(vs, sz, inst);
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
 }
+
+void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    vfpu_size sz = get_vfpu_size(opcode);
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 imm = bitrange(opcode, 16, 20);
+
+    u32 sin = bitrange(imm, 2, 3);
+    u32 cos = bitrange(imm, 0, 1);
+    u32 negsin = bitrange(imm, 4, 4);
+
+    vfpu_rotation_array arr{{vfpu_rotation::ZERO}};
+    arr.size = static_cast<u32>(sz) + 1;
+
+    if (sin == cos)
+        for (u32 i = 0; i < arr.size; ++i)
+            arr.data[i] = vfpu_rotation::SIN;
+
+    arr.data[sin] = vfpu_rotation::SIN;
+    arr.data[cos] = vfpu_rotation::COS;
+
+    if (negsin)
+        for (u32 i = 0; i < arr.size; ++i)
+            if (arr.data[i] == vfpu_rotation::SIN)
+                arr.data[i] = vfpu_rotation::NEG_SIN;
+
+    add_argument(arr, inst);
+}

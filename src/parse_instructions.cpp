@@ -262,7 +262,6 @@ const category VFPU0{
     .max =  0x63800000,
     .mask = 0xff800000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
         {allegrex_mnemonic::VADD, 0x60000000, arg_parse_VFPU_Vd_Vs_Vt},
         {allegrex_mnemonic::VSUB, 0x60800000, arg_parse_VFPU_Vd_Vs_Vt},
         {allegrex_mnemonic::VSBN, 0x61000000, arg_parse_VFPU_Vd_Vs_Vt},
@@ -277,7 +276,6 @@ const category VFPU1{
     .max =  0x67800000,
     .mask = 0xff800000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
         {allegrex_mnemonic::VMUL, 0x64000000, arg_parse_VFPU_Vd_Vs_Vt},
         {allegrex_mnemonic::VDOT, 0x64800000, arg_parse_VFPU_VdSingle_Vs_Vt},
         {allegrex_mnemonic::VSCL, 0x65000000, arg_parse_VFPU_Vd_Vs_VtSingle},
@@ -294,7 +292,6 @@ const category VFPU3{
     .max =  0x6f800000,
     .mask = 0xff800000,
     .instructions = {
-        // TODO: correct VFPU instruction name parsing
         {allegrex_mnemonic::VCMP,  0x6c000000, arg_parse_VFPU_Vcmp},
         {allegrex_mnemonic::VMIN,  0x6d000000, arg_parse_VFPU_Vd_Vs_Vt},
         {allegrex_mnemonic::VMAX,  0x6d800000, arg_parse_VFPU_Vd_Vs_Vt},
@@ -539,7 +536,7 @@ const category VFPU6{
         {allegrex_mnemonic::VMSCL,  0xf2200000, arg_parse_VFPU_MVd_MVs_VtSingle},
         {allegrex_mnemonic::VMSCL,  0xf2400000, arg_parse_VFPU_MVd_MVs_VtSingle},
         {allegrex_mnemonic::VMSCL,  0xf2600000, arg_parse_VFPU_MVd_MVs_VtSingle},
-        {allegrex_mnemonic::VROT,   0xf3a00000},
+        {allegrex_mnemonic::VROT,   0xf3a00000, arg_parse_VFPU_Vrot},
     },
     .sub_categories = {
         &VFPUMatrix,
@@ -777,6 +774,16 @@ void log_instruction(const instruction *inst, const parse_config *conf)
                                       , vfpu_destination_prefix_name(arr[2])
                                       , vfpu_destination_prefix_name(arr[3])
                );
+        }
+        else if (std::holds_alternative<vfpu_rotation_array>(arg))
+        {
+            auto &arr = std::get<vfpu_rotation_array>(arg);
+            log(conf, " [%s", vfpu_rotation_name(arr.data[0]));
+
+            for (int i = 1; i < arr.size; ++i)
+                log(conf, ",%s", vfpu_rotation_name(arr.data[i]));
+
+            log(conf, "]");
         }
         else if (std::holds_alternative<base_register>(arg))
         {
