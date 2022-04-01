@@ -278,6 +278,7 @@ enum class allegrex_mnemonic : u32
     VTFM4,
     VMSCL,
     VCRSP,
+    VQMUL,
     VMMOV,
     VMIDT,
     VMZERO,

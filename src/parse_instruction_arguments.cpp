@@ -960,84 +960,45 @@ void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_confi
 
 void arg_parse_VFPU_Vhtfm2(u32 opcode, instruction *inst, const parse_config *conf)
 {
-    vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
     u32 vt = VT(opcode);
-    u32 n = static_cast<u32>(sz) + 1;
-    if (n > 4)
-        n = 0;
-
-    u32 ins = bitrange(opcode, 23, 25);
-
-    if (n < ins || n > ins + 1 || n == 0)
-    {
-        add_argument(error{"bad vtfm"}, inst);
-        return;
-    }
 
     add_vfpu_register_argument(vd, vfpu_size::Pair, inst);
     add_vfpu_matrix_argument(vs,   vfpu_size::Pair, inst);
     add_vfpu_register_argument(vt, vfpu_size::Pair, inst);
-
-    // TODO: move this to parse_instructions by splitting the category
-    // because this can probably be done before parsing arguments...
-    if (n == ins + 1)
-        inst->mnemonic = allegrex_mnemonic::VTFM2;
 }
 
 void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *conf)
 {
-    vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
     u32 vt = VT(opcode);
-    u32 n = static_cast<u32>(sz) + 1;
-    if (n > 4)
-        n = 0;
-
-    u32 ins = bitrange(opcode, 23, 25);
-
-    if (n < ins || n > ins + 1 || n == 0)
-    {
-        add_argument(error{"bad vtfm"}, inst);
-        return;
-    }
 
     add_vfpu_register_argument(vd, vfpu_size::Triple, inst);
     add_vfpu_matrix_argument(vs,   vfpu_size::Triple, inst);
     add_vfpu_register_argument(vt, vfpu_size::Triple, inst);
-
-    // TODO: move this to parse_instructions by splitting the category
-    // because this can probably be done before parsing arguments...
-    if (n == ins + 1)
-        inst->mnemonic = allegrex_mnemonic::VTFM3;
 }
 
 void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *conf)
+{
+    u32 vd = VD(opcode);
+    u32 vs = VS(opcode);
+    u32 vt = VT(opcode);
+
+    add_vfpu_register_argument(vd, vfpu_size::Quad, inst);
+    add_vfpu_matrix_argument(vs,   vfpu_size::Quad, inst);
+    add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
+}
+
+void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
     u32 vt = VT(opcode);
-    u32 n = static_cast<u32>(sz) + 1;
-    if (n > 4)
-        n = 0;
 
-    u32 ins = bitrange(opcode, 23, 25);
-
-    if (n < ins || n > ins + 1 || n == 0)
-    {
-        add_argument(error{"bad vtfm"}, inst);
-        return;
-    }
-
-    add_vfpu_register_argument(vd, vfpu_size::Quad, inst);
-    add_vfpu_matrix_argument(vs,   vfpu_size::Quad, inst);
-    add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
-
-    // TODO: move this to parse_instructions by splitting the category
-    // because this can probably be done before parsing arguments...
-    if (n == ins + 1)
-        inst->mnemonic = allegrex_mnemonic::VTFM4;
+    add_vfpu_matrix_argument(vd, sz, inst);
+    add_vfpu_matrix_argument(vs, sz, inst);
+    add_vfpu_register_argument(vt, vfpu_size::Single, inst);
 }

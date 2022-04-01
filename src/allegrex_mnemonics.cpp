@@ -272,6 +272,7 @@ const char *mnemonic_names[] = {
     "vtfm4",
     "vmscl",
     "vcrsp",
+    "vqmul",
     "vmmov",
     "vmidt",
     "vmzero",

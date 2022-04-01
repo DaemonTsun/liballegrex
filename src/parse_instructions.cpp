@@ -22,6 +22,7 @@ struct category
     u32 max;
     u32 mask;
 
+    // TODO: replace with pointers to static memory
     std::vector<instruction_info> instructions;
     std::vector<const category*> sub_categories;
 };
@@ -499,36 +500,51 @@ const category VFPUMatrix{
     .sub_categories = {}
 };
 
+const category vhtfm{
+    .min =  0xf0800000,
+    .max =  0xf1808080,
+    .mask = 0xff808080,
+    .instructions = {
+        {allegrex_mnemonic::VHTFM2, 0xf0800000, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VTFM2,  0xf0800080, arg_parse_VFPU_Vhtfm2},
+        {allegrex_mnemonic::VHTFM3, 0xf1000080, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VTFM3,  0xf1008000, arg_parse_VFPU_Vhtfm3},
+        {allegrex_mnemonic::VHTFM4, 0xf1808000, arg_parse_VFPU_Vhtfm4},
+        {allegrex_mnemonic::VTFM4,  0xf1808080, arg_parse_VFPU_Vhtfm4},
+    },
+    .sub_categories = {}
+};
+
+const category crossquat{
+    .min =  0xf2808000,
+    .max =  0xf2808080,
+    .mask = 0xffe08080,
+    .instructions = {
+        {allegrex_mnemonic::VCRSP,  0xf2808000, arg_parse_VFPU_Vd_Vs_Vt},
+        {allegrex_mnemonic::VQMUL,  0xf2808080, arg_parse_VFPU_Vd_Vs_Vt},
+    },
+    .sub_categories = {}
+};
+
 const category VFPU6{
     .min =  0xf0000000,
     .max =  0xf3e00000,
     .mask = 0xffe00000,
     .instructions = {
-        {allegrex_mnemonic::VMMUL, 0xf0000000, arg_parse_VFPU_MVd_XVs_MVt},
-        {allegrex_mnemonic::VMMUL, 0xf0200000, arg_parse_VFPU_MVd_XVs_MVt},
-        {allegrex_mnemonic::VMMUL, 0xf0400000, arg_parse_VFPU_MVd_XVs_MVt},
-        {allegrex_mnemonic::VMMUL, 0xf0600000, arg_parse_VFPU_MVd_XVs_MVt},
-        {allegrex_mnemonic::VHTFM2, 0xf0800000, arg_parse_VFPU_Vhtfm2},
-        {allegrex_mnemonic::VHTFM2, 0xf0a00000, arg_parse_VFPU_Vhtfm2},
-        {allegrex_mnemonic::VHTFM2, 0xf0c00000, arg_parse_VFPU_Vhtfm2},
-        {allegrex_mnemonic::VHTFM2, 0xf0e00000, arg_parse_VFPU_Vhtfm2},
-        {allegrex_mnemonic::VHTFM3, 0xf1000000, arg_parse_VFPU_Vhtfm3},
-        {allegrex_mnemonic::VHTFM3, 0xf1200000, arg_parse_VFPU_Vhtfm3},
-        {allegrex_mnemonic::VHTFM3, 0xf1400000, arg_parse_VFPU_Vhtfm3},
-        {allegrex_mnemonic::VHTFM3, 0xf1600000, arg_parse_VFPU_Vhtfm3},
-        {allegrex_mnemonic::VHTFM4, 0xf1800000, arg_parse_VFPU_Vhtfm4},
-        {allegrex_mnemonic::VHTFM4, 0xf1a00000, arg_parse_VFPU_Vhtfm4},
-        {allegrex_mnemonic::VHTFM4, 0xf1c00000, arg_parse_VFPU_Vhtfm4},
-        {allegrex_mnemonic::VHTFM4, 0xf1e00000, arg_parse_VFPU_Vhtfm4},
-        {allegrex_mnemonic::VMSCL, 0xf2000000},
-        {allegrex_mnemonic::VMSCL, 0xf2200000},
-        {allegrex_mnemonic::VMSCL, 0xf2400000},
-        {allegrex_mnemonic::VMSCL, 0xf2600000},
-        {allegrex_mnemonic::VCRSP, 0xf2800000},
-        {allegrex_mnemonic::VROT,  0xf3a00000},
+        {allegrex_mnemonic::VMMUL,  0xf0000000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL,  0xf0200000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL,  0xf0400000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMMUL,  0xf0600000, arg_parse_VFPU_MVd_XVs_MVt},
+        {allegrex_mnemonic::VMSCL,  0xf2000000, arg_parse_VFPU_MVd_MVs_VtSingle},
+        {allegrex_mnemonic::VMSCL,  0xf2200000, arg_parse_VFPU_MVd_MVs_VtSingle},
+        {allegrex_mnemonic::VMSCL,  0xf2400000, arg_parse_VFPU_MVd_MVs_VtSingle},
+        {allegrex_mnemonic::VMSCL,  0xf2600000, arg_parse_VFPU_MVd_MVs_VtSingle},
+        {allegrex_mnemonic::VROT,   0xf3a00000},
     },
     .sub_categories = {
-        &VFPUMatrix
+        &VFPUMatrix,
+        &vhtfm,
+        &crossquat
     }
 };
 
