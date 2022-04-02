@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "string.hpp"
+#include "format_instructions.hpp"
 #include "parse_instruction_arguments.hpp"
 #include "parse_instructions.hpp"
 
@@ -831,105 +832,10 @@ void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
         out->mnemonic = allegrex_mnemonic::_UNKNOWN;
 }
 
-#define IF_ARG_TYPE_LOG(arg, T, FMT) \
-    if (std::holds_alternative<T>(arg)) \
-    { \
-        log(conf, FMT, std::get<T>(arg).data); \
-    }
-
 void log_instruction(const instruction *inst, const parse_config *conf)
 {
-    const char *name = get_mnemonic_name(inst->mnemonic);
-    log(conf, "%06x %08x   %-10s", inst->address, inst->opcode, name);
-
-    for (auto arg : inst->arguments)
-    {
-        if (std::holds_alternative<const char*>(arg))
-        {
-            log(conf, " %s", std::get<const char*>(arg));
-        }
-        else if (std::holds_alternative<mips_register>(arg))
-        {
-            log(conf, " %s", register_name(std::get<mips_register>(arg)));
-        }
-        else if (std::holds_alternative<mips_fpu_register>(arg))
-        {
-            log(conf, " %s", register_name(std::get<mips_fpu_register>(arg)));
-        }
-        else if (std::holds_alternative<vfpu_register>(arg))
-        {
-            auto &reg = std::get<vfpu_register>(arg);
-            log(conf, " %s%s", register_name(reg)
-                             , size_suffix(reg.size));
-        }
-        else if (std::holds_alternative<vfpu_matrix>(arg))
-        {
-            auto &mtx = std::get<vfpu_matrix>(arg);
-            log(conf, " %s%s", matrix_name(mtx)
-                             , size_suffix(mtx.size));
-        }
-        else if (std::holds_alternative<vfpu_condition>(arg))
-        {
-            log(conf, " %s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
-        }
-        else if (std::holds_alternative<vfpu_constant>(arg))
-        {
-            log(conf, " %s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
-        }
-        else if (std::holds_alternative<vfpu_prefix_array>(arg))
-        {
-            auto &arr = std::get<vfpu_prefix_array>(arg).data;
-            log(conf, " [%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
-                                      , vfpu_prefix_name(arr[1])
-                                      , vfpu_prefix_name(arr[2])
-                                      , vfpu_prefix_name(arr[3])
-               );
-        }
-        else if (std::holds_alternative<vfpu_destination_prefix_array>(arg))
-        {
-            auto &arr = std::get<vfpu_destination_prefix_array>(arg).data;
-            log(conf, " [%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
-                                      , vfpu_destination_prefix_name(arr[1])
-                                      , vfpu_destination_prefix_name(arr[2])
-                                      , vfpu_destination_prefix_name(arr[3])
-               );
-        }
-        else if (std::holds_alternative<vfpu_rotation_array>(arg))
-        {
-            auto &arr = std::get<vfpu_rotation_array>(arg);
-            log(conf, " [%s", vfpu_rotation_name(arr.data[0]));
-
-            for (int i = 1; i < arr.size; ++i)
-                log(conf, ",%s", vfpu_rotation_name(arr.data[i]));
-
-            log(conf, "]");
-        }
-        else if (std::holds_alternative<base_register>(arg))
-        {
-            log(conf, "(%s)", register_name(std::get<base_register>(arg).data));
-        }
-        else if (std::holds_alternative<const syscall*>(arg))
-        {
-            const syscall *sc = std::get<const syscall*>(arg);
-            log(conf, " %s <0x%08x>", sc->function_name, sc->id);
-        }
-        else IF_ARG_TYPE_LOG(arg, shift, " %u")
-        else IF_ARG_TYPE_LOG(arg, address, " %x")
-        else IF_ARG_TYPE_LOG(arg, memory_offset, " %x")
-        else IF_ARG_TYPE_LOG(arg, immediate<u32>, " %u")
-        else IF_ARG_TYPE_LOG(arg, immediate<u16>, " %u")
-        else IF_ARG_TYPE_LOG(arg, immediate<s16>, " %d")
-        else IF_ARG_TYPE_LOG(arg, immediate<u8>, " %u")
-        else IF_ARG_TYPE_LOG(arg, immediate<float>, " %f")
-        else IF_ARG_TYPE_LOG(arg, condition_code, " (CC[%x])")
-        else IF_ARG_TYPE_LOG(arg, bitfield_pos, " %x")
-        else IF_ARG_TYPE_LOG(arg, bitfield_size, " %x")
-        else if (std::holds_alternative<coprocessor_register>(arg))
-        {
-            coprocessor_register &d = std::get<coprocessor_register>(arg);
-            log(conf, " [%u, %u]", d.rd, d.sel);
-        }
-    }
+    if (conf->verbose)
+        format_instruction(conf->log, inst);
 
     log(conf, "\n", 0);
 }
@@ -944,15 +850,19 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
     u32 count = (u32)(sz / sizeof(u32));
     out.resize(count);
 
-    for (u32 i = 0x00000000; i < sz; i += sizeof(u32))
+    for (u32 addr = 0x00000000, i = 0; addr < sz; addr += sizeof(u32), ++i)
     {
-        instruction inst;
-        in->read(&inst.opcode); // probably don't need read_at
+        instruction &inst = out[i];
 
-        inst.address = conf->vaddr + i;
+        // because all instructions are 32 bit wide, we simply read
+        // instead of adjusting stream position to read from.
+        in->read(&inst.opcode);
+
+        inst.address = conf->vaddr + addr;
 
         parse_instruction(inst.opcode, conf, &inst);
-
-        log_instruction(&inst, conf);
     }
+
+    for (int i = 0; i < out.size(); ++i)
+        log_instruction(&out[i], conf);
 }
