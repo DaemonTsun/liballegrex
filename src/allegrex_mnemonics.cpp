@@ -246,41 +246,38 @@ const char *mnemonic_names[] = {
     "vf2iz",
     "vf2iu",
     "vf2id",
-    "vf2f",
-    "vcmov",
+    "vi2f",
     "vcmovt",
     "vcmovf",
     "vwbn",
-    "lv",
-    "lvl",
-    "lvr",
+    "lvl.q",
+    "lvr.q",
     "lv.q",
     "vpfxs",
     "vpfxt",
     "vpfxd",
-    "viim",
-    "vfim",
+    "viim.s",
+    "vfim.s",
     "sc",
     "swc1",
     "sv.s",
     "vmmul",
-    "vhtfm2",
-    "vtfm2",
-    "vhtfm3",
-    "vtfm3",
-    "vhtfm4",
-    "vtfm4",
+    "vhtfm2.p",
+    "vtfm2.p",
+    "vhtfm3.t",
+    "vtfm3.t",
+    "vhtfm4.q",
+    "vtfm4.q",
     "vmscl",
-    "vcrsp",
-    "vqmul",
+    "vcrsp.t",
+    "vqmul.q",
     "vmmov",
     "vmidt",
     "vmzero",
     "vmone",
     "vrot",
-    "sv",
-    "svl",
-    "svr",
+    "svl.q",
+    "svr.q",
     "sv.q",
     "vnop",
     "vsync",
@@ -291,10 +288,133 @@ const char *mnemonic_names[] = {
 
 const char *get_mnemonic_name(allegrex_mnemonic mne)
 {
-    u32 i = static_cast<u32>(mne);
+    auto i = value(mne);
 
-    if (i >= static_cast<u32>(allegrex_mnemonic::_MAX))
-        i = static_cast<u32>(allegrex_mnemonic::_UNKNOWN);
+    if (i >= value(allegrex_mnemonic::_MAX))
+        i = value(allegrex_mnemonic::_UNKNOWN);
 
     return mnemonic_names[i];
+}
+
+bool requires_vfpu_suffix(allegrex_mnemonic mne)
+{
+    /*
+    vadd
+    vsub
+    vsbn
+    vdiv
+    vmul
+    vdot
+    vscl
+    vhdp
+    vcrs
+    vdet
+    vcmp
+    vmin
+    vmax
+    vscmp
+    vsge
+    vslt
+
+    vmov
+    vabs
+    vneg
+    vidt
+    vsat0
+    vsat1
+    vzero
+    vone
+    vrcp
+    vrsq
+    vsin
+    vcos
+    vexp2
+    vlog2
+    vsqrt
+    vasin
+    vnrcp
+    vnsin
+    vrexp2
+    vf2h
+    vh2f
+    vsbz
+    vlgb
+    vuc2i
+    vc2i
+    vus2i
+    vs2i
+    vi2uc
+    vi2c
+    vi2us
+    vi2s
+    vsrt1
+    vsrt2
+    vbfy1
+    vbfy2
+    vocp
+    vsocp
+    vfad
+    vavg
+    vsrt3
+    vsrt4
+    vsgn
+
+    vt4444
+    vt5551
+    vt5650
+    vcst
+    vf2in
+    vf2iz
+    vf2iu
+    vf2id
+    vi2f
+
+    vcmovt
+    vcmovf
+    vwbn
+    
+    vmmul
+    
+    vmscl
+    
+    vmmov
+    vmidt
+    vmzero
+    vmone
+    vrot
+    */
+
+#define between(x, MNEM1, MNEM2) \
+    (x >= value(allegrex_mnemonic::MNEM1) && x <= value(allegrex_mnemonic::MNEM2))
+
+    auto x = value(mne);
+
+    if (x < value(allegrex_mnemonic::VADD))
+        return false;
+
+    if (x > value(allegrex_mnemonic::VROT))
+        return false;
+
+    if (between(x, VADD, VSLT))
+        return true;
+
+    if (between(x, VMOV, VSGN))
+        return true;
+
+    if (between(x, VT4444, VI2F))
+        return true;
+
+    if (between(x, VCMOVT, VWBN))
+        return true;
+
+    if (x == value(allegrex_mnemonic::VMMUL))
+        return true;
+
+    if (x == value(allegrex_mnemonic::VMSCL))
+        return true;
+
+    if (between(x, VMMOV, VROT))
+        return true;
+
+    return false;
 }

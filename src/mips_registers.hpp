@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "enum.hpp"
 #include "number_types.hpp"
 
 enum class mips_register : u32
@@ -19,6 +20,8 @@ enum class mips_register : u32
     RA      // 31
 };
 
+DEFINE_ENUM_VALUE(mips_register);
+
 enum class mips_fpu_register : u32
 {
     F0, F1, F2, F3, F4, F5, F6, F7,
@@ -26,6 +29,8 @@ enum class mips_fpu_register : u32
     F16, F17, F18, F19, F20, F21, F22, F23,
     F24, F25, F26, F27, F28, F29, F30, F31
 };
+
+DEFINE_ENUM_VALUE(mips_fpu_register);
 
 const char *register_name(mips_register reg);
 const char *register_name(mips_fpu_register reg);

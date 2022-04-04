@@ -8,14 +8,11 @@
 #include "parse_instruction_arguments.hpp"
 #include "parse_instructions.hpp"
 
-#define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
-
 struct instruction_info
 {
     allegrex_mnemonic mnemonic;
     u32 opcode;
     argument_parse_function_t argument_parse_function;
-    /* TODO: format / string function */
 };
 
 struct category
@@ -299,7 +296,7 @@ constexpr std::array instructions_VFPU4Jump = {
     I(VF2IZ, 0xd2200000, arg_parse_VFPU_Vd_Vs_Imm5),
     I(VF2IU, 0xd2400000, arg_parse_VFPU_Vd_Vs_Imm5),
     I(VF2ID, 0xd2600000, arg_parse_VFPU_Vd_Vs_Imm5),
-    I(VF2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5)
+    I(VI2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5)
 };
 
 constexpr std::array instructions_VFPU5 = {
@@ -834,10 +831,11 @@ void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
 
 void log_instruction(const instruction *inst, const parse_config *conf)
 {
-    if (conf->verbose)
-        format_instruction(conf->log, inst);
+    if (!conf->verbose)
+        return;
 
-    log(conf, "\n", 0);
+    format_instruction(conf->log, inst);
+    conf->log->format("\n", 0);
 }
 
 void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<instruction> &out)

@@ -562,7 +562,7 @@ const char *register_name(vfpu_register reg)
     if (reg.num >= 128 || reg.size == vfpu_size::Invalid)
         return "?";
 
-	return vfpu_register_names[static_cast<u32>(reg.size)][reg.num]; 
+	return vfpu_register_names[value(reg.size)][reg.num]; 
 }
 
 const char *vfpu_matrix_names[3][128] = {
@@ -965,14 +965,14 @@ const char *matrix_name(vfpu_matrix mat)
     if (mat.num > 127 || mat.size == vfpu_size::Single || mat.size == vfpu_size::Invalid)
         return "?";
 
-	return vfpu_matrix_names[static_cast<u32>(mat.size)-1][mat.num]; 
+	return vfpu_matrix_names[value(mat.size)-1][mat.num]; 
 }
 
 const char *vfpu_size_names[] = {".s", ".p", ".t", ".q", "%"};
 
 const char *size_suffix(vfpu_size sz)
 {
-    return vfpu_size_names[static_cast<u32>(sz)];
+    return vfpu_size_names[value(sz)];
 }
 
 const char *size_suffix(u32 opcode)
@@ -983,7 +983,7 @@ const char *size_suffix(u32 opcode)
 const char *vfpu_condition_names[] = {"FL","EQ","LT","LE","TR","NE","GE","GT","EZ","EN","EI","ES","NZ","NN","NI","NS"};
 const char *vfpu_condition_name(vfpu_condition cond)
 {
-    return vfpu_condition_names[static_cast<u32>(cond)];
+    return vfpu_condition_names[value(cond)];
 }
 
 const char *vfpu_constant_names[] = {
@@ -1011,7 +1011,7 @@ const char *vfpu_constant_names[] = {
 
 const char *vfpu_constant_name(vfpu_constant constant)
 {
-    return vfpu_constant_names[static_cast<u8>(constant)];
+    return vfpu_constant_names[value(constant)];
 }
 
 const char *vfpu_prefix_names[] = {
@@ -1043,8 +1043,8 @@ const char *vfpu_prefix_names[] = {
 
 const char *vfpu_prefix_name(vfpu_prefix pfx)
 {
-    assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_prefix::_MAX));
-    return vfpu_prefix_names[static_cast<u8>(pfx)];
+    assert(value(pfx) < value(vfpu_prefix::_MAX));
+    return vfpu_prefix_names[value(pfx)];
 }
 
 const char *vfpu_destination_prefix_names[] = {
@@ -1060,8 +1060,8 @@ const char *vfpu_destination_prefix_names[] = {
 
 const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx)
 {
-    assert(static_cast<u8>(pfx) < static_cast<u8>(vfpu_destination_prefix::_MAX));
-    return vfpu_destination_prefix_names[static_cast<u8>(pfx)];
+    assert(value(pfx) < value(vfpu_destination_prefix::_MAX));
+    return vfpu_destination_prefix_names[value(pfx)];
 }
 
 const char *vfpu_rotation_names[] = {
@@ -1073,7 +1073,7 @@ const char *vfpu_rotation_names[] = {
 
 const char *vfpu_rotation_name(vfpu_rotation rot)
 {
-    assert(static_cast<u8>(rot) < static_cast<u8>(vfpu_rotation::_MAX));
+    assert(value(rot) < value(vfpu_rotation::_MAX));
 
-    return vfpu_rotation_names[static_cast<u8>(rot)];
+    return vfpu_rotation_names[value(rot)];
 }

@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "enum.hpp"
 #include "number_types.hpp"
 
 enum class vfpu_size : u32
@@ -11,6 +12,8 @@ enum class vfpu_size : u32
     Quad,   // M4x4
     Invalid
 };
+
+DEFINE_ENUM_VALUE(vfpu_size);
 
 constexpr vfpu_size half_size(vfpu_size sz)
 {
@@ -79,6 +82,8 @@ enum class vfpu_condition : u32
     NS
 };
 
+DEFINE_ENUM_VALUE(vfpu_condition);
+
 const char *vfpu_condition_name(vfpu_condition cond);
 
 enum class vfpu_constant : u8
@@ -104,6 +109,8 @@ enum class vfpu_constant : u8
     VFPU_LOG2TEN,
     VFPU_SQRT3_2
 };
+
+DEFINE_ENUM_VALUE(vfpu_constant);
 
 const char *vfpu_constant_name(vfpu_constant constant);
 
@@ -136,6 +143,8 @@ enum class vfpu_prefix : u8
     _MAX
 };
 
+DEFINE_ENUM_VALUE(vfpu_prefix);
+
 const char *vfpu_prefix_name(vfpu_prefix pfx);
 
 struct vfpu_prefix_array
@@ -156,6 +165,8 @@ enum class vfpu_destination_prefix : u8
     _MAX
 };
 
+DEFINE_ENUM_VALUE(vfpu_destination_prefix);
+
 const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx);
 
 struct vfpu_destination_prefix_array
@@ -171,6 +182,8 @@ enum class vfpu_rotation : u8
     NEG_SIN,
     _MAX
 };
+
+DEFINE_ENUM_VALUE(vfpu_rotation);
 
 const char *vfpu_rotation_name(vfpu_rotation rot);
 

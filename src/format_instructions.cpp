@@ -1,4 +1,5 @@
 
+#include "string.hpp"
 #include "format_instructions.hpp"
 
 template<typename... Ts>
@@ -31,8 +32,9 @@ int vfpu_instruction_format(T *stream, const instruction *inst)
     const char *name = get_mnemonic_name(inst->mnemonic);
     vfpu_size sz = get_vfpu_size(inst->opcode);
     const char *suf = size_suffix(sz);
+    auto fullname = str(name, suf); // slow lol
 
-    int ret = format(stream, "%06x %08x   %-10s%s", inst->address, inst->opcode, name, suf);
+    int ret = format(stream, "%06x %08x   %-10s", inst->address, inst->opcode, fullname.c_str());
 
     for (auto arg : inst->arguments)
         ret += format_instruction_argument(stream, arg);
@@ -43,25 +45,25 @@ int vfpu_instruction_format(T *stream, const instruction *inst)
 template<typename T>
 int _format_instruction(T *stream, const instruction *inst)
 {
-    u32 mnem = static_cast<u32>(inst->mnemonic);
+    if (requires_vfpu_suffix(inst->mnemonic))
+        return vfpu_instruction_format(stream, inst);
 
-    // TODO: check if vfpu or default
     return default_instruction_format(stream, inst);
 }
 
 int format_instruction(file_stream *stream, const instruction *inst)
 {
-    return default_instruction_format(stream->handle, inst);
+    return format_instruction(stream->handle, inst);
 }
 
 int format_instruction(FILE *stream, const instruction *inst)
 {
-    return default_instruction_format(stream, inst);
+    return _format_instruction<FILE>(stream, inst);
 }
 
 int format_instruction(char *str, const instruction *inst)
 {
-    return default_instruction_format(str, inst);
+    return _format_instruction<char>(str, inst);
 }
 
 int format_instruction_argument(file_stream *stream, instruction_argument arg)

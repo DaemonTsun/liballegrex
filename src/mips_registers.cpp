@@ -25,11 +25,11 @@ const char *fpu_register_names[] = {
 
 const char *register_name(mips_register reg)
 {
-    return register_names[static_cast<u32>(reg)];
+    return register_names[value(reg)];
 }
 
 const char *register_name(mips_fpu_register reg)
 {
-    return fpu_register_names[static_cast<u32>(reg)];
+    return fpu_register_names[value(reg)];
 }
 

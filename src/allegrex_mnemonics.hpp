@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "enum.hpp"
 #include "number_types.hpp"
 
 // not called instruction to avoid confusion between
@@ -252,12 +253,10 @@ enum class allegrex_mnemonic : u32
     VF2IZ,
     VF2IU,
     VF2ID,
-    VF2F,
-    VCMOV,
+    VI2F,
     VCMOVT,
     VCMOVF,
     VWBN,
-    LV,
     LVL,
     LVR,
     LV_Q,
@@ -284,7 +283,6 @@ enum class allegrex_mnemonic : u32
     VMZERO,
     VMONE,
     VROT,
-    SV,
     SVL,
     SVR,
     SV_Q,
@@ -296,7 +294,12 @@ enum class allegrex_mnemonic : u32
     _MAX
 };
 
-// does not include VFPU vector size suffixes
+DEFINE_ENUM_VALUE(allegrex_mnemonic);
+
+// may include VFPU vector size suffixes if suffix is fixed for instruction
+// otherwise check requires_vfpu_suffix to see if suffix is necessary.
 const char *get_mnemonic_name(allegrex_mnemonic mne);
 
-// TODO: VFPU vector size name
+// returns true if the mnemonic needs a size suffix, false otherwise.
+// returns false on instructions that have a fixed size, e.g. vhftm2 (always pair)
+bool requires_vfpu_suffix(allegrex_mnemonic mne);

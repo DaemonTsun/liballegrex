@@ -64,8 +64,8 @@ void add_vfpu_matrix_argument(u32 mtx, vfpu_size size, instruction *inst)
 
 void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
 {
-    if (size > static_cast<u32>(vfpu_size::Invalid))
-        size = static_cast<u32>(vfpu_size::Invalid);
+    if (size > value(vfpu_size::Invalid))
+        size = value(vfpu_size::Invalid);
 
     add_vfpu_register_argument(reg, static_cast<vfpu_size>(size), inst);
 }
@@ -1015,7 +1015,7 @@ void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf
     u32 negsin = bitrange(imm, 4, 4);
 
     vfpu_rotation_array arr{{vfpu_rotation::ZERO}};
-    arr.size = static_cast<u32>(sz) + 1;
+    arr.size = value(sz) + 1;
 
     if (sin == cos)
         for (u32 i = 0; i < arr.size; ++i)
