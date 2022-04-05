@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(psp-elfdump)
+project(allegrex)
 
 # sources
 file(GLOB_RECURSE HEADERS "src/*.h" "src/*.hpp" "src/*.tcc")
@@ -14,11 +14,15 @@ set(CMAKE_CXX_STANDARD 17)
 # includes
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-# exe
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
-add_custom_target(run COMMAND "${CMAKE_BINARY_DIR}/${PROJECT_NAME}")
+# target lib
+add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
+
+# psp-elfdump
+file(GLOB_RECURSE ELFDUMP_HEADERS "psp-elfdump/*.h" "psp-elfdump/*.hpp" "psp-elfdump/*.tcc")
+file(GLOB_RECURSE ELFDUMP_SOURCES "psp-elfdump/*.c" "psp-elfdump/*.cpp")
+add_executable(psp-elfdump ${HEADERS} ${ELFDUMP_HEADERS} ${ELFDUMP_SOURCES})
 
 # link
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
+target_link_libraries(psp-elfdump ${PROJECT_NAME})
 
 
