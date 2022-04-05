@@ -1,6 +1,5 @@
 bin/
 *.swp
-psp-elfdump
 instruction_test/instructions
 instruction_test/*.o
 
