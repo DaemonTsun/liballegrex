@@ -5,6 +5,7 @@
 
 #include "psp_elf.hpp"
 #include "parse_instructions.hpp"
+#include "format_instructions.hpp"
 
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
@@ -32,6 +33,10 @@ const arguments default_arguments{
     .section = ".text",
     .emit_pseudo = false,
     .vaddr = INFER_VADDR,
+    /* TODO: implement these
+    .start_pos = INFER_ADDR, // when specified, only disassemble the given range
+    .end_pos = INFER_ADDR,
+    */
     .verbose = false,
     .input_file = ""
 };
@@ -146,6 +151,15 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
+void print_instructions(file_stream *stream, const std::vector<instruction> &instr)
+{
+    for (const instruction &inst : instr)
+    {
+        format_instruction(stream, &inst);
+        stream->write("\n");
+    }
+}
+
 int main(int argc, const char **argv)
 try
 {
@@ -182,7 +196,8 @@ try
 
     elf_section sec;
     read_elf(&in, &rconf, &sec);
-    // TODO: process symbols & relocations
+    // TODO: process symbols
+    // are relocations even relevant
 
     parse_config pconf;
     pconf.log = &log;
@@ -190,17 +205,20 @@ try
     pconf.verbose = args.verbose;
     pconf.emit_pseudo = args.emit_pseudo;
 
-    std::vector<instruction> instructions;
-    parse_allegrex(&sec.content, &pconf, instructions);
+    parse_data pdata;
+    parse_allegrex(&sec.content, &pconf, &pdata);
 
-    /*
     FILE *outfd = stdout;
 
     if (!args.output_file.empty())
         outfd = fopen(args.output_file.c_str(), "w");
 
     file_stream out(outfd);
-    */
+
+    if (!out)
+        throw std::runtime_error("could not open output file");
+
+    print_instructions(&out, pdata.instructions);
 
     return 0;
 }

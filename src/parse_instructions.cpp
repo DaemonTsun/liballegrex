@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include "string.hpp"
-#include "format_instructions.hpp"
 #include "parse_instruction_arguments.hpp"
 #include "parse_instructions.hpp"
 
@@ -783,21 +782,21 @@ constexpr category AllInstructions{
     CATEGORY_SUB_CATEGORIES(AllInstructions)
 };
 
-void populate_instruction(instruction *instr, const instruction_info *info, const parse_config *conf)
+void populate_instruction(instruction *instr, const instruction_info *info, const parse_config *conf, parse_data *pdata)
 {
     instr->mnemonic = info->mnemonic;
     
     if (info->argument_parse_function != nullptr)
-        info->argument_parse_function(instr->opcode, instr, conf);
+        info->argument_parse_function(instr->opcode, instr, conf, pdata);
 }
 
-bool try_parse_category_instruction(u32 opcode, const category *cat, const parse_config *conf, instruction *out)
+bool try_parse_category_instruction(u32 opcode, const category *cat, instruction *out, const parse_config *conf, parse_data *pdata)
 {
     if (cat == nullptr)
         return false;
 
     for (int i = 0; i < cat->sub_category_count; ++i)
-        if (try_parse_category_instruction(opcode, cat->sub_categories[i], conf, out))
+        if (try_parse_category_instruction(opcode, cat->sub_categories[i], out, conf, pdata))
             return true;
 
     u32 mop = opcode & cat->mask;
@@ -811,7 +810,7 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, const parse
 
         if (mop == instr.opcode)
         {
-            populate_instruction(out, &instr, conf);
+            populate_instruction(out, &instr, conf, pdata);
             return true;
         }
     }
@@ -819,26 +818,17 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, const parse
     return false;
 }
 
-void parse_instruction(u32 opcode, const parse_config *conf, instruction *out)
+void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata)
 {
     bool found;
 
-    found = try_parse_category_instruction(opcode, &AllInstructions, conf, out);
+    found = try_parse_category_instruction(opcode, &AllInstructions, out, conf, pdata);
 
     if (!found)
         out->mnemonic = allegrex_mnemonic::_UNKNOWN;
 }
 
-void log_instruction(const instruction *inst, const parse_config *conf)
-{
-    if (!conf->verbose)
-        return;
-
-    format_instruction(conf->log, inst);
-    conf->log->format("\n", 0);
-}
-
-void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<instruction> &out)
+void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out)
 {
     size_t sz = in->size();
 
@@ -846,11 +836,11 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
     assert(sz <= UINT32_MAX);
 
     u32 count = (u32)(sz / sizeof(u32));
-    out.resize(count);
+    out->instructions.resize(count);
 
     for (u32 addr = 0x00000000, i = 0; addr < sz; addr += sizeof(u32), ++i)
     {
-        instruction &inst = out[i];
+        instruction &inst = out->instructions[i];
 
         // because all instructions are 32 bit wide, we simply read
         // instead of adjusting stream position to read from.
@@ -858,9 +848,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<ins
 
         inst.address = conf->vaddr + addr;
 
-        parse_instruction(inst.opcode, conf, &inst);
+        parse_instruction(inst.opcode, &inst, conf, out);
     }
 
-    for (int i = 0; i < out.size(); ++i)
-        log_instruction(&out[i], conf);
+    auto &jmps = out->jump_destinations;
+    std::sort(jmps.begin(), jmps.end());
+    jmps.erase(std::unique(jmps.begin(), jmps.end()), jmps.end());
 }

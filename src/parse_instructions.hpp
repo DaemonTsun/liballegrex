@@ -14,5 +14,11 @@ struct parse_config
     bool emit_pseudo;
 };
 
-void parse_allegrex(memory_stream *in, const parse_config *conf, std::vector<instruction> &out);
+struct parse_data
+{
+    std::vector<instruction> instructions;
+    std::vector<u32> jump_destinations;
+};
+
+void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out);
 

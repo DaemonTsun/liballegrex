@@ -70,11 +70,14 @@ void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
     add_vfpu_register_argument(reg, static_cast<vfpu_size>(size), inst);
 }
 
+void add_address_argument(u32 addr, instruction *inst, parse_data *pdata)
+{
+    add_argument(address{addr}, inst);
+    pdata->jump_destinations.push_back(addr);
+}
+
 // argument parse functions
-// R-type instruction: xxxxxx ..... ..... ..... ..... xxxxxx
-// 3: first 3 (from left to right) sets of 5 bits are parameters
-// the last one is shift (unused for most instructions)
-void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -85,11 +88,11 @@ void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rt, inst);
 };
 
-void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRd(opcode, inst, conf);
+        arg_parse_RsRtRd(opcode, inst, conf, pdata);
         return;
     }
 
@@ -119,11 +122,11 @@ void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf)
         return;
     }
 
-    arg_parse_RsRtRd(opcode, inst, conf);
+    arg_parse_RsRtRd(opcode, inst, conf, pdata);
 };
 
 // only used by clz & clo...
-void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rd = RD(opcode);
@@ -132,7 +135,7 @@ void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rs, inst);
 };
 
-void arg_parse_RsRt(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -141,7 +144,7 @@ void arg_parse_RsRt(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rt, inst);
 };
 
-void arg_parse_RsRtCode(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtCode(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -152,7 +155,7 @@ void arg_parse_RsRtCode(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(extra{code}, inst);
 };
 
-void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rt = RT(opcode);
     u32 rd = RD(opcode);
@@ -163,7 +166,7 @@ void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(shift{sa}, inst);
 };
 
-void arg_parse_VarShift(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VarShift(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -175,14 +178,14 @@ void arg_parse_VarShift(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rs, inst);
 };
 
-void arg_parse_RegJumpRs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RegJumpRs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
 
     add_register_argument(rs, inst);
 };
 
-void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rd = RD(opcode);
@@ -192,7 +195,7 @@ void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst, const parse_config *co
 };
 
 
-void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 code = bitrange(opcode, 6, 25);
     u16 funcnum = bitrange(code, 0, 11);
@@ -204,28 +207,28 @@ void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(extra{code}, inst);
 };
 
-void arg_parse_Sync(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Sync(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 stype = bitrange(opcode, 6, 10);
 
     add_argument(extra{stype}, inst);
 };
 
-void arg_parse_Rs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Rs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
 
     add_register_argument(rs, inst);
 };
 
-void arg_parse_Rd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Rd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rd = RD(opcode);
 
     add_register_argument(rd, inst);
 };
 
-void arg_parse_RdRt(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RdRt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rd = RD(opcode);
     u32 rt = RT(opcode);
@@ -234,7 +237,7 @@ void arg_parse_RdRt(u32 opcode, instruction *inst, const parse_config *conf)
     add_register_argument(rt, inst);
 };
 
-void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rt = RT(opcode);
     u8 rd = RD(opcode);
@@ -244,7 +247,7 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_config *co
     add_argument(coprocessor_register{rd, sel}, inst);
 };
 
-void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u16 imm = bitrange(opcode, 0, 15);
@@ -253,7 +256,7 @@ void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_config *c
     add_argument(immediate<u16>{imm}, inst);
 };
 
-void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     s16 imm = bitrange(opcode, 0, 15);
@@ -262,7 +265,7 @@ void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_config *c
     add_argument(immediate<s16>{imm}, inst);
 };
 
-void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rt = RT(opcode);
     u16 imm = bitrange(opcode, 0, 15);
@@ -271,7 +274,7 @@ void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *c
     add_argument(immediate<u16>{imm}, inst);
 };
 
-void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 off = inst->address;
@@ -279,18 +282,18 @@ void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *c
     off += imm + sizeof(opcode);
 
     add_register_argument(rs, inst);
-    add_argument(address{off}, inst);
+    add_address_argument(off, inst, pdata);
 };
 
-void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 off = bitrange(opcode, 0, 25) << 2;
     u32 addr = bitrange(inst->address, 28, 31) | off;
 
-    add_argument(address{addr}, inst);
+    add_address_argument(off, inst, pdata);
 };
 
-void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -300,14 +303,14 @@ void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config 
 
     add_register_argument(rs, inst);
     add_register_argument(rt, inst);
-    add_argument(address{off}, inst);
+    add_address_argument(off, inst, pdata);
 }
 
-void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
         return;
     }
     
@@ -317,7 +320,7 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf)
 
     if (rs != rt)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
         return;
     }
 
@@ -326,14 +329,14 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf)
     s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
-    add_argument(address{off}, inst);
+    add_address_argument(off, inst, pdata);
 }
 
-void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
         return;
     }
     
@@ -343,7 +346,7 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf)
 
     if (rs != rt)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf);
+        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
         return;
     }
 
@@ -352,10 +355,10 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf)
     s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
-    add_argument(address{off}, inst);
+    add_address_argument(off, inst, pdata);
 }
 
-void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -366,7 +369,7 @@ void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config 
     add_argument(immediate<u16>{imm}, inst);
 };
 
-void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -377,11 +380,11 @@ void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config 
     add_argument(immediate<s16>{imm}, inst);
 };
 
-void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtImmediateS(opcode, inst, conf);
+        arg_parse_RsRtImmediateS(opcode, inst, conf, pdata);
         return;
     }
     
@@ -390,7 +393,7 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf)
 
     if (rs != 0)
     {
-        arg_parse_RsRtImmediateS(opcode, inst, conf);
+        arg_parse_RsRtImmediateS(opcode, inst, conf, pdata);
         return;
     }
 
@@ -401,11 +404,11 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(immediate<s16>{imm}, inst);
 };
 
-void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtImmediateU(opcode, inst, conf);
+        arg_parse_RsRtImmediateU(opcode, inst, conf, pdata);
         return;
     }
     
@@ -414,7 +417,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf)
 
     if (rs != 0)
     {
-        arg_parse_RsRtImmediateU(opcode, inst, conf);
+        arg_parse_RsRtImmediateU(opcode, inst, conf, pdata);
         return;
     }
 
@@ -425,7 +428,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(immediate<u32>{imm}, inst);
 };
 
-void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -436,7 +439,7 @@ void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_config *
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
-void arg_parse_Cache(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Cache(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     s16 off = bitrange(opcode, 0, 15);
     u32 rs = RS(opcode);
@@ -447,7 +450,7 @@ void arg_parse_Cache(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
-void arg_parse_Ext(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Ext(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -461,7 +464,7 @@ void arg_parse_Ext(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(bitfield_size{sz}, inst);
 }
 
-void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -476,18 +479,18 @@ void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf)
     add_argument(bitfield_size{sz}, inst);
 }
 
-void arg_parse_FPURelAddress(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_FPURelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 off = inst->address;
     s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
     off += imm + sizeof(opcode);
     u8 cc = bitrange(opcode, 18, 20);
 
-    add_argument(address{off}, inst);
+    add_address_argument(off, inst, pdata);
     add_argument(condition_code{cc}, inst);
 };
 
-void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 ft = FT(opcode);
@@ -498,7 +501,7 @@ void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
-void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 ft = FT(opcode);
     u32 fs = FS(opcode);
@@ -510,7 +513,7 @@ void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf
     add_fpu_register_argument(ft, inst);
 }
 
-void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 fs = FS(opcode);
     u32 fd = FD(opcode);
@@ -520,7 +523,7 @@ void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf)
     add_fpu_register_argument(fs, inst);
 }
 
-void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 ft = FT(opcode);
     u32 fs = FS(opcode);
@@ -531,7 +534,7 @@ void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_config *con
     add_argument(extra{cc}, inst);
 }
 
-void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rt = RT(opcode);
     u32 fs = FS(opcode);
@@ -541,7 +544,7 @@ void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf)
 }
 
 // VFPU
-void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rt = RT(opcode);
     u16 unk = bitrange(opcode, 0u, 15u);
@@ -550,7 +553,7 @@ void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(immediate<u16>{unk}, inst);
 }
 
-void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     // ppsspp
     u32 rt = RT(opcode);
@@ -560,7 +563,7 @@ void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_config *conf
     add_vfpu_register_argument(vr, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_Vd_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vd_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -572,7 +575,7 @@ void arg_parse_VFPU_Vd_Vs_Vt(u32 opcode, instruction *inst, const parse_config *
     add_vfpu_register_argument(vt, sz, inst);
 }
 
-void arg_parse_VFPU_VdSingle_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_VdSingle_Vs_Vt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -584,7 +587,7 @@ void arg_parse_VFPU_VdSingle_Vs_Vt(u32 opcode, instruction *inst, const parse_co
     add_vfpu_register_argument(vt, sz, inst);
 }
 
-void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -596,7 +599,7 @@ void arg_parse_VFPU_Vd_Vs_VtSingle(u32 opcode, instruction *inst, const parse_co
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -613,7 +616,7 @@ void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf
     }
 }
 
-void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vs = VS(opcode);
@@ -625,7 +628,7 @@ void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_config *conf
     add_vfpu_register_argument(vt, sz, inst);
 }
 
-void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -635,7 +638,7 @@ void arg_parse_VFPU_Vd_Vs(u32 opcode, instruction *inst, const parse_config *con
     add_vfpu_register_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_VdSingle_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_VdSingle_Vs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -645,7 +648,7 @@ void arg_parse_VFPU_VdSingle_Vs(u32 opcode, instruction *inst, const parse_confi
     add_vfpu_register_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -657,7 +660,7 @@ void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_config
     add_argument(immediate<u8>{imm}, inst);
 }
 
-void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -665,14 +668,14 @@ void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_config *conf)
     add_vfpu_register_argument(vd, sz, inst);
 }
 
-void arg_parse_VFPU_VdSingle(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_VdSingle(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vd = VD(opcode);
 
     add_vfpu_register_argument(vd, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     vfpu_size hsz = half_size(sz);
@@ -687,7 +690,7 @@ void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config 
     add_vfpu_register_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     vfpu_size dsz = double_size(sz);
@@ -699,7 +702,7 @@ void arg_parse_VFPU_VdDouble_Vs(u32 opcode, instruction *inst, const parse_confi
     add_vfpu_register_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_Vmfvc(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vmfvc(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vd = VD(opcode);
     u32 vr = VS(opcode) + 128;
@@ -708,7 +711,7 @@ void arg_parse_VFPU_Vmfvc(u32 opcode, instruction *inst, const parse_config *con
     add_vfpu_register_argument(vr, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_Vmtvc(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vmtvc(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vr = VD(opcode) + 128;
     u32 vs = VS(opcode);
@@ -717,7 +720,7 @@ void arg_parse_VFPU_Vmtvc(u32 opcode, instruction *inst, const parse_config *con
     add_vfpu_register_argument(vr, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_ColorConv(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_ColorConv(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     vfpu_size hsz = half_size(sz);
@@ -729,7 +732,7 @@ void arg_parse_VFPU_ColorConv(u32 opcode, instruction *inst, const parse_config 
     add_vfpu_register_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
 
@@ -742,7 +745,7 @@ void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(immediate<u8>{imm}, inst);
 }
 
-void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
 
@@ -753,7 +756,7 @@ void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(static_cast<vfpu_constant>(constant), inst);
 }
 
-void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
 
@@ -773,7 +776,7 @@ void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *con
     add_argument(immediate<u8>{imm}, inst);
 }
 
-void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 data = bitrange(opcode, 0, 19);
     vfpu_prefix_array arr;
@@ -797,7 +800,7 @@ void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_config *
     add_argument(arr, inst);
 }
 
-void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 data = bitrange(opcode, 0, 19);
     vfpu_destination_prefix_array arr;
@@ -814,7 +817,7 @@ void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_config
     add_argument(arr, inst);
 }
 
-void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vt = VT(opcode);
     u16 imm = bitrange(opcode, 0, 15);
@@ -882,7 +885,7 @@ float Float16ToFloat32(u16 l)
 	return f;
 }
 
-void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vt = VT(opcode);
     u16 imm = bitrange(opcode, 0, 15);
@@ -891,7 +894,7 @@ void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_config *conf
     add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
 }
 
-void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 1) << 5);
@@ -902,7 +905,7 @@ void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_config *co
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
-void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
@@ -916,7 +919,7 @@ void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *co
         add_argument("wb", inst); // ??
 }
 
-void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
@@ -927,7 +930,7 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
-void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -935,7 +938,7 @@ void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_config *conf)
     add_vfpu_matrix_argument(vd, sz, inst);
 }
 
-void arg_parse_VFPU_MVd_MVs(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_MVd_MVs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -945,7 +948,7 @@ void arg_parse_VFPU_MVd_MVs(u32 opcode, instruction *inst, const parse_config *c
     add_vfpu_matrix_argument(vs, sz, inst);
 }
 
-void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     // https://github.com/hrydgard/ppsspp/blob/6f04f52f5ca51b60c719e074199691b2ccf32860/Core/MIPS/MIPSDisVFPU.cpp#L291
     vfpu_size sz = get_vfpu_size(opcode);
@@ -958,7 +961,7 @@ void arg_parse_VFPU_MVd_XVs_MVt(u32 opcode, instruction *inst, const parse_confi
     add_vfpu_matrix_argument(vt, sz, inst);
 }
 
-void arg_parse_VFPU_Vhtfm2(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vhtfm2(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
@@ -969,7 +972,7 @@ void arg_parse_VFPU_Vhtfm2(u32 opcode, instruction *inst, const parse_config *co
     add_vfpu_register_argument(vt, vfpu_size::Pair, inst);
 }
 
-void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
@@ -980,7 +983,7 @@ void arg_parse_VFPU_Vhtfm3(u32 opcode, instruction *inst, const parse_config *co
     add_vfpu_register_argument(vt, vfpu_size::Triple, inst);
 }
 
-void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
@@ -991,7 +994,7 @@ void arg_parse_VFPU_Vhtfm4(u32 opcode, instruction *inst, const parse_config *co
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
 }
 
-void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
@@ -1003,7 +1006,7 @@ void arg_parse_VFPU_MVd_MVs_VtSingle(u32 opcode, instruction *inst, const parse_
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
 }
 
-void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf)
+void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
