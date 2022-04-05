@@ -1,22 +1,10 @@
+# liballegrex
+
+A library for parsing PSP Allegrex MIPS instructions, comes with the psp-elfdump tool to dump (E)BOOT.BIN files.
+
 # psp-elfdump
-PSP (E)BOOT.BIN Elf MIPS dumper tool based on https://github.com/simonlindholm/sm64tools/tree/disasm-objfile
+PSP (E)BOOT.BIN Elf MIPS dumper tool loosely based on https://github.com/simonlindholm/sm64tools/tree/disasm-objfile
 
 Right now psp-elfdump requires unencrypted Elf files as input.
 To unencrypt EBOOT.BIN, use e.g. PPSSPP.
 
-Differences from the original N64 tool:
-- Endianness of PSP EBOOT.BIN executables are little-endian, not big-endian
-- Fixed reading the virtual address of the first instruction
-- Add (partial) support for stripped exectuables that don't have symbol/string tables
-
-## Dependencies:
-
-- libcapstone-dev
-
-## Building:
-
-    $ make
-
-## Usage:
-
-    $ psp-elfdump EBOOT.BIN -o EBOOT.BIN.s
