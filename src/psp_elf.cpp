@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "string.hpp"
+#include "prx_decrypt.hpp"
 #include "psp_elf.hpp"
 
 /*
@@ -100,8 +101,7 @@ void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &e
     }
 }
 
-template<typename StreamT>
-void read_elf(StreamT *in, const psp_elf_read_config *conf, elf_section *out)
+void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out)
 {
     Elf32_Ehdr elf_header;
 
@@ -111,8 +111,7 @@ void read_elf(StreamT *in, const psp_elf_read_config *conf, elf_section *out)
     in->read(&elf_header);
 
     if (strncmp((const char*)elf_header.e_ident, "\x7f" "ELF", 4))
-        // TODO: attempt decrypt
-        throw std::runtime_error("input is not an ELF file or may be encrypted");
+        throw std::runtime_error("input is not an ELF file");
 
     // we want little endian
     if (elf_header.e_ident[EI_DATA] != ELFDATA2LSB
@@ -124,7 +123,7 @@ void read_elf(StreamT *in, const psp_elf_read_config *conf, elf_section *out)
     if (elf_header.e_shstrndx == SHN_UNDEF)
     {
         // while we could look at program headers, PSP games
-        // can have strange sections (e.g. MHFU has ~600 sections)
+        // can have strange sections (e.g. MHFU has ~600 sections, a lot of them empty)
         // so we just rely on the name given by command line args.
         throw std::runtime_error("no section header table index found");
     }
@@ -174,10 +173,80 @@ void read_elf(StreamT *in, const psp_elf_read_config *conf, elf_section *out)
 
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out)
 {
-    read_elf<file_stream>(in, conf, out);
+    memory_stream memstr = memory_stream(in->size());
+    in->read_at(memstr.data(), 0, in->size());
+
+    read_elf(&memstr, conf, out);
 }
 
 void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out)
 {
-    read_elf<memory_stream>(in, conf, out);
+    std::vector<u8> decrypted_elf;
+
+    if (decrypt_elf(in, &decrypted_elf))
+    {
+        log(conf, "ELF is encrypted and has been decrypted.\n");
+        memory_stream delf = memory_stream(reinterpret_cast<char*>(decrypted_elf.data()),
+                                           decrypted_elf.size());
+        _read_elf(&delf, conf, out);
+        return;
+    }
+
+    in->seek(0);
+
+    // simply parse from memory if not encrypted
+    _read_elf(in, conf, out);
+}
+
+size_t decrypt_elf(file_stream *in, std::vector<u8> *out)
+{
+    memory_stream memstr = memory_stream(in->size());
+    in->read_at(memstr.data(), 0, in->size());
+
+    return decrypt_elf(&memstr, out);
+}
+
+size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
+{
+    Elf32_Ehdr elf_header;
+
+    if (in->size() < sizeof(Elf32_Ehdr))
+        throw std::runtime_error("input is not an ELF file");
+
+    char magic[4];
+    in->read(magic, 4);
+
+    if (strncmp(magic, "\x7f" "ELF", 4))
+    {
+        // not an ELF
+        
+        if (strncmp(magic, "~PSP", 4))
+            // not encrypted either
+            throw std::runtime_error("input is not an ELF file and is not encrypted");
+
+        // ok its encrypted, attempt decrypt
+        PSP_Header phead;
+        in->read_at(&phead, 0);
+
+        size_t nsize = std::max(phead.elf_size, phead.psp_size);
+        out->resize(nsize);
+
+        int decrypted_size = pspDecryptPRX(reinterpret_cast<const u8*>(in->data()),
+                                           out->data(),
+                                           phead.psp_size);
+
+        if (decrypted_size < 0)
+            throw std::runtime_error("could not decrypt input file");
+
+        /* TODO: implement
+        const auto isGzip = phead.comp_attribute & 1;
+        if (isGzip)
+            ...
+        */
+
+        return decrypted_size;
+    }
+
+    // nothing to decrypt
+    return 0;
 }

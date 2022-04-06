@@ -37,6 +37,10 @@ struct elf_section
     u32 vaddr;
 };
 
+// its copied to memory if read from file, sorry
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out);
 void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out);
 
+// returns decrypted size, or 0 if input is regular ELF
+size_t decrypt_elf(file_stream *in, std::vector<u8> *out);
+size_t decrypt_elf(memory_stream *in, std::vector<u8> *out);

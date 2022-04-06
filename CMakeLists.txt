@@ -10,12 +10,16 @@ file(GLOB_RECURSE SOURCES "src/*.c" "src/*.cpp")
 set(CMAKE_CXX_STANDARD 17)
 
 # libs
+add_subdirectory(libkirk)
 
 # includes
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR})
 
 # target lib
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
+set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(${PROJECT_NAME} kirk)
 
 # psp-elfdump
 file(GLOB_RECURSE ELFDUMP_HEADERS "psp-elfdump/*.h" "psp-elfdump/*.hpp" "psp-elfdump/*.tcc")
@@ -23,6 +27,6 @@ file(GLOB_RECURSE ELFDUMP_SOURCES "psp-elfdump/*.c" "psp-elfdump/*.cpp")
 add_executable(psp-elfdump ${HEADERS} ${ELFDUMP_HEADERS} ${ELFDUMP_SOURCES})
 
 # link
-target_link_libraries(psp-elfdump ${PROJECT_NAME})
+target_link_libraries(psp-elfdump ${PROJECT_NAME} kirk)
 
 
