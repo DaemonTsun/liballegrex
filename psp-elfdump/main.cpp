@@ -19,6 +19,7 @@ struct arguments
     std::string output_file; // -o, --output
     std::string log_file;    // --log
     std::string section;     // -s, --section
+    std::string decrypted_elf_output; // --dump-decrypt
     bool emit_pseudo;        // -p, --pseudo
     u32 vaddr;               // -a, --vaddr
     bool verbose;            // -v, --verbose
@@ -31,6 +32,7 @@ const arguments default_arguments{
     .output_file = "",
     .log_file = "",
     .section = ".text",
+    .decrypted_elf_output = "",
     .emit_pseudo = false,
     .vaddr = INFER_VADDR,
     /* TODO: implement these
@@ -54,13 +56,15 @@ void print_usage()
          " -o OUTPUT, --output OUTPUT  output filename (default: stdout)\n"
          " --log LOGFILE               output all information messages to LOGFILE (stdout by default)\n"
          " -s, --section NAME          disassemble the section with name NAME (\".text\" by default)\n"
+         " --dump-decrypt OUTPUT       optional output file to dump the decrypted ELF to.\n"
+         "                             if set, only dumps the ELF to OUTPUT and exits.\n" 
          " -p, --pseudo                emit pseudoinstructions for related instructions\n"
          " -a VADDR, --vaddr VADDR     virtual address of the first instruction\n"
          "                             will be read from elf instead if not set\n"
          " -v, --verbose               verbose progress output\n"
          "\n"
          "Arguments:\n"
-         " OBJFILE      ELF object file to disassemble .text section for\n"
+         " OBJFILE      ELF object file to disassemble the given section for\n"
          );
 }
 
@@ -113,6 +117,16 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
+        if (arg == "--dump-decrypt")
+        {
+            if (i >= argc - 1)
+                throw std::runtime_error(str(arg, " expects a positional argument: the output file"));
+
+            out->decrypted_elf_output = argv[i+1];
+            i += 2;
+            continue;
+        }
+
         if (arg == "-p" || arg == "--pseudo")
         {
             out->emit_pseudo = true;
@@ -160,6 +174,64 @@ void print_instructions(file_stream *stream, const std::vector<instruction> &ins
     }
 }
 
+void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
+{
+    psp_elf_read_config rconf;
+    rconf.log = log;
+    rconf.section = args.section;
+    rconf.vaddr = args.vaddr;
+    rconf.verbose = args.verbose;
+
+    elf_section sec;
+    read_elf(in, &rconf, &sec);
+    // TODO: process symbols
+    // are relocations even relevant
+
+    parse_config pconf;
+    pconf.log = log;
+    pconf.vaddr = sec.vaddr;
+    pconf.verbose = args.verbose;
+    pconf.emit_pseudo = args.emit_pseudo;
+
+    parse_data pdata;
+    parse_allegrex(&sec.content, &pconf, &pdata);
+
+    FILE *outfd = stdout;
+
+    if (!args.output_file.empty())
+        outfd = fopen(args.output_file.c_str(), "w");
+
+    file_stream out(outfd);
+
+    if (!out)
+        throw std::runtime_error("could not open output file");
+
+    print_instructions(&out, pdata.instructions);
+}
+
+void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
+{
+    std::vector<u8> delf;
+    auto sz = decrypt_elf(in, &delf);
+
+    if (sz == 0)
+    {
+        printf("input file is not encrypted. exiting\n");
+        return;
+    }
+    
+    FILE *outfd = fopen(args.decrypted_elf_output.c_str(), "w");
+
+    file_stream out(outfd);
+
+    if (!out)
+        throw std::runtime_error("could not open dump output file");
+
+    out.write(delf.data(), sz);
+
+    printf("dumped decrypted ELF from %s to %s\n", args.input_file.c_str(), args.decrypted_elf_output.c_str());
+}
+
 int main(int argc, const char **argv)
 try
 {
@@ -188,37 +260,16 @@ try
 
     in.calculate_size();
     
-    psp_elf_read_config rconf;
-    rconf.log = &log;
-    rconf.section = args.section;
-    rconf.vaddr = args.vaddr;
-    rconf.verbose = args.verbose;
+    if (!args.decrypted_elf_output.empty())
+    {
+        if (args.input_file == args.decrypted_elf_output)
+            throw std::runtime_error("decrypted elf target output file is same as input file, aborting");
 
-    elf_section sec;
-    read_elf(&in, &rconf, &sec);
-    // TODO: process symbols
-    // are relocations even relevant
+        dump_decrypted_elf(&in, &log, args);
+        return 0;
+    }
 
-    parse_config pconf;
-    pconf.log = &log;
-    pconf.vaddr = sec.vaddr;
-    pconf.verbose = args.verbose;
-    pconf.emit_pseudo = args.emit_pseudo;
-
-    parse_data pdata;
-    parse_allegrex(&sec.content, &pconf, &pdata);
-
-    FILE *outfd = stdout;
-
-    if (!args.output_file.empty())
-        outfd = fopen(args.output_file.c_str(), "w");
-
-    file_stream out(outfd);
-
-    if (!out)
-        throw std::runtime_error("could not open output file");
-
-    print_instructions(&out, pdata.instructions);
+    disassemble_elf(&in, &log, args);
 
     return 0;
 }
