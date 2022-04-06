@@ -68,7 +68,9 @@ void print_usage()
          "                              OFFSET and exit (ignores all ELF data).\n" 
          "  -B OFFSET, --end OFFSET     if set, only disassemble MIPS up to OFFSET\n"
          "                              and exit. only works with -A, must not be\n"
-         "                              smaller than -A's OFFSET\n"
+         "                              smaller than -A's OFFSET.\n"
+         "                              if -A is set, but -B is not, -B is inferred to be\n"
+         "                              the end of the input file.\n"
          "  -v, --verbose               verbose progress output\n"
          "\n"
          "Arguments:\n"
@@ -264,13 +266,17 @@ void disassemble_range(file_stream *in, file_stream *log, const arguments &args)
 {
     u32 from = args.start_pos;
     u32 to = args.end_pos;
-    u32 sz = to - from;
 
     if (from > to)
-        throw std::runtime_error(str("start offset ", from, " is larger than end offset ", to));
+        throw std::runtime_error(str("start offset 0x", std::hex, from, " is larger than end offset 0x", std::hex, to));
+
+    if (to == INFER_ADDR)
+        to = in->size();
 
     if (to > in->size())
-        throw std::runtime_error(str("end offset ", to, " is larger than input file size ", in->size()));
+        throw std::runtime_error(str("end offset 0x", std::hex, to, " is larger than input file size 0x", std::hex, in->size()));
+
+    u32 sz = to - from;
 
     parse_config pconf;
     pconf.log = log;
