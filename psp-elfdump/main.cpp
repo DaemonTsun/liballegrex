@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "psp_elf.hpp"
 #include "parse_instructions.hpp"
@@ -14,7 +15,14 @@
 
 #include "psp-elfdump/config.hpp"
 
-#define INFER_ADDR UINT32_MAX
+#define INFER_SIZE UINT32_MAX
+
+struct disasm_range
+{
+    u32 vaddr;
+    u32 start;
+    u32 size;
+};
 
 struct arguments
 {
@@ -25,8 +33,7 @@ struct arguments
     std::string decrypted_elf_output; // --dump-decrypt
     bool emit_pseudo;        // -p, --pseudo
     u32 vaddr;               // -a, --vaddr
-    u32 start_pos;           // -A, --start
-    u32 end_pos;             // -B, --end
+    std::vector<disasm_range> ranges; // -r
     bool verbose;            // -v, --verbose
 
     std::string input_file;
@@ -40,8 +47,7 @@ const arguments default_arguments{
     .decrypted_elf_output = "",
     .emit_pseudo = false,
     .vaddr = INFER_VADDR,
-    .start_pos = INFER_ADDR,
-    .end_pos = INFER_ADDR,
+    .ranges = {},
     .verbose = false,
     .input_file = ""
 };
@@ -64,18 +70,50 @@ void print_usage()
          "  -p, --pseudo                emit pseudoinstructions for related instructions\n"
          "  -a VADDR, --vaddr VADDR     virtual address of the first instruction\n"
          "                              will be read from elf instead if not set\n"
-         "  -A OFFSET, --start OFFSET   if set, only disassemble MIPS starting from\n"
-         "                              OFFSET and exit (ignores all ELF data).\n" 
-         "  -B OFFSET, --end OFFSET     if set, only disassemble MIPS up to OFFSET\n"
-         "                              and exit. only works with -A, must not be\n"
-         "                              smaller than -A's OFFSET.\n"
-         "                              if -A is set, but -B is not, -B is inferred to be\n"
-         "                              the end of the input file.\n"
+         "  -r [VADDR:]START[-END]      if set, disassemble the given range of the\n"
+         "                              input file. ignores all ELF information.\n"
+         "                              if END is omitted, END is end of file.\n"
+         "                              -r can be used multiple times.\n"
+         "                              if at least one -r is present, only disassembles\n"
+         "                              the -r ranges.\n"
+         "  -r [VADDR:]START+SIZE       same as above, but uses size instead of end\n"
+         "                              position.\n"
          "  -v, --verbose               verbose progress output\n"
          "\n"
          "Arguments:\n"
          "  OBJFILE      ELF object file to disassemble the given section for\n"
          );
+}
+
+void parse_range(disasm_range *r, const char *arg)
+{
+    const char *n = arg;
+    const char *colon = strchr(n, ':');
+
+    if (colon)
+    {
+        r->vaddr = strtoul(n, nullptr, 0);
+        n = colon + 1;
+    }
+    else
+        r->vaddr = INFER_VADDR;
+
+    const char *minus = strchr(n, '-');
+    const char *plus = strchr(n, '+');
+    r->start = strtoul(n, nullptr, 0);
+
+    if (minus)
+    {
+        u32 endpos = strtoul(minus + 1, nullptr, 0);
+        if (endpos < r->start)
+            throw std::runtime_error(str("start offset 0x", std::hex, r->start, " is larger than end offset 0x", std::hex, endpos));
+
+        r->size = endpos - r->start;
+    }
+    else if (plus)
+        r->size = strtoul(plus + 1, nullptr, 0);
+    else
+        r->size = INFER_SIZE;
 }
 
 void parse_arguments(int argc, const char **argv, arguments *out)
@@ -154,22 +192,13 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
-        if (arg == "-A" || arg == "--start")
+        if (arg == "-r")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the offset"));
+                throw std::runtime_error(str(arg, " expects a positional argument: the range"));
 
-            out->start_pos = std::stoul(argv[i+1], nullptr, 0);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "-B" || arg == "--end")
-        {
-            if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the offset"));
-
-            out->end_pos = std::stoul(argv[i+1], nullptr, 0);
+            disasm_range &range = out->ranges.emplace_back();
+            parse_range(&range, argv[i+1]);
             i += 2;
             continue;
         }
@@ -262,30 +291,28 @@ void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args
     printf("dumped decrypted ELF from %s to %s\n", args.input_file.c_str(), args.decrypted_elf_output.c_str());
 }
 
-void disassemble_range(file_stream *in, file_stream *log, const arguments &args)
+void disassemble_range(file_stream *in, file_stream *log, const disasm_range *range, const arguments &args)
 {
-    u32 from = args.start_pos;
-    u32 to = args.end_pos;
+    u32 from = range->start;
+    u32 sz = range->size;
 
-    if (from > to)
-        throw std::runtime_error(str("start offset 0x", std::hex, from, " is larger than end offset 0x", std::hex, to));
+    if (sz == INFER_SIZE)
+        sz = in->size() - from;
 
-    if (to == INFER_ADDR)
-        to = in->size();
-
-    if (to > in->size())
-        throw std::runtime_error(str("end offset 0x", std::hex, to, " is larger than input file size 0x", std::hex, in->size()));
-
-    u32 sz = to - from;
+    if (from + sz > in->size())
+        throw std::runtime_error(str("end offset 0x", std::hex, from + sz, " (start 0x", std::hex, from, " + size 0x", std::hex, sz, ") is larger than input file size 0x", std::hex, in->size()));
 
     parse_config pconf;
     pconf.log = log;
-    pconf.vaddr = args.vaddr;
+    pconf.vaddr = range->vaddr;
     pconf.verbose = args.verbose;
     pconf.emit_pseudo = args.emit_pseudo;
 
     if (pconf.vaddr == INFER_VADDR)
         pconf.vaddr = 0;
+
+    if (args.verbose)
+        log->format("disassembling range %08x - %08x (size: %08x) with vaddr %08x\n", from, from + sz, sz, pconf.vaddr);
 
     auto memstr = memory_stream(sz);
     in->read_at(memstr.data(), from, sz);
@@ -304,6 +331,15 @@ void disassemble_range(file_stream *in, file_stream *log, const arguments &args)
         throw std::runtime_error("could not open output file");
 
     print_instructions(&out, pdata.instructions);
+
+    if (args.verbose)
+        log->format("\n", 0);
+}
+
+void disassemble_ranges(file_stream *in, file_stream *log, const arguments &args)
+{
+    for (auto &range : args.ranges)
+        disassemble_range(in, log, &range, args);
 }
 
 int main(int argc, const char **argv)
@@ -343,9 +379,9 @@ try
         return 0;
     }
 
-    if (args.start_pos != INFER_ADDR || args.end_pos != INFER_ADDR)
+    if (!args.ranges.empty())
     {
-        disassemble_range(&in, &log, args);
+        disassemble_ranges(&in, &log, args);
         return 0;
     }
 

@@ -238,7 +238,7 @@ size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
         if (decrypted_size < 0)
             throw std::runtime_error("could not decrypt input file");
 
-        /* TODO: implement
+        /* TODO: implement gzip
         const auto isGzip = phead.comp_attribute & 1;
         if (isGzip)
             ...
