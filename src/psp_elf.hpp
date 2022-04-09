@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
@@ -31,10 +32,12 @@ struct elf_relocation
 
 struct elf_section
 {
-    std::vector<elf_symbol> symbols;
+    std::map<u32, elf_symbol> symbols;
     std::vector<elf_relocation> relocations;
     memory_stream content;
+    u32 content_offset;
     u32 vaddr;
+    std::string name;
 };
 
 // its copied to memory if read from file, sorry

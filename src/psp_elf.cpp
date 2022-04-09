@@ -20,7 +20,7 @@
 #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
 template<typename StreamT>
-void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, std::vector<elf_symbol> &symbols)
+void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, std::map<u32, elf_symbol> &symbols)
 {
     // there's a good chance symbols don't exist
     for (int i = 0; i < elf_header.e_shnum; i++)
@@ -58,7 +58,7 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
                 continue;
 
             log(conf, "  got symbol '%s' at %08x\n", name, sym.st_value);
-            symbols.emplace_back(elf_symbol{sym.st_value, std::string(name)});
+            symbols[sym.st_value] = elf_symbol{sym.st_value, std::string(name)};
         }
     }
 }
@@ -157,6 +157,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *
     if (section_index < 0)
         throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
 
+    out->name = conf->section;
     u32 vaddr = conf->vaddr;
 
     if (conf->vaddr == INFER_VADDR)
@@ -168,6 +169,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *
     add_relocations(in, conf, elf_header, string_table.data(), out->relocations);
 
     out->content = memory_stream(section_header.sh_size);
+    out->content_offset = section_header.sh_offset;
     in->read_at(out->content.data(), section_header.sh_offset, section_header.sh_size);
 }
 

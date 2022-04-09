@@ -13,6 +13,7 @@
 #include "string.hpp"
 #include "number_types.hpp"
 
+#include "psp-elfdump/dump_format.hpp"
 #include "psp-elfdump/config.hpp"
 
 #define INFER_SIZE UINT32_MAX
@@ -224,15 +225,6 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
-void print_instructions(file_stream *stream, const std::vector<instruction> &instr)
-{
-    for (const instruction &inst : instr)
-    {
-        format_instruction(stream, &inst);
-        stream->write("\n");
-    }
-}
-
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 {
     psp_elf_read_config rconf;
@@ -243,8 +235,6 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
     elf_section sec;
     read_elf(in, &rconf, &sec);
-    // TODO: process symbols
-    // are relocations even relevant
 
     parse_config pconf;
     pconf.log = log;
@@ -265,7 +255,14 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     if (!out)
         throw std::runtime_error("could not open output file");
 
-    print_instructions(&out, pdata.instructions);
+    dump_config dconf;
+    dconf.out = &out;
+    dconf.log = log;
+    dconf.section = &sec;
+    dconf.pdata = &pdata;
+    dconf.first_instruction_offset = sec.content_offset;
+
+    dump_format(&dconf);
 }
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -330,10 +327,17 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     if (!out)
         throw std::runtime_error("could not open output file");
 
-    print_instructions(&out, pdata.instructions);
+    dump_config dconf;
+    dconf.out = &out;
+    dconf.log = log;
+    dconf.section = nullptr;
+    dconf.pdata = &pdata;
+    dconf.first_instruction_offset = from;
+
+    dump_format(&dconf);
 
     if (args.verbose)
-        log->format("\n", 0);
+        log->write("\n");
 }
 
 void disassemble_ranges(file_stream *in, file_stream *log, const arguments &args)
@@ -376,16 +380,12 @@ try
             throw std::runtime_error("decrypted elf target output file is same as input file, aborting");
 
         dump_decrypted_elf(&in, &log, args);
-        return 0;
     }
-
-    if (!args.ranges.empty())
-    {
+    else if (!args.ranges.empty())
         disassemble_ranges(&in, &log, args);
-        return 0;
-    }
+    else
+        disassemble_elf(&in, &log, args);
 
-    disassemble_elf(&in, &log, args);
     return 0;
 }
 catch (std::runtime_error &e)

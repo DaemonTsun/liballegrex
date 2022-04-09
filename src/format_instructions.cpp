@@ -1,6 +1,8 @@
 
 #include "string.hpp"
 #include "format_instructions.hpp"
+#include "file_stream.hpp"
+#include "instruction.hpp"
 
 template<typename... Ts>
 int format(FILE *stream, const char *fmt, Ts &&...ts)
