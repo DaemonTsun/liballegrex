@@ -35,6 +35,12 @@ struct arguments
     u32 vaddr;               // -a, --vaddr
     std::vector<disasm_range> ranges; // -r
     bool verbose;            // -v, --verbose
+    // --no-comment
+    // --no-comma-separator
+    // --no-dollar-registers
+    // --no-glabels
+    // --no-labels
+    format_options output_format;
 
     std::string input_file;
 };
@@ -49,6 +55,7 @@ const arguments default_arguments{
     .vaddr = INFER_VADDR,
     .ranges = {},
     .verbose = false,
+    .output_format = default_format_options,
     .input_file = ""
 };
 
@@ -79,6 +86,13 @@ void print_usage()
          "  -r [VADDR:]START+SIZE       same as above, but uses size instead of end\n"
          "                              position.\n"
          "  -v, --verbose               verbose progress output\n"
+         "\n"
+         "Formatting options:\n"
+         "--no-comment                  omit position/address/opcode comment\n"
+         "--no-comma-separator          omit commas between arguments\n"
+         "--no-dollar-registers         omit dollars before register names\n"
+         "--no-glabels                  omit glabel definitions and in jumps\n"
+         "--no-labels                   omit label definitions and in branches\n"
          "\n"
          "Arguments:\n"
          "  OBJFILE      ELF object file to disassemble the given section for\n"
@@ -210,6 +224,43 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
+        // format
+        if (arg == "--no-comment")
+        {
+            unset(out->output_format, format_options::comment_pos_addr_instr);
+            ++i;
+            continue;
+        }
+
+        if (arg == "--no-comma-separator")
+        {
+            unset(out->output_format, format_options::comma_separate_args);
+            ++i;
+            continue;
+        }
+
+        if (arg == "--no-dollar-registers")
+        {
+            unset(out->output_format, format_options::dollar_registers);
+            ++i;
+            continue;
+        }
+
+        if (arg == "--no-glabels")
+        {
+            unset(out->output_format, format_options::function_glabels);
+            ++i;
+            continue;
+        }
+
+        if (arg == "--no-labels")
+        {
+            unset(out->output_format, format_options::labels);
+            ++i;
+            continue;
+        }
+
+        // etc
         if (begins_with(arg, str("-")))
             throw std::runtime_error(str("unknown argument '", arg, "'"));
 
@@ -259,6 +310,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.log = log;
     dconf.section = &sec;
     dconf.pdata = &pdata;
+    dconf.format = args.output_format;
     dconf.first_instruction_offset = sec.content_offset;
 
     dump_format(&dconf);
@@ -331,6 +383,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dconf.log = log;
     dconf.section = nullptr;
     dconf.pdata = &pdata;
+    dconf.format = args.output_format;
     dconf.first_instruction_offset = from;
 
     dump_format(&dconf);

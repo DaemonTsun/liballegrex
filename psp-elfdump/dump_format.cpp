@@ -118,10 +118,18 @@ inline void fmt_jump_glabel(file_stream *out, u32 address, const elf_section *se
     out->format("glabel func_%08x\n", address);
 }
 
+inline void fmt_no_jump_glabel(file_stream *out, u32 address, const elf_section *sec)
+{
+}
+
 inline void fmt_branch_label(file_stream *out, u32 address, const elf_section *sec)
 {
     // TODO: use symbols for lookup
     out->format(".L%08x:\n", address);
+}
+
+inline void fmt_no_branch_label(file_stream *out, u32 address, const elf_section *sec)
+{
 }
 
 void format_name(file_stream *out, const instruction *inst)
@@ -169,8 +177,8 @@ void dump_format(dump_config *conf)
     auto f_argument_sep = fmt_argument_space;
     auto f_jump_argument = fmt_jump_address_number;
     auto f_branch_argument = fmt_branch_address_number;
-    auto f_jump_glabel = fmt_jump_glabel;
-    auto f_branch_label = fmt_branch_label;
+    auto f_jump_glabel = fmt_no_jump_glabel;
+    auto f_branch_label = fmt_no_branch_label;
 
     // prepare
     char comment_format_string[32] = {0};
@@ -196,10 +204,16 @@ void dump_format(dump_config *conf)
         f_argument_sep = fmt_argument_comma_space;
 
     if (is_set(conf->format, format_options::function_glabels))
+    {
         f_jump_argument = fmt_jump_address_label;
+        f_jump_glabel = fmt_jump_glabel;
+    }
 
     if (is_set(conf->format, format_options::labels))
+    {
         f_branch_argument = fmt_branch_address_label;
+        f_branch_label = fmt_branch_label;
+    }
 
     u32 pos = conf->first_instruction_offset;
     u32 jmp_i = 0;
