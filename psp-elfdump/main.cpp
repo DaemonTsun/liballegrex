@@ -6,7 +6,6 @@
 
 #include "psp_elf.hpp"
 #include "parse_instructions.hpp"
-#include "format_instructions.hpp"
 
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
