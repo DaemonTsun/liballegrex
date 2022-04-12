@@ -70,10 +70,16 @@ void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
     add_vfpu_register_argument(reg, static_cast<vfpu_size>(size), inst);
 }
 
-void add_address_argument(u32 addr, instruction *inst, parse_data *pdata)
+void add_jump_address_argument(u32 addr, instruction *inst, parse_data *pdata)
 {
-    add_argument(address{addr}, inst);
-    pdata->jump_destinations.push_back(addr);
+    add_argument(jump_address{addr}, inst);
+    pdata->jump_destinations.push_back(jump_destination{addr, jump_type::Jump});
+}
+
+void add_branch_address_argument(u32 addr, instruction *inst, parse_data *pdata)
+{
+    add_argument(branch_address{addr}, inst);
+    pdata->jump_destinations.push_back(jump_destination{addr, jump_type::Branch});
 }
 
 // argument parse functions
@@ -274,7 +280,7 @@ void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *c
     add_argument(immediate<u16>{imm}, inst);
 };
 
-void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RsBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 off = inst->address;
@@ -282,7 +288,7 @@ void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *c
     off += imm + sizeof(opcode);
 
     add_register_argument(rs, inst);
-    add_address_argument(off, inst, pdata);
+    add_branch_address_argument(off, inst, pdata);
 };
 
 void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
@@ -290,10 +296,10 @@ void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *co
     u32 off = bitrange(opcode, 0, 25) << 2;
     u32 addr = bitrange(inst->address, 28, 31) | off;
 
-    add_address_argument(off, inst, pdata);
+    add_jump_address_argument(off, inst, pdata);
 };
 
-void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RsRtBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -303,14 +309,14 @@ void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config 
 
     add_register_argument(rs, inst);
     add_register_argument(rt, inst);
-    add_address_argument(off, inst, pdata);
+    add_branch_address_argument(off, inst, pdata);
 }
 
 void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
+        arg_parse_RsRtBranchAddress(opcode, inst, conf, pdata);
         return;
     }
     
@@ -320,7 +326,7 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, pars
 
     if (rs != rt)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
+        arg_parse_RsRtBranchAddress(opcode, inst, conf, pdata);
         return;
     }
 
@@ -329,14 +335,14 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, pars
     s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
-    add_address_argument(off, inst, pdata);
+    add_branch_address_argument(off, inst, pdata);
 }
 
 void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
+        arg_parse_RsRtBranchAddress(opcode, inst, conf, pdata);
         return;
     }
     
@@ -346,7 +352,7 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, par
 
     if (rs != rt)
     {
-        arg_parse_RsRtRelAddress(opcode, inst, conf, pdata);
+        arg_parse_RsRtBranchAddress(opcode, inst, conf, pdata);
         return;
     }
 
@@ -355,7 +361,7 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, par
     s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
     off += imm + sizeof(opcode);
 
-    add_address_argument(off, inst, pdata);
+    add_branch_address_argument(off, inst, pdata);
 }
 
 void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
@@ -479,14 +485,14 @@ void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf, pars
     add_argument(bitfield_size{sz}, inst);
 }
 
-void arg_parse_FPURelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 off = inst->address;
     s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
     off += imm + sizeof(opcode);
     u8 cc = bitrange(opcode, 18, 20);
 
-    add_address_argument(off, inst, pdata);
+    add_branch_address_argument(off, inst, pdata);
     add_argument(condition_code{cc}, inst);
 };
 

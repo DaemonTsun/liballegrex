@@ -33,7 +33,7 @@ struct dump_config
     u32 first_instruction_offset;
 
     bool verbose;
-    format_options format = default_format_options;
+    format_options format;
 };
 
 void dump_format(dump_config *conf);

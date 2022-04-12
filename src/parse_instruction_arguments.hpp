@@ -32,10 +32,10 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_config *co
 void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
-void arg_parse_RsRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_RsBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
-void arg_parse_RsRtRelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_RsRtBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 // B pseudoinstruction
 void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 // BL pseudoinstruction
@@ -57,7 +57,7 @@ void arg_parse_Ext(u32 opcode, instruction *inst, const parse_config *conf, pars
 void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
 // FPU
-void arg_parse_FPURelAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);

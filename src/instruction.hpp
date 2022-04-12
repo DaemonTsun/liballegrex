@@ -20,7 +20,8 @@ struct coprocessor_register
 };
 
 DEFINE_TYPED_ARG(base_register, mips_register);
-DEFINE_TYPED_ARG(address, u32);
+DEFINE_TYPED_ARG(jump_address, u32);
+DEFINE_TYPED_ARG(branch_address, u32);
 DEFINE_TYPED_ARG(memory_offset, s16);
 
 // immediates
@@ -53,7 +54,8 @@ using instruction_argument =
                  shift,
                  coprocessor_register,
                  base_register,
-                 address,
+                 jump_address,
+                 branch_address,
                  memory_offset,
                  immediate<u32>,
                  immediate<u16>,

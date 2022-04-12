@@ -110,10 +110,10 @@ constexpr std::array instructions_Cop0 = {
 };
 
 constexpr std::array instructions_Cop1BC = {
-    I(BC1F,  0x45000000, arg_parse_FPURelAddress),
-    I(BC1T,  0x45010000, arg_parse_FPURelAddress),
-    I(BC1FL, 0x45020000, arg_parse_FPURelAddress),
-    I(BC1TL, 0x45030000, arg_parse_FPURelAddress)
+    I(BC1F,  0x45000000, arg_parse_FPUBranchAddress),
+    I(BC1T,  0x45010000, arg_parse_FPUBranchAddress),
+    I(BC1FL, 0x45020000, arg_parse_FPUBranchAddress),
+    I(BC1TL, 0x45030000, arg_parse_FPUBranchAddress)
 };
 
 constexpr std::array instructions_Cop1S = {
@@ -159,10 +159,10 @@ constexpr std::array instructions_Cop1 = {
 };
 
 constexpr std::array instructions_Cop2BC2 = {
-    I(BVF,  0x49000000, arg_parse_FPURelAddress),
-    I(BVT,  0x49010000, arg_parse_FPURelAddress),
-    I(BVFL, 0x49020000, arg_parse_FPURelAddress),
-    I(BVTL, 0x49030000, arg_parse_FPURelAddress)
+    I(BVF,  0x49000000, arg_parse_FPUBranchAddress),
+    I(BVT,  0x49010000, arg_parse_FPUBranchAddress),
+    I(BVFL, 0x49020000, arg_parse_FPUBranchAddress),
+    I(BVTL, 0x49030000, arg_parse_FPUBranchAddress)
 };
 
 constexpr std::array instructions_Cop2 = {
@@ -353,9 +353,9 @@ constexpr std::array instructions_Immediate = {
     I(J,     0x08000000, arg_parse_JumpAddress),
     I(JAL,   0x0c000000, arg_parse_JumpAddress),
     I(BEQ,   0x10000000, arg_parse_Beq),
-    I(BNE,   0x14000000, arg_parse_RsRtRelAddress),
-    I(BLEZ,  0x18000000, arg_parse_RsRelAddress),
-    I(BGTZ,  0x1c000000, arg_parse_RsRelAddress),
+    I(BNE,   0x14000000, arg_parse_RsRtBranchAddress),
+    I(BLEZ,  0x18000000, arg_parse_RsBranchAddress),
+    I(BGTZ,  0x1c000000, arg_parse_RsBranchAddress),
     I(ADDI,  0x20000000, arg_parse_Addi),
     I(ADDIU, 0x24000000, arg_parse_Addi),
     I(SLTI,  0x28000000, arg_parse_RsRtImmediateS),
@@ -365,9 +365,9 @@ constexpr std::array instructions_Immediate = {
     I(XORI,  0x38000000, arg_parse_RsRtImmediateU),
     I(LUI,   0x3c000000, arg_parse_RtImmediateU),
     I(BEQL,  0x50000000, arg_parse_Beql),
-    I(BNEL,  0x54000000, arg_parse_RsRtRelAddress),
-    I(BLEZL, 0x58000000, arg_parse_RsRelAddress),
-    I(BGTZL, 0x5c000000, arg_parse_RsRelAddress),
+    I(BNEL,  0x54000000, arg_parse_RsRtBranchAddress),
+    I(BLEZL, 0x58000000, arg_parse_RsBranchAddress),
+    I(BGTZL, 0x5c000000, arg_parse_RsBranchAddress),
     I(LB,    0x80000000, arg_parse_RsRtMemOffset),
     I(LH,    0x84000000, arg_parse_RsRtMemOffset),
     I(LWL,   0x88000000, arg_parse_RsRtMemOffset),
@@ -392,20 +392,20 @@ constexpr std::array instructions_Immediate = {
 };
 
 constexpr std::array instructions_RegisterImmediate = {
-    I(BLTZ,    0x04000000, arg_parse_RsRelAddress),
-    I(BGEZ,    0x04010000, arg_parse_RsRelAddress),
-    I(BLTZL,   0x04020000, arg_parse_RsRelAddress),
-    I(BGEZL,   0x04030000, arg_parse_RsRelAddress),
+    I(BLTZ,    0x04000000, arg_parse_RsBranchAddress),
+    I(BGEZ,    0x04010000, arg_parse_RsBranchAddress),
+    I(BLTZL,   0x04020000, arg_parse_RsBranchAddress),
+    I(BGEZL,   0x04030000, arg_parse_RsBranchAddress),
     I(TGEI,    0x04080000, arg_parse_RsImmediateS),
     I(TGEIU,   0x04090000, arg_parse_RsImmediateU),
     I(TLTI,    0x040a0000, arg_parse_RsImmediateS),
     I(TLTIU,   0x040b0000, arg_parse_RsImmediateU),
     I(TEQI,    0x040c0000, arg_parse_RsImmediateS),
     I(TNEI,    0x040e0000, arg_parse_RsImmediateS),
-    I(BLTZAL,  0x04100000, arg_parse_RsRelAddress),
-    I(BGEZAL,  0x04110000, arg_parse_RsRelAddress),
-    I(BLTZALL, 0x04120000, arg_parse_RsRelAddress),
-    I(BGEZALL, 0x04130000, arg_parse_RsRelAddress),
+    I(BLTZAL,  0x04100000, arg_parse_RsBranchAddress),
+    I(BGEZAL,  0x04110000, arg_parse_RsBranchAddress),
+    I(BLTZALL, 0x04120000, arg_parse_RsBranchAddress),
+    I(BGEZALL, 0x04130000, arg_parse_RsBranchAddress),
     I(SYNCI,   0x041f0000, nullptr)
 };
 
@@ -852,6 +852,6 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
     }
 
     auto &jmps = out->jump_destinations;
-    std::sort(jmps.begin(), jmps.end());
-    jmps.erase(std::unique(jmps.begin(), jmps.end()), jmps.end());
+    std::sort(jmps.begin(), jmps.end(), [](const jump_destination &l, const jump_destination &r) { return l.address < r.address || (l.address == r.address && l.type == jump_type::Jump);});
+    jmps.erase(std::unique(jmps.begin(), jmps.end(), [](const jump_destination &l, const jump_destination &r) { return (l.address == r.address) && (l.type == r.type);}), jmps.end());
 }

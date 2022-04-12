@@ -14,10 +14,22 @@ struct parse_config
     bool emit_pseudo;
 };
 
+enum class jump_type : u32
+{
+    Jump,  // e.g. j
+    Branch // e.g. beq
+};
+
+struct jump_destination
+{
+    u32 address;
+    jump_type type;
+};
+
 struct parse_data
 {
     std::vector<instruction> instructions;
-    std::vector<u32> jump_destinations;
+    std::vector<jump_destination> jump_destinations;
 };
 
 void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out);
