@@ -32,5 +32,6 @@ struct parse_data
     std::vector<jump_destination> jump_destinations;
 };
 
+void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata);
 void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out);
 

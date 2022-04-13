@@ -30,3 +30,11 @@ add_executable(psp-elfdump ${HEADERS} ${ELFDUMP_HEADERS} ${ELFDUMP_SOURCES})
 target_link_libraries(psp-elfdump ${PROJECT_NAME} kirk)
 
 
+# tests
+find_package(t1)
+
+if (NOT DEFINED t1_DIR OR t1_DIR)
+    add_test_directory("${CMAKE_SOURCE_DIR}/tests")
+    link_tests(${PROJECT_NAME})
+    register_tests()
+endif()
