@@ -63,6 +63,7 @@ const char *mnemonic_names[] = {
     "tnei",
     "bltzal",
     "bgezal",
+    "bal",
     "bltzall",
     "bgezall",
     "synci",

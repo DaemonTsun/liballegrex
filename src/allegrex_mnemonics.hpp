@@ -70,6 +70,7 @@ enum class allegrex_mnemonic : u32
     TNEI,
     BLTZAL,
     BGEZAL,
+    BAL,
     BLTZALL,
     BGEZALL,
     SYNCI,

@@ -33,6 +33,7 @@ void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_config *c
 void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RsBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_Bgezal(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
 void arg_parse_RsRtBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);

@@ -291,6 +291,32 @@ void arg_parse_RsBranchAddress(u32 opcode, instruction *inst, const parse_config
     add_branch_address_argument(off, inst, pdata);
 };
 
+void arg_parse_Bgezal(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+{
+    // pseudoinstruction Bal
+    if (!conf->emit_pseudo)
+    {
+        arg_parse_RsBranchAddress(opcode, inst, conf, pdata);
+        return;
+    }
+
+    u32 rs = RS(opcode);
+    
+    if (rs > 0)
+    {
+        arg_parse_RsBranchAddress(opcode, inst, conf, pdata);
+        return;
+    }
+
+    inst->mnemonic = allegrex_mnemonic::BAL;
+    u32 off = inst->address;
+    s16 imm = (s16)(bitrange(opcode, 0, 15)) << 2;
+    off += imm + sizeof(opcode);
+
+    // we register this as jump, like mipsdisasm (sm64tools) does
+    add_jump_address_argument(off, inst, pdata);
+};
+
 void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 off = bitrange(opcode, 0, 25) << 2;

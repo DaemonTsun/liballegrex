@@ -403,7 +403,7 @@ constexpr std::array instructions_RegisterImmediate = {
     I(TEQI,    0x040c0000, arg_parse_RsImmediateS),
     I(TNEI,    0x040e0000, arg_parse_RsImmediateS),
     I(BLTZAL,  0x04100000, arg_parse_RsBranchAddress),
-    I(BGEZAL,  0x04110000, arg_parse_RsBranchAddress),
+    I(BGEZAL,  0x04110000, arg_parse_Bgezal),
     I(BLTZALL, 0x04120000, arg_parse_RsBranchAddress),
     I(BGEZALL, 0x04130000, arg_parse_RsBranchAddress),
     I(SYNCI,   0x041f0000, nullptr)
