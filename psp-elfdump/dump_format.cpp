@@ -249,7 +249,7 @@ void dump_format(dump_config *conf)
         bool first = true;
         for (auto &arg : inst.arguments)
         {
-            if (!first)
+            if (!first && !holds_type<base_register>(arg))
                 f_argument_sep(out);
 
             first = false;
@@ -325,12 +325,20 @@ void dump_format(dump_config *conf)
             else if (holds_type<branch_address>(arg))
                 f_branch_argument(out, std::get<branch_address>(arg).data, sec);
 
-            else if ARG_HOLDS_T_FORMAT(out, arg, shift,            "%u")
+            else if (holds_type<immediate<s16>>(arg))
+            {
+                s16 d = std::get<immediate<s16>>(arg).data;
+                if (d < 0)
+                    out->format("-%#x", -d);
+                else
+                    out->format("%#x", d);
+            }
+
+            else if ARG_HOLDS_T_FORMAT(out, arg, shift,            "%#x")
             else if ARG_HOLDS_T_FORMAT(out, arg, memory_offset,    "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u32>,   "%u")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u16>,   "%u")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<s16>,   "%d")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u8>,    "%u")
+            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u32>,   "%#x")
+            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u16>,   "%#x")
+            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u8>,    "%#x")
             else if ARG_HOLDS_T_FORMAT(out, arg, immediate<float>, "%f")
             else if ARG_HOLDS_T_FORMAT(out, arg, condition_code,   "(CC[%#x])")
             else if ARG_HOLDS_T_FORMAT(out, arg, bitfield_pos,     "%#x")
