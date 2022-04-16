@@ -9,6 +9,7 @@ define_test(nop)
     parse_opcode(0x00000000);
 
     assert_mnemonic(NOP);
+    assert_argument_count(0);
 }
 
 
