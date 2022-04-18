@@ -2,6 +2,7 @@
 #include <t1/t1.hpp>
 #include "tests/test_common.hpp"
 
+// nop
 define_test(nop)
 {
     setup_test_variables();

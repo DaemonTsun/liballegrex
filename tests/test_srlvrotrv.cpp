@@ -2,7 +2,7 @@
 #include <t1/t1.hpp>
 #include "tests/test_common.hpp"
 
-// srlv
+// srlv rd, rt, rs
 define_test(srlv_0)
 {
     setup_test_variables();
@@ -50,7 +50,7 @@ define_test(srlv_2)
     assert_argument_mips_register(2, mips_register::RA);
 }
 
-// rotrv
+// rotrv rd, rt, rs
 define_test(rotrv_0)
 {
     setup_test_variables();

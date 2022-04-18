@@ -2,7 +2,7 @@
 #include <t1/t1.hpp>
 #include "tests/test_common.hpp"
 
-// sll
+// sll rd, rt, sa
 define_test(sll_0)
 {
     setup_test_variables();
@@ -46,7 +46,7 @@ define_test(sll_2)
     assert_argument_shift(2, 31u);
 }
 
-// sra
+// sra rd, rt, sa
 define_test(sra_0)
 {
     setup_test_variables();
@@ -94,7 +94,7 @@ define_test(sra_2)
     assert_argument_shift(2, 31u);
 }
 
-// sllv
+// sllv rd, rt, rs
 define_test(sllv_0)
 {
     setup_test_variables();
@@ -142,7 +142,7 @@ define_test(sllv_2)
     assert_argument_mips_register(2, mips_register::RA);
 }
 
-// srav
+// srav rd, rt, rs
 define_test(srav_0)
 {
     setup_test_variables();
@@ -190,7 +190,7 @@ define_test(srav_2)
     assert_argument_mips_register(2, mips_register::RA);
 }
 
-// jr
+// jr rs
 define_test(jr_0)
 {
     setup_test_variables();
@@ -228,7 +228,7 @@ define_test(jr_2)
     assert_argument_mips_register(0, mips_register::RA);
 }
 
-// jalr
+// jalr rd, rs
 define_test(jalr_0)
 {
     setup_test_variables();

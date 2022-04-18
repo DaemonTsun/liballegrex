@@ -2,7 +2,7 @@
 #include <t1/t1.hpp>
 #include "tests/test_common.hpp"
 
-// srl
+// srl rd, rt, sa
 define_test(srl_0)
 {
     setup_test_variables();
@@ -50,7 +50,7 @@ define_test(srl_2)
     assert_argument_shift(2, 31u);
 }
 
-// rotr
+// rotr rd, rt, sa
 define_test(rotr_0)
 {
     setup_test_variables();
