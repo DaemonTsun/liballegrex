@@ -83,7 +83,7 @@ void add_branch_address_argument(u32 addr, instruction *inst, parse_data *pdata)
 }
 
 // argument parse functions
-void arg_parse_RsRtRd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RdRsRt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -98,7 +98,7 @@ void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf, p
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtRd(opcode, inst, conf, pdata);
+        arg_parse_RdRsRt(opcode, inst, conf, pdata);
         return;
     }
 
@@ -128,7 +128,7 @@ void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf, p
         return;
     }
 
-    arg_parse_RsRtRd(opcode, inst, conf, pdata);
+    arg_parse_RdRsRt(opcode, inst, conf, pdata);
 };
 
 // only used by clz & clo...
