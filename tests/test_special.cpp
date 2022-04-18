@@ -261,6 +261,220 @@ define_test(jalr_1)
     assert_argument_mips_register(1, mips_register::V1);
 }
 
+// movz rd, rs, rt
+define_test(movz_0)
+{
+    setup_test_variables();
 
+    parse_opcode(0x0000000a);
+
+    assert_mnemonic(MOVZ);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(movz_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3080a);
+
+    assert_mnemonic(MOVZ);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// movn rd, rs, rt
+define_test(movn_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000000b);
+
+    assert_mnemonic(MOVN);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(movn_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3080b);
+
+    assert_mnemonic(MOVN);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// syscall Syscall
+// this is pretty hard to test.
+// probably need more real data to test against.
+define_test(syscall)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000000c);
+
+    assert_mnemonic(SYSCALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, const syscall*);
+    _assert_argument_equals(0, const syscall*, get_syscall(0, 0));
+
+    assert_argument_type(1, extra);
+    _assert_argument_data_equals(1, extra, 0);
+}
+
+// break
+define_test(break)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000000d);
+
+    assert_mnemonic(BREAK);
+    assert_argument_count(0);
+}
+
+// sync (stype)
+define_test(sync)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000000f);
+
+    assert_mnemonic(SYNC);
+    assert_argument_count(1);
+
+    assert_argument_type(0, extra);
+    _assert_argument_data_equals(0, extra, 0);
+}
+
+// mfhi rd
+define_test(mfhi_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000010);
+
+    assert_mnemonic(MFHI);
+    assert_argument_count(1);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+}
+
+define_test(mfhi_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000810);
+
+    assert_mnemonic(MFHI);
+    assert_argument_count(1);
+
+    assert_argument_mips_register(0, mips_register::AT);
+}
+
+// mthi rs
+define_test(mthi_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000011);
+
+    assert_mnemonic(MTHI);
+    assert_argument_count(1);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+}
+
+define_test(mthi_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00200011);
+
+    assert_mnemonic(MTHI);
+    assert_argument_count(1);
+
+    assert_argument_mips_register(0, mips_register::AT);
+}
+
+// mflo rd
+define_test(mflo_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000012);
+
+    assert_mnemonic(MFLO);
+    assert_argument_count(1);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+}
+
+define_test(mflo_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000812);
+
+    assert_mnemonic(MFLO);
+    assert_argument_count(1);
+
+    assert_argument_mips_register(0, mips_register::AT);
+}
+
+// mtlo rs
+define_test(mtlo_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000013);
+
+    assert_mnemonic(MTLO);
+    assert_argument_count(1);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+}
+
+define_test(mtlo_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00200013);
+
+    assert_mnemonic(MTLO);
+    assert_argument_count(1);
+
+    assert_argument_mips_register(0, mips_register::AT);
+}
 
 define_default_test_main();
