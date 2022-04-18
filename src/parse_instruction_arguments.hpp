@@ -9,7 +9,7 @@ typedef void(*argument_parse_function_t)(u32 opcode, instruction*, const parse_c
 void arg_parse_RdRsRt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 // clz, clo
-void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_RdRs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RsRt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
 // tge, tgeu etc

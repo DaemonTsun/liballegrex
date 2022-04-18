@@ -132,7 +132,7 @@ void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_config *conf, p
 };
 
 // only used by clz & clo...
-void arg_parse_RsRd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RdRs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rd = RD(opcode);
