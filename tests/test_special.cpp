@@ -339,13 +339,15 @@ define_test(syscall)
     parse_opcode(0x0000000c);
 
     assert_mnemonic(SYSCALL);
-    assert_argument_count(2);
+    assert_argument_non_extra_count(1);
 
     assert_argument_type(0, const syscall*);
     _assert_argument_equals(0, const syscall*, get_syscall(0, 0));
 
+    /*
     assert_argument_type(1, extra);
     _assert_argument_data_equals(1, extra, 0);
+    */
 }
 
 // break
@@ -730,6 +732,888 @@ define_test(maddu_1)
 
     assert_mnemonic(MADDU);
     assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// add rd, rs, rt
+define_test(add_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000020);
+
+    assert_mnemonic(ADD);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(add_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30820);
+
+    assert_mnemonic(ADD);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// addu rd, rs, rt
+define_test(addu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000021);
+
+    assert_mnemonic(ADDU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(addu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30821);
+
+    assert_mnemonic(ADDU);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// li rd, 0
+define_test(addu_li_0)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00000021);
+
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, immediate<s16>);
+    assert_argument_immediate(1, s16, 0);
+}
+
+define_test(addu_li_1)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00000821);
+
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, immediate<s16>);
+    assert_argument_immediate(1, s16, 0);
+}
+
+// move rd, rt
+define_test(addu_move_0)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00010021);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// move rd, rs
+define_test(addu_move_1)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00200021);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+define_test(addu_move_2)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00030821);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::V1);
+}
+
+define_test(addu_move_3)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00600821);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::V1);
+}
+
+// sub rd, rs, rt
+define_test(sub_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000022);
+
+    assert_mnemonic(SUB);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(sub_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30822);
+
+    assert_mnemonic(SUB);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// subu rd, rs, rt
+define_test(subu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000023);
+
+    assert_mnemonic(SUBU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(subu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30823);
+
+    assert_mnemonic(SUBU);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// and rd, rs, rt
+define_test(and_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000024);
+
+    assert_mnemonic(AND);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(and_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30824);
+
+    assert_mnemonic(AND);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// or rd, rs, rt
+define_test(or_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000025);
+
+    assert_mnemonic(OR);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(or_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30825);
+
+    assert_mnemonic(OR);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// li rd, 0
+define_test(or_li_0)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00000025);
+
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, immediate<s16>);
+    assert_argument_immediate(1, s16, 0);
+}
+
+define_test(or_li_1)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00000825);
+
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, immediate<s16>);
+    assert_argument_immediate(1, s16, 0);
+}
+
+// move rd, rt
+define_test(or_move_0)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00010025);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// move rd, rs
+define_test(or_move_1)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00200025);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+define_test(or_move_2)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00030825);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::V1);
+}
+
+define_test(or_move_3)
+{
+    setup_test_variables();
+    emit_pseudoinstructions();
+
+    parse_opcode(0x00600825);
+
+    assert_mnemonic(MOVE);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::AT);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::V1);
+}
+
+// xor rd, rs, rt
+define_test(xor_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000026);
+
+    assert_mnemonic(XOR);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(xor_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30826);
+
+    assert_mnemonic(XOR);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// nor rd, rs, rt
+define_test(nor_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000027);
+
+    assert_mnemonic(NOR);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(nor_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e30827);
+
+    assert_mnemonic(NOR);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// slt rd, rs, rt
+define_test(slt_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002a);
+
+    assert_mnemonic(SLT);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(slt_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3082a);
+
+    assert_mnemonic(SLT);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// sltu rd, rs, rt
+define_test(sltu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002b);
+
+    assert_mnemonic(SLTU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(sltu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3082b);
+
+    assert_mnemonic(SLTU);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// max rd, rs, rt
+define_test(max_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002c);
+
+    assert_mnemonic(MAX);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(max_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3082c);
+
+    assert_mnemonic(MAX);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// min rd, rs, rt
+define_test(min_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002d);
+
+    assert_mnemonic(MIN);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+
+    assert_argument_type(2, mips_register);
+    assert_argument_mips_register(2, mips_register::ZERO);
+}
+
+define_test(min_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00e3082d);
+
+    assert_mnemonic(MIN);
+    assert_argument_count(3);
+
+    assert_argument_mips_register(0, mips_register::AT);
+    assert_argument_mips_register(1, mips_register::A3);
+    assert_argument_mips_register(2, mips_register::V1);
+}
+
+// msub rs, rt
+define_test(msub_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002e);
+
+    assert_mnemonic(MSUB);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(msub_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0061002e);
+
+    assert_mnemonic(MSUB);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// msubu rs, rt
+define_test(msubu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0000002f);
+
+    assert_mnemonic(MSUBU);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(msubu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x0061002f);
+
+    assert_mnemonic(MSUBU);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// tge rs, rt
+define_test(tge_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000030);
+
+    assert_mnemonic(TGE);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(tge_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610030);
+
+    assert_mnemonic(TGE);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// tgeu rs, rt
+define_test(tgeu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000031);
+
+    assert_mnemonic(TGEU);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(tgeu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610031);
+
+    assert_mnemonic(TGEU);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// tlt rs, rt
+define_test(tlt_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000032);
+
+    assert_mnemonic(TLT);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(tlt_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610032);
+
+    assert_mnemonic(TLT);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// tltu rs, rt
+define_test(tltu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000033);
+
+    assert_mnemonic(TLTU);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(tltu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610033);
+
+    assert_mnemonic(TLTU);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// teq rs, rt
+define_test(teq_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000034);
+
+    assert_mnemonic(TEQ);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(teq_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610034);
+
+    assert_mnemonic(TEQ);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::V1);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::AT);
+}
+
+// tne rs, rt
+define_test(tne_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00000036);
+
+    assert_mnemonic(TNE);
+    assert_argument_non_extra_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_mips_register(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_mips_register(1, mips_register::ZERO);
+}
+
+define_test(tne_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x00610036);
+
+    assert_mnemonic(TNE);
+    assert_argument_non_extra_count(2);
 
     assert_argument_type(0, mips_register);
     assert_argument_mips_register(0, mips_register::V1);
