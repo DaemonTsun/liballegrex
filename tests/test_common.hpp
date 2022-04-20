@@ -65,6 +65,26 @@ std::ostream &operator<<(std::ostream &lhs, shift rhs)
     return lhs << static_cast<int>(rhs.data);
 }
 
+std::ostream &operator<<(std::ostream &lhs, extra rhs)
+{
+    return lhs << static_cast<int>(rhs.data);
+}
+
+std::ostream &operator<<(std::ostream &lhs, branch_address rhs)
+{
+    return lhs << std::hex << rhs.data;
+}
+
+std::ostream &operator<<(std::ostream &lhs, jump_address rhs)
+{
+    return lhs << std::hex << rhs.data;
+}
+
+std::ostream &operator<<(std::ostream &lhs, condition_code rhs)
+{
+    return lhs << static_cast<int>(rhs.data);
+}
+
 template<typename T>
 std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
 {
@@ -82,6 +102,21 @@ bool operator==(const shift &lhs, const shift &rhs)
 }
 
 bool operator==(const extra &lhs, const extra &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const branch_address &lhs, const branch_address &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const jump_address &lhs, const jump_address &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const condition_code &lhs, const condition_code &rhs)
 {
     return lhs.data == rhs.data;
 }
