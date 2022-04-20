@@ -40,21 +40,15 @@
     
 #define assert_argument_type(N, T) \
     assert_equal(std::holds_alternative<T>(inst.arguments.at(N)), true);
+
+template<typename T>
+void _assert_argument_equals(const instruction &inst, size_t arg, T value)
+{
+    assert_equal(std::get<T>(inst.arguments.at(arg)), value);
+}
     
-#define _assert_argument_equals(N, T, V) \
-    assert_equal(std::get<T>(inst.arguments.at(N)), V);
-    
-#define _assert_argument_data_equals(N, T, V) \
-    assert_equal(std::get<T>(inst.arguments.at(N)).data, V);
-    
-#define assert_argument_mips_register(N, R) \
-    _assert_argument_equals(N, mips_register, R)
-    
-#define assert_argument_immediate(N, T, S) \
-    _assert_argument_data_equals(N, immediate<T>, S)
-    
-#define assert_argument_shift(N, S) \
-    _assert_argument_data_equals(N, shift, S)
+#define assert_argument_equals(N, ...) \
+    _assert_argument_equals(inst, N, __VA_ARGS__)
 
 std::ostream &operator<<(std::ostream &lhs, allegrex_mnemonic rhs)
 {
@@ -64,4 +58,41 @@ std::ostream &operator<<(std::ostream &lhs, allegrex_mnemonic rhs)
 std::ostream &operator<<(std::ostream &lhs, mips_register rhs)
 {
     return lhs << register_name(rhs);
+}
+
+std::ostream &operator<<(std::ostream &lhs, shift rhs)
+{
+    return lhs << static_cast<int>(rhs.data);
+}
+
+template<typename T>
+std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
+{
+    return lhs << rhs.data;
+}
+
+std::ostream &operator<<(std::ostream &lhs, coprocessor_register rhs)
+{
+    return lhs << '[' << static_cast<int>(rhs.rd) << ", " << static_cast<int>(rhs.sel) << ']';
+}
+
+bool operator==(const shift &lhs, const shift &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const extra &lhs, const extra &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const coprocessor_register &lhs, const coprocessor_register &rhs)
+{
+    return (lhs.rd == rhs.rd) && (lhs.sel == rhs.sel);
+}
+
+template<typename T>
+bool operator==(const immediate<T> &lhs, const immediate<T> &rhs)
+{
+    return lhs.data == rhs.data;
 }
