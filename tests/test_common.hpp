@@ -60,6 +60,11 @@ std::ostream &operator<<(std::ostream &lhs, mips_register rhs)
     return lhs << register_name(rhs);
 }
 
+std::ostream &operator<<(std::ostream &lhs, mips_fpu_register rhs)
+{
+    return lhs << register_name(rhs);
+}
+
 std::ostream &operator<<(std::ostream &lhs, shift rhs)
 {
     return lhs << static_cast<int>(rhs.data);
