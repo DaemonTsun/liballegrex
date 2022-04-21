@@ -533,7 +533,7 @@ void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
-void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_FPUFdFsFt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 ft = FT(opcode);
     u32 fs = FS(opcode);
@@ -545,7 +545,7 @@ void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf
     add_fpu_register_argument(ft, inst);
 }
 
-void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_FPUFdFs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 fs = FS(opcode);
     u32 fd = FD(opcode);

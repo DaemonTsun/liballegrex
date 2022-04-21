@@ -117,19 +117,19 @@ constexpr std::array instructions_Cop1BC = {
 };
 
 constexpr std::array instructions_Cop1S = {
-    I(ADD_S,     0x46000000, arg_parse_FPUFtFsFd),
-    I(SUB_S,     0x46000001, arg_parse_FPUFtFsFd),
-    I(MUL_S,     0x46000002, arg_parse_FPUFtFsFd),
-    I(DIV_S,     0x46000003, arg_parse_FPUFtFsFd),
-    I(SQRT_S,    0x46000004, arg_parse_FPUFsFd),
-    I(ABS_S,     0x46000005, arg_parse_FPUFsFd),
-    I(MOV_S,     0x46000006, arg_parse_FPUFsFd),
-    I(NEG_S,     0x46000007, arg_parse_FPUFsFd),
-    I(ROUND_W_S, 0x4600000c, arg_parse_FPUFsFd),
-    I(TRUNC_W_S, 0x4600000d, arg_parse_FPUFsFd),
-    I(CEIL_W_S,  0x4600000e, arg_parse_FPUFsFd),
-    I(FLOOR_W_S, 0x4600000f, arg_parse_FPUFsFd),
-    I(CVT_W_S,   0x46000024, arg_parse_FPUFsFd),
+    I(ADD_S,     0x46000000, arg_parse_FPUFdFsFt),
+    I(SUB_S,     0x46000001, arg_parse_FPUFdFsFt),
+    I(MUL_S,     0x46000002, arg_parse_FPUFdFsFt),
+    I(DIV_S,     0x46000003, arg_parse_FPUFdFsFt),
+    I(SQRT_S,    0x46000004, arg_parse_FPUFdFs),
+    I(ABS_S,     0x46000005, arg_parse_FPUFdFs),
+    I(MOV_S,     0x46000006, arg_parse_FPUFdFs),
+    I(NEG_S,     0x46000007, arg_parse_FPUFdFs),
+    I(ROUND_W_S, 0x4600000c, arg_parse_FPUFdFs),
+    I(TRUNC_W_S, 0x4600000d, arg_parse_FPUFdFs),
+    I(CEIL_W_S,  0x4600000e, arg_parse_FPUFdFs),
+    I(FLOOR_W_S, 0x4600000f, arg_parse_FPUFdFs),
+    I(CVT_W_S,   0x46000024, arg_parse_FPUFdFs),
     I(DIS_INT,   0x46000026, nullptr),
     I(C_F_S,     0x46000030, arg_parse_FPUCompare),
     I(C_UN_S,    0x46000031, arg_parse_FPUCompare),
@@ -148,7 +148,7 @@ constexpr std::array instructions_Cop1S = {
 };
 
 constexpr std::array instructions_Cop1W = {
-    I(CVT_S_W, 0x46800020, arg_parse_FPUFsFd)
+    I(CVT_S_W, 0x46800020, arg_parse_FPUFdFs)
 };
 
 constexpr std::array instructions_Cop1 = {

@@ -60,8 +60,8 @@ void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf, pars
 // FPU
 void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
-void arg_parse_FPUFtFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
-void arg_parse_FPUFsFd(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_FPUFdFsFt(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_FPUFdFs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
