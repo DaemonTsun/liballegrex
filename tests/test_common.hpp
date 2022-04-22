@@ -48,7 +48,7 @@ void _assert_argument_equals(const instruction &inst, size_t arg, T value)
 }
     
 #define assert_argument_equals(N, ...) \
-    _assert_argument_equals(inst, N, __VA_ARGS__)
+    assert_equal(std::get<decltype(__VA_ARGS__)>(inst.arguments.at(N)), (__VA_ARGS__));
 
 std::ostream &operator<<(std::ostream &lhs, allegrex_mnemonic rhs)
 {
