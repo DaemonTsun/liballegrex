@@ -49,6 +49,9 @@ void _assert_argument_equals(const instruction &inst, size_t arg, T value)
     
 #define assert_argument_equals(N, ...) \
     assert_equal(std::get<decltype(__VA_ARGS__)>(inst.arguments.at(N)), (__VA_ARGS__));
+    
+#define assert_argument_vfpu_size(SZ) \
+    assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
 
 std::ostream &operator<<(std::ostream &lhs, allegrex_mnemonic rhs)
 {
@@ -63,6 +66,16 @@ std::ostream &operator<<(std::ostream &lhs, mips_register rhs)
 std::ostream &operator<<(std::ostream &lhs, mips_fpu_register rhs)
 {
     return lhs << register_name(rhs);
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_register rhs)
+{
+    return lhs << register_name(rhs) << size_suffix(rhs.size);
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_size rhs)
+{
+    return lhs << size_suffix(rhs);
 }
 
 std::ostream &operator<<(std::ostream &lhs, shift rhs)
@@ -135,4 +148,9 @@ template<typename T>
 bool operator==(const immediate<T> &lhs, const immediate<T> &rhs)
 {
     return lhs.data == rhs.data;
+}
+
+bool operator==(const vfpu_register &lhs, const vfpu_register &rhs)
+{
+    return (lhs.num == rhs.num) && (lhs.size == rhs.size);
 }
