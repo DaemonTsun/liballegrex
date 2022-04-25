@@ -78,6 +78,11 @@ std::ostream &operator<<(std::ostream &lhs, vfpu_size rhs)
     return lhs << size_suffix(rhs);
 }
 
+std::ostream &operator<<(std::ostream &lhs, vfpu_condition rhs)
+{
+    return lhs << vfpu_condition_name(rhs);
+}
+
 std::ostream &operator<<(std::ostream &lhs, shift rhs)
 {
     return lhs << static_cast<int>(rhs.data);
