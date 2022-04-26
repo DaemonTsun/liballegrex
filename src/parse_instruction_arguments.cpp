@@ -490,8 +490,8 @@ void arg_parse_Ext(u32 opcode, instruction *inst, const parse_config *conf, pars
     u32 sz = bitrange(opcode, 11, 15);
     sz += 1;
 
-    add_register_argument(rs, inst);
     add_register_argument(rt, inst);
+    add_register_argument(rs, inst);
     add_argument(bitfield_pos{pos}, inst);
     add_argument(bitfield_size{sz}, inst);
 }
@@ -505,8 +505,8 @@ void arg_parse_Ins(u32 opcode, instruction *inst, const parse_config *conf, pars
     sz += 1;
     sz -= pos;
 
-    add_register_argument(rs, inst);
     add_register_argument(rt, inst);
+    add_register_argument(rs, inst);
     add_argument(bitfield_pos{pos}, inst);
     add_argument(bitfield_size{sz}, inst);
 }
