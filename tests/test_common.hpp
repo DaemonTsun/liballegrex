@@ -108,6 +108,16 @@ std::ostream &operator<<(std::ostream &lhs, condition_code rhs)
     return lhs << static_cast<int>(rhs.data);
 }
 
+std::ostream &operator<<(std::ostream &lhs, bitfield_pos rhs)
+{
+    return lhs << "pos(" << static_cast<int>(rhs.data) << ")";
+}
+
+std::ostream &operator<<(std::ostream &lhs, bitfield_size rhs)
+{
+    return lhs << "size(" << static_cast<int>(rhs.data) << ")";
+}
+
 template<typename T>
 std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
 {
@@ -140,6 +150,16 @@ bool operator==(const jump_address &lhs, const jump_address &rhs)
 }
 
 bool operator==(const condition_code &lhs, const condition_code &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const bitfield_pos &lhs, const bitfield_pos &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const bitfield_size &lhs, const bitfield_size &rhs)
 {
     return lhs.data == rhs.data;
 }
