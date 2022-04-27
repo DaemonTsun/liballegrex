@@ -257,7 +257,7 @@ constexpr std::array instructions_VFPU7 = {
     I(VC2I,   0xd0390000, arg_parse_VFPU_Vd_Vs),
     I(VUS2I,  0xd03a0000, arg_parse_VFPU_Vd_Vs),
     I(VS2I,   0xd03b0000, arg_parse_VFPU_Vd_Vs),
-    I(VI2UC,  0xd03c0000, arg_parse_VFPU_VdHalf_Vs),
+    I(VI2UC,  0xd03c0000, arg_parse_VFPU_VdSingle_Vs),
     I(VI2C,   0xd03d0000, arg_parse_VFPU_VdHalf_Vs),
     I(VI2US,  0xd03e0000, arg_parse_VFPU_VdHalf_Vs),
     I(VI2S,   0xd03f0000, arg_parse_VFPU_VdHalf_Vs)

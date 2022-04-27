@@ -712,8 +712,10 @@ void arg_parse_VFPU_VdHalf_Vs(u32 opcode, instruction *inst, const parse_config 
     vfpu_size sz = get_vfpu_size(opcode);
     vfpu_size hsz = half_size(sz);
 
+    /*
     if (bitrange(opcode, 16, 17) == 0)
         hsz = vfpu_size::Single;
+    */
 
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
