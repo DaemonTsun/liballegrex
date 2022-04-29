@@ -796,7 +796,7 @@ void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *con
 
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
-    u32 tf = bitrange(opcode, 19, 20);
+    // u32 tf = bitrange(opcode, 19, 20);
     u8 imm = bitrange(opcode, 16, 18);
 
     if (imm > 6)
