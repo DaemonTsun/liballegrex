@@ -74,14 +74,19 @@ std::ostream &operator<<(std::ostream &lhs, mips_fpu_register rhs)
     return lhs << register_name(rhs);
 }
 
-std::ostream &operator<<(std::ostream &lhs, vfpu_register rhs)
-{
-    return lhs << register_name(rhs) << size_suffix(rhs.size);
-}
-
 std::ostream &operator<<(std::ostream &lhs, vfpu_size rhs)
 {
     return lhs << size_suffix(rhs);
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_register rhs)
+{
+    return lhs << register_name(rhs) << rhs.size;
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_matrix rhs)
+{
+    return lhs << matrix_name(rhs) << rhs.size;
 }
 
 std::ostream &operator<<(std::ostream &lhs, vfpu_condition rhs)
@@ -210,6 +215,11 @@ bool operator==(const immediate<T> &lhs, const immediate<T> &rhs)
 }
 
 bool operator==(const vfpu_register &lhs, const vfpu_register &rhs)
+{
+    return (lhs.num == rhs.num) && (lhs.size == rhs.size);
+}
+
+bool operator==(const vfpu_matrix &lhs, const vfpu_matrix &rhs)
 {
     return (lhs.num == rhs.num) && (lhs.size == rhs.size);
 }
