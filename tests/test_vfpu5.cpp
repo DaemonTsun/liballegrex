@@ -1,5 +1,6 @@
 
 #include <t1/t1.hpp>
+#include <math.h>
 #include "tests/test_common.hpp"
 
 // vpfxs [pfx, pfx, pfx, pfx]
@@ -174,6 +175,122 @@ define_test(vpfxt_5)
     assert_argument_vfpu_prefix_equals(0, 1, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 2, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 3, vfpu_prefix::X);
+}
+
+// vpfxd [dpfx, dpfx, dpfx, dpfx]
+define_test(vpfxd_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xde000000);
+    assert_mnemonic(VPFXD);
+    assert_argument_count(1);
+
+    assert_argument_type(0, vfpu_destination_prefix_array);
+    assert_argument_vfpu_destination_prefix_equals(0, 0, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 1, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 2, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 3, vfpu_destination_prefix::DEFAULT);
+}
+
+define_test(vpfxd_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xde0000e4);
+    assert_mnemonic(VPFXD);
+    assert_argument_count(1);
+
+    assert_argument_vfpu_destination_prefix_equals(0, 0, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 1, vfpu_destination_prefix::CLAMP_0_1);
+    assert_argument_vfpu_destination_prefix_equals(0, 2, vfpu_destination_prefix::X);
+    assert_argument_vfpu_destination_prefix_equals(0, 3, vfpu_destination_prefix::CLAMP_NEG_1_1);
+}
+
+define_test(vpfxd_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xde000fe4);
+    assert_mnemonic(VPFXD);
+    assert_argument_count(1);
+
+    assert_argument_vfpu_destination_prefix_equals(0, 0, vfpu_destination_prefix::M);
+    assert_argument_vfpu_destination_prefix_equals(0, 1, vfpu_destination_prefix::M_CLAMP_0_1);
+    assert_argument_vfpu_destination_prefix_equals(0, 2, vfpu_destination_prefix::M_X);
+    assert_argument_vfpu_destination_prefix_equals(0, 3, vfpu_destination_prefix::M_CLAMP_NEG_1_1);
+}
+
+define_test(vpfxd_3)
+{
+    setup_test_variables();
+
+    parse_opcode(0xde800000);
+    assert_mnemonic(VPFXD);
+    assert_argument_count(1);
+
+    assert_argument_vfpu_destination_prefix_equals(0, 0, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 1, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 2, vfpu_destination_prefix::DEFAULT);
+    assert_argument_vfpu_destination_prefix_equals(0, 3, vfpu_destination_prefix::DEFAULT);
+}
+
+// viim vd, imm16
+define_test(viim_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xdf000000);
+    assert_mnemonic(VIIM);
+    assert_argument_count(2);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+
+    assert_argument_type(1, immediate<u16>);
+    assert_argument_equals(1, immediate<u16>{0});
+}
+
+define_test(viim_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xdf030001);
+    assert_mnemonic(VIIM);
+    assert_argument_count(2);
+
+    assert_argument_equals(0, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(1, immediate<u16>{1});
+}
+
+// vfim vd, float16
+define_test(vfim_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xdf800000);
+    assert_mnemonic(VFIM);
+    assert_argument_count(2);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+
+    assert_argument_type(1, immediate<float>);
+    // this is pretty hard to test because of precision
+    assert_argument_equals(1, immediate<float>{0.0f});
+}
+
+define_test(vfim_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xdf830001);
+    assert_mnemonic(VFIM);
+    assert_argument_count(2);
+
+    assert_argument_equals(0, vfpu_register{3, vfpu_size::Single});
+    // good luck testing this without calling Float16ToFloat32
+    // assert_argument_equals(1, immediate<float>{???});
 }
 
 define_default_test_main();

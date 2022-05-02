@@ -52,6 +52,9 @@ void _assert_argument_equals(const instruction &inst, size_t arg, T value)
     
 #define assert_argument_vfpu_prefix_equals(N, I, X) \
     assert_equal(std::get<vfpu_prefix_array>(inst.arguments.at(N)).data[I], X);
+
+#define assert_argument_vfpu_destination_prefix_equals(N, I, X) \
+    assert_equal(std::get<vfpu_destination_prefix_array>(inst.arguments.at(N)).data[I], X);
     
 #define assert_argument_vfpu_size(SZ) \
     assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
@@ -135,6 +138,20 @@ std::ostream &operator<<(std::ostream &lhs, vfpu_prefix_array rhs)
                << ']';
 }
 
+std::ostream &operator<<(std::ostream &lhs, vfpu_destination_prefix rhs)
+{
+    return lhs << vfpu_destination_prefix_name(rhs);
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_destination_prefix_array rhs)
+{
+    return lhs << '[' << rhs.data[0]
+               << ',' << rhs.data[1]
+               << ',' << rhs.data[2]
+               << ',' << rhs.data[3]
+               << ']';
+}
+
 template<typename T>
 std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
 {
@@ -198,6 +215,15 @@ bool operator==(const vfpu_register &lhs, const vfpu_register &rhs)
 }
 
 bool operator==(const vfpu_prefix_array &lhs, const vfpu_prefix_array &rhs)
+{
+    for (int i = 0; i < 4; ++i)
+        if (lhs.data[i] != rhs.data[i])
+            return false;
+
+    return true;
+}
+
+bool operator==(const vfpu_destination_prefix_array &lhs, const vfpu_destination_prefix_array &rhs)
 {
     for (int i = 0; i < 4; ++i)
         if (lhs.data[i] != rhs.data[i])
