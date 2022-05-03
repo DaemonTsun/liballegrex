@@ -1066,5 +1066,7 @@ void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_config *conf
             if (arr.data[i] == vfpu_rotation::SIN)
                 arr.data[i] = vfpu_rotation::NEG_SIN;
 
+    add_vfpu_register_argument(vd, sz, inst);
+    add_vfpu_register_argument(vs, vfpu_size::Single, inst);
     add_argument(arr, inst);
 }
