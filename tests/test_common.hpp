@@ -40,12 +40,6 @@
     
 #define assert_argument_type(N, T) \
     assert_equal(std::holds_alternative<T>(inst.arguments.at(N)), true);
-
-template<typename T>
-void _assert_argument_equals(const instruction &inst, size_t arg, T value)
-{
-    assert_equal(std::get<T>(inst.arguments.at(arg)), value);
-}
     
 #define assert_argument_equals(N, ...) \
     assert_equal(std::get<decltype(__VA_ARGS__)>(inst.arguments.at(N)), (__VA_ARGS__));
@@ -55,6 +49,12 @@ void _assert_argument_equals(const instruction &inst, size_t arg, T value)
 
 #define assert_argument_vfpu_destination_prefix_equals(N, I, X) \
     assert_equal(std::get<vfpu_destination_prefix_array>(inst.arguments.at(N)).data[I], X);
+    
+#define assert_argument_vfpu_rotation_equals(N, I, X) \
+    assert_equal(std::get<vfpu_rotation_array>(inst.arguments.at(N)).data[I], X);
+    
+#define assert_argument_vfpu_rotation_count(N, X) \
+    assert_equal(std::get<vfpu_rotation_array>(inst.arguments.at(N)).size, X);
     
 #define assert_argument_vfpu_size(SZ) \
     assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
@@ -157,6 +157,21 @@ std::ostream &operator<<(std::ostream &lhs, vfpu_destination_prefix_array rhs)
                << ']';
 }
 
+std::ostream &operator<<(std::ostream &lhs, vfpu_rotation rhs)
+{
+    return lhs << vfpu_rotation_name(rhs);
+}
+
+std::ostream &operator<<(std::ostream &lhs, vfpu_rotation_array rhs)
+{
+    lhs << '[' << rhs.data[0];
+
+    for (int i = 1; i < rhs.size; ++i)
+        lhs << ',' << rhs.data[i];
+
+    return lhs << ']';
+}
+
 template<typename T>
 std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
 {
@@ -236,6 +251,18 @@ bool operator==(const vfpu_prefix_array &lhs, const vfpu_prefix_array &rhs)
 bool operator==(const vfpu_destination_prefix_array &lhs, const vfpu_destination_prefix_array &rhs)
 {
     for (int i = 0; i < 4; ++i)
+        if (lhs.data[i] != rhs.data[i])
+            return false;
+
+    return true;
+}
+
+bool operator==(const vfpu_rotation_array &lhs, const vfpu_rotation_array &rhs)
+{
+    if (lhs.size != rhs.size)
+        return false;
+
+    for (int i = 0; i < lhs.size; ++i)
         if (lhs.data[i] != rhs.data[i])
             return false;
 
