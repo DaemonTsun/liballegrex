@@ -960,7 +960,7 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *
     s16 offset = bitrange(opcode, 2, 15) << 2;
 
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
-    add_argument(immediate<s16>{offset}, inst);
+    add_argument(memory_offset{offset}, inst);
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
