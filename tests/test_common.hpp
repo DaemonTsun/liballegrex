@@ -69,6 +69,11 @@ std::ostream &operator<<(std::ostream &lhs, mips_register rhs)
     return lhs << register_name(rhs);
 }
 
+std::ostream &operator<<(std::ostream &lhs, base_register rhs)
+{
+    return lhs << register_name(rhs.data);
+}
+
 std::ostream &operator<<(std::ostream &lhs, mips_fpu_register rhs)
 {
     return lhs << register_name(rhs);
@@ -97,6 +102,11 @@ std::ostream &operator<<(std::ostream &lhs, vfpu_condition rhs)
 std::ostream &operator<<(std::ostream &lhs, shift rhs)
 {
     return lhs << static_cast<int>(rhs.data);
+}
+
+std::ostream &operator<<(std::ostream &lhs, memory_offset rhs)
+{
+    return lhs << rhs.data;
 }
 
 std::ostream &operator<<(std::ostream &lhs, extra rhs)
@@ -184,6 +194,16 @@ std::ostream &operator<<(std::ostream &lhs, coprocessor_register rhs)
 }
 
 bool operator==(const shift &lhs, const shift &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const base_register &lhs, const base_register &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
+bool operator==(const memory_offset &lhs, const memory_offset &rhs)
 {
     return lhs.data == rhs.data;
 }
