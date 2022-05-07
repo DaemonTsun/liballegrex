@@ -320,10 +320,11 @@ void arg_parse_Bgezal(u32 opcode, instruction *inst, const parse_config *conf, p
 void arg_parse_JumpAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 off = bitrange(opcode, 0, 25) << 2;
-    u32 addr = bitrange(inst->address, 28, 31) | off;
+    u32 addr = inst->address & 0xf0000000;
+    addr |= off;
 
-    add_jump_address_argument(off, inst, pdata);
-};
+    add_jump_address_argument(addr, inst, pdata);
+}
 
 void arg_parse_RsRtBranchAddress(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
