@@ -58,6 +58,7 @@ using instruction_argument =
                  branch_address,
                  memory_offset,
                  immediate<u32>,
+                 immediate<s32>,
                  immediate<u16>,
                  immediate<s16>,
                  immediate<u8>,

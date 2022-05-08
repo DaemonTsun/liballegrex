@@ -325,6 +325,15 @@ void dump_format(dump_config *conf)
             else if (holds_type<branch_address>(arg))
                 f_branch_argument(out, std::get<branch_address>(arg).data, sec);
 
+            else if (holds_type<immediate<s32>>(arg))
+            {
+                s32 d = std::get<immediate<s32>>(arg).data;
+                if (d < 0)
+                    out->format("-%#x", -d);
+                else
+                    out->format("%#x", d);
+            }
+
             else if (holds_type<immediate<s16>>(arg))
             {
                 s16 d = std::get<immediate<s16>>(arg).data;

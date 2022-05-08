@@ -28,6 +28,26 @@ static_assert(bitrange(0x01ff, 1, 8) == 0xff);
 static_assert(bitrange(0x0ff0, 4, 11) == 0xff);
 static_assert(bitrange(0xff00, 8, 15) == 0xff);
 
+constexpr s32 sign_extend_16_to_s32(u32 value)
+{
+	return static_cast<s16>(bitrange(value, 0, 15));
+}
+
+constexpr u32 sign_extend_16_to_u32(u32 value)
+{
+	return static_cast<u32>(sign_extend_16_to_s32(value));
+}
+
+constexpr immediate<s32> extend16_imms32(u32 val)
+{
+    return immediate<s32>{sign_extend_16_to_s32(val)};
+}
+
+constexpr immediate<u32> extend16_immu32(u32 val)
+{
+    return immediate<u32>{sign_extend_16_to_u32(val)};
+}
+
 template<typename T>
 void add_argument(T val, instruction *inst)
 {
@@ -391,26 +411,37 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, par
     add_branch_address_argument(off, inst, pdata);
 }
 
+void arg_parse_RtRsSignExtendedImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+{
+    u32 rs = RS(opcode);
+    u32 rt = RT(opcode);
+    u32 imm = bitrange(opcode, 0, 15);
+
+    add_register_argument(rt, inst);
+    add_register_argument(rs, inst);
+    add_argument(extend16_immu32(imm), inst);
+};
+
 void arg_parse_RtRsImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
-    u16 imm = bitrange(opcode, 0, 15);
+    u32 imm = bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(immediate<u16>{imm}, inst);
+    add_argument(immediate<u32>{imm}, inst);
 };
 
 void arg_parse_RtRsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
-    s16 imm = bitrange(opcode, 0, 15);
+    u32 imm = bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(immediate<s16>{imm}, inst);
+    add_argument(extend16_imms32(imm), inst);
 };
 
 void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
@@ -432,9 +463,9 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, par
 
     inst->mnemonic = allegrex_mnemonic::LI;
     u32 rt = RT(opcode);
-    s16 imm = bitrange(opcode, 0, 15);
+    u32 imm = bitrange(opcode, 0, 15);
     add_register_argument(rt, inst);
-    add_argument(immediate<s16>{imm}, inst);
+    add_argument(extend16_imms32(imm), inst);
 };
 
 void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
