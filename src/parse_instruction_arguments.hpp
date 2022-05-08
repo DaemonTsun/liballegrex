@@ -42,8 +42,8 @@ void arg_parse_Beq(u32 opcode, instruction *inst, const parse_config *conf, pars
 // BL pseudoinstruction
 void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 
-void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
-void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_RtRsImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
+void arg_parse_RtRsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 // LI pseudoinstruction
 void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata);
 void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata); // technically same as Addiu

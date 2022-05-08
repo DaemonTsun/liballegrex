@@ -391,7 +391,7 @@ void arg_parse_Beql(u32 opcode, instruction *inst, const parse_config *conf, par
     add_branch_address_argument(off, inst, pdata);
 }
 
-void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RtRsImmediateU(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -402,7 +402,7 @@ void arg_parse_RsRtImmediateU(u32 opcode, instruction *inst, const parse_config 
     add_argument(immediate<u16>{imm}, inst);
 };
 
-void arg_parse_RsRtImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
+void arg_parse_RtRsImmediateS(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
@@ -417,7 +417,7 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, par
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtImmediateS(opcode, inst, conf, pdata);
+        arg_parse_RtRsImmediateS(opcode, inst, conf, pdata);
         return;
     }
     
@@ -426,7 +426,7 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_config *conf, par
 
     if (rs != 0)
     {
-        arg_parse_RsRtImmediateS(opcode, inst, conf, pdata);
+        arg_parse_RtRsImmediateS(opcode, inst, conf, pdata);
         return;
     }
 
@@ -441,7 +441,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf, pars
 {
     if (!conf->emit_pseudo)
     {
-        arg_parse_RsRtImmediateU(opcode, inst, conf, pdata);
+        arg_parse_RtRsImmediateU(opcode, inst, conf, pdata);
         return;
     }
     
@@ -450,7 +450,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_config *conf, pars
 
     if (rs != 0)
     {
-        arg_parse_RsRtImmediateU(opcode, inst, conf, pdata);
+        arg_parse_RtRsImmediateU(opcode, inst, conf, pdata);
         return;
     }
 
