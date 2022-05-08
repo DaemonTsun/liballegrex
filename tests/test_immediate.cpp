@@ -444,4 +444,516 @@ define_test(bgtz_3)
     assert_argument_equals(1, branch_address{36});
 }
 
+// addi rs, rt, imm
+define_test(addi_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x20000000);
+    assert_mnemonic(ADDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{0});
+}
+
+define_test(addi_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x20620001);
+    assert_mnemonic(ADDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{1});
+}
+
+define_test(addi_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2062ffff);
+    assert_mnemonic(ADDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{-1});
+}
+
+define_test(addi_3)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x2062ffff);
+    assert_mnemonic(ADDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{-1});
+}
+
+define_test(addi_4)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x2002ffff);
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, immediate<s32>);
+    assert_argument_equals(1, immediate<s32>{-1});
+}
+
+// addiu rs, rt, imm
+define_test(addiu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x24000000);
+    assert_mnemonic(ADDIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{0});
+}
+
+define_test(addiu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x24620001);
+    assert_mnemonic(ADDIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{1});
+}
+
+define_test(addiu_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2462ffff);
+    assert_mnemonic(ADDIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{-1});
+}
+
+define_test(addiu_3)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x2462ffff);
+    assert_mnemonic(ADDIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{-1});
+}
+
+define_test(addiu_4)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x2402ffff);
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, immediate<s32>);
+    assert_argument_equals(1, immediate<s32>{-1});
+}
+
+// slti rs, rt, imm
+define_test(slti_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x28000000);
+    assert_mnemonic(SLTI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{0});
+}
+
+define_test(slti_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x28620001);
+    assert_mnemonic(SLTI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{1});
+}
+
+define_test(slti_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2862ffff);
+    assert_mnemonic(SLTI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<s32>);
+    assert_argument_equals(2, immediate<s32>{-1});
+}
+
+// sltiu rs, rt, imm
+define_test(sltiu_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2c000000);
+    assert_mnemonic(SLTIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0});
+}
+
+define_test(sltiu_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2c620001);
+    assert_mnemonic(SLTIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{1});
+}
+
+define_test(sltiu_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x2c62ffff);
+    assert_mnemonic(SLTIU);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0xffffffff});
+}
+
+// andi rs, rt, imm
+define_test(andi_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x30000000);
+    assert_mnemonic(ANDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0});
+}
+
+define_test(andi_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x30620001);
+    assert_mnemonic(ANDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{1});
+}
+
+define_test(andi_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3062ffff);
+    assert_mnemonic(ANDI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+}
+
+// ori rs, rt, imm
+define_test(ori_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x34000000);
+    assert_mnemonic(ORI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0});
+}
+
+define_test(ori_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x34620001);
+    assert_mnemonic(ORI);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, mips_register::V1);
+    assert_argument_equals(2, immediate<u32>{1});
+}
+
+define_test(ori_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3462ffff);
+    assert_mnemonic(ORI);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, mips_register::V1);
+    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+}
+
+define_test(ori_3)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x3462ffff);
+    assert_mnemonic(ORI);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, mips_register::V1);
+    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+}
+
+define_test(ori_4)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    parse_opcode(0x3402ffff);
+    assert_mnemonic(LI);
+    assert_argument_count(2);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, immediate<u32>{0x0000ffff});
+}
+
+// xori rs, rt, imm
+define_test(xori_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x38000000);
+    assert_mnemonic(XORI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::ZERO);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0});
+}
+
+define_test(xori_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x38620001);
+    assert_mnemonic(XORI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{1});
+}
+
+define_test(xori_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3862ffff);
+    assert_mnemonic(XORI);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V0);
+
+    assert_argument_type(1, mips_register);
+    assert_argument_equals(1, mips_register::V1);
+
+    assert_argument_type(2, immediate<u32>);
+    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+}
+
+// lui rt, imm
+define_test(lui_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3c000000);
+    assert_mnemonic(LUI);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, immediate<u16>);
+    assert_argument_equals(1, immediate<u16>{0});
+}
+
+define_test(lui_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3c020001);
+    assert_mnemonic(LUI);
+    assert_argument_count(2);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, immediate<u16>{1});
+}
+
+define_test(lui_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0x3c02ffff);
+    assert_mnemonic(LUI);
+    assert_argument_count(2);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, immediate<u16>{0xffff});
+}
+
 define_default_test_main();
