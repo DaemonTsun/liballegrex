@@ -3,8 +3,6 @@
 
 #include "parse_instruction_arguments.hpp"
 
-// TODO: write tests for all instruction parsings...
-
 #define RS(opcode) bitrange(opcode, 21u, 25u)
 #define RT(opcode) bitrange(opcode, 16u, 20u)
 #define RD(opcode) bitrange(opcode, 11u, 15u)
