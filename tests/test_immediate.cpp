@@ -1814,4 +1814,431 @@ define_test(swr_2)
     assert_argument_equals(2, base_register{mips_register::V1});
 }
 
+// cache op, offset (base)
+define_test(cache_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xbc000000);
+    assert_mnemonic(CACHE);
+    assert_argument_count(3);
+
+    assert_argument_type(0, immediate<u32>);
+    assert_argument_equals(0, immediate<u32>{0});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(cache_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xbc620001);
+    assert_mnemonic(CACHE);
+    assert_argument_count(3);
+
+    assert_argument_type(0, immediate<u32>);
+    assert_argument_equals(0, immediate<u32>{2});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{1});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// ll rt, offset (base)
+define_test(ll_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc0000000);
+    assert_mnemonic(LL);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(ll_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc0620001);
+    assert_mnemonic(LL);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, memory_offset{1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(ll_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc062ffff);
+    assert_mnemonic(LL);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, memory_offset{-1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// lwc1 ft, offset (base)
+define_test(lwc1_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc4000000);
+    assert_mnemonic(LWC1);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_fpu_register);
+    assert_argument_equals(0, mips_fpu_register::F0);
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(lwc1_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc4620001);
+    assert_mnemonic(LWC1);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset{1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(lwc1_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc462ffff);
+    assert_mnemonic(LWC1);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset{-1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// lv.s vt, offset (base)
+define_test(lv_s_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc8000000);
+    assert_mnemonic(LV_S);
+    assert_argument_count(3);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(lv_s_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc8620004);
+    assert_mnemonic(LV_S);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{2, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset{4});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(lv_s_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xc8620001);
+    assert_mnemonic(LV_S);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// lv.q vt, offset (base)
+define_test(lv_q_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xd8000000);
+    assert_mnemonic(LV_Q);
+    assert_argument_count(3);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Quad});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(lv_q_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xd8620004);
+    assert_mnemonic(LV_Q);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{2, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{4});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(lv_q_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xd8620001);
+    assert_mnemonic(LV_Q);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(lv_q_3)
+{
+    setup_test_variables();
+
+    parse_opcode(0xd8620003);
+    assert_mnemonic(LV_Q);
+    assert_argument_count(4);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_type(3, const char *);
+    // assert_argument_equals(3, "wb");
+}
+
+// sc rt, offset (base)
+define_test(sc_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe0000000);
+    assert_mnemonic(SC);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(sc_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe0620001);
+    assert_mnemonic(SC);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, memory_offset{1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(sc_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe062ffff);
+    assert_mnemonic(SC);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_register::V0);
+    assert_argument_equals(1, memory_offset{-1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// swc1 ft, offset (base)
+define_test(swc1_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe4000000);
+    assert_mnemonic(SWC1);
+    assert_argument_count(3);
+
+    assert_argument_type(0, mips_fpu_register);
+    assert_argument_equals(0, mips_fpu_register::F0);
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(swc1_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe4620001);
+    assert_mnemonic(SWC1);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset{1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(swc1_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe462ffff);
+    assert_mnemonic(SWC1);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset{-1});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// sv.s vt, offset (base)
+define_test(sv_s_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe8000000);
+    assert_mnemonic(SV_S);
+    assert_argument_count(3);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(sv_s_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe8620004);
+    assert_mnemonic(SV_S);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{2, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset{4});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(sv_s_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xe8620001);
+    assert_mnemonic(SV_S);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+// sv.q vt, offset (base)
+define_test(sv_q_0)
+{
+    setup_test_variables();
+
+    parse_opcode(0xf8000000);
+    assert_mnemonic(SV_Q);
+    assert_argument_count(3);
+
+    assert_argument_type(0, vfpu_register);
+    assert_argument_equals(0, vfpu_register{0, vfpu_size::Quad});
+
+    assert_argument_type(1, memory_offset);
+    assert_argument_equals(1, memory_offset{0});
+
+    assert_argument_type(2, base_register);
+    assert_argument_equals(2, base_register{mips_register::ZERO});
+}
+
+define_test(sv_q_1)
+{
+    setup_test_variables();
+
+    parse_opcode(0xf8620004);
+    assert_mnemonic(SV_Q);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{2, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{4});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(sv_q_2)
+{
+    setup_test_variables();
+
+    parse_opcode(0xf8620001);
+    assert_mnemonic(SV_Q);
+    assert_argument_count(3);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+}
+
+define_test(sv_q_3)
+{
+    setup_test_variables();
+
+    parse_opcode(0xf8620003);
+    assert_mnemonic(SV_Q);
+    assert_argument_count(4);
+
+    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset{0});
+    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_type(3, const char *);
+    // assert_argument_equals(3, "wb");
+}
+
 define_default_test_main();
