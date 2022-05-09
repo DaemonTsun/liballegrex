@@ -603,4 +603,240 @@ define_test(bltzal_3)
     assert_argument_equals(1, branch_address{36});
 }
 
+// bgezal rs, offset
+define_test(bgezal_0)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04110000);
+    assert_mnemonic(BGEZAL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{4});
+}
+
+define_test(bgezal_1)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04710001);
+    assert_mnemonic(BGEZAL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{8});
+}
+
+define_test(bgezal_2)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x0471ffff);
+    assert_mnemonic(BGEZAL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{0});
+}
+
+define_test(bgezal_3)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000020;
+    parse_opcode(0x04710000);
+    assert_mnemonic(BGEZAL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{36});
+}
+
+define_test(bgezal_4)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    inst.address = 0x00000020;
+    parse_opcode(0x04710000);
+    assert_mnemonic(BGEZAL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{36});
+}
+
+define_test(bgezal_5)
+{
+    setup_test_variables();
+
+    emit_pseudoinstructions();
+    inst.address = 0x00000020;
+    parse_opcode(0x04110000);
+    assert_mnemonic(BAL);
+    assert_argument_count(1);
+
+    assert_argument_type(0, jump_address);
+    assert_argument_equals(0, jump_address{36});
+}
+
+// bltzall rs, offset
+define_test(bltzall_0)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04120000);
+    assert_mnemonic(BLTZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{4});
+}
+
+define_test(bltzall_1)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04720001);
+    assert_mnemonic(BLTZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{8});
+}
+
+define_test(bltzall_2)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x0472ffff);
+    assert_mnemonic(BLTZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{0});
+}
+
+define_test(bltzall_3)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000020;
+    parse_opcode(0x04720000);
+    assert_mnemonic(BLTZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{36});
+}
+
+// bgezall rs, offset
+define_test(bgezall_0)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04130000);
+    assert_mnemonic(BGEZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::ZERO);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{4});
+}
+
+define_test(bgezall_1)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x04730001);
+    assert_mnemonic(BGEZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{8});
+}
+
+define_test(bgezall_2)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000000;
+    parse_opcode(0x0473ffff);
+    assert_mnemonic(BGEZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{0});
+}
+
+define_test(bgezall_3)
+{
+    setup_test_variables();
+
+    inst.address = 0x00000020;
+    parse_opcode(0x04730000);
+    assert_mnemonic(BGEZALL);
+    assert_argument_count(2);
+
+    assert_argument_type(0, mips_register);
+    assert_argument_equals(0, mips_register::V1);
+
+    assert_argument_type(1, branch_address);
+    assert_argument_equals(1, branch_address{36});
+}
+
+// synci
+define_test(synci)
+{
+    setup_test_variables();
+
+    parse_opcode(0x041f0000);
+    assert_mnemonic(SYNCI);
+    assert_argument_count(0);
+}
+
 define_default_test_main();
