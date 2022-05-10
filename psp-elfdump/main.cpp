@@ -30,7 +30,6 @@ struct arguments
     std::string log_file;    // --log
     std::string section;     // -s, --section
     std::string decrypted_elf_output; // --dump-decrypt
-    bool emit_pseudo;        // -p, --pseudo
     u32 vaddr;               // -a, --vaddr
     std::vector<disasm_range> ranges; // -r
     bool verbose;            // -v, --verbose
@@ -39,6 +38,7 @@ struct arguments
     // --no-dollar-registers
     // --no-glabels
     // --no-labels
+    // --no-pseudoinstructions
     format_options output_format;
 
     std::string input_file;
@@ -49,7 +49,6 @@ const arguments default_arguments{
     .log_file = "",
     .section = ".text",
     .decrypted_elf_output = "",
-    .emit_pseudo = false,
     .vaddr = INFER_VADDR,
     .ranges = {},
     .verbose = false,
@@ -180,13 +179,6 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
-        if (arg == "-p" || arg == "--pseudo")
-        {
-            out->emit_pseudo = true;
-            ++i;
-            continue;
-        }
-
         if (arg == "-a" || arg == "--vaddr")
         {
             if (i >= argc - 1)
@@ -251,6 +243,13 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
+        if (arg == "--no-pseudoinstructions")
+        {
+            unset(out->output_format, format_options::pseudoinstructions);
+            ++i;
+            continue;
+        }
+
         // etc
         if (begins_with(arg, str("-")))
             throw std::runtime_error(str("unknown argument '", arg, "'"));
@@ -281,7 +280,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     pconf.log = log;
     pconf.vaddr = sec.vaddr;
     pconf.verbose = args.verbose;
-    pconf.emit_pseudo = args.emit_pseudo;
+    pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
 
     parse_data pdata;
     parse_allegrex(&sec.content, &pconf, &pdata);
@@ -345,7 +344,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     pconf.log = log;
     pconf.vaddr = range->vaddr;
     pconf.verbose = args.verbose;
-    pconf.emit_pseudo = args.emit_pseudo;
+    pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
 
     if (pconf.vaddr == INFER_VADDR)
         pconf.vaddr = 0;

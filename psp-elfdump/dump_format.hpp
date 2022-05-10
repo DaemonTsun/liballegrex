@@ -12,6 +12,7 @@ enum class format_options
     comma_separate_args    = 1 << 2, // e.g. li a1, 1 instead of li a1 1
     function_glabels       = 1 << 3, // e.g. glabel func_08804048 for jumps
     labels                 = 1 << 4, // e.g. .L08804090 for branches
+    pseudoinstructions     = 1 << 5, // e.g. b, bal, ...
 };
 
 ENUM_CLASS_FLAG_OPS(format_options);
@@ -21,7 +22,8 @@ constexpr format_options default_format_options =
     format_options::dollar_registers |
     format_options::comma_separate_args |
     format_options::function_glabels |
-    format_options::labels;
+    format_options::labels |
+    format_options::pseudoinstructions;
 
 struct dump_config
 {
