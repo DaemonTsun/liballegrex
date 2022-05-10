@@ -26,7 +26,6 @@ struct disasm_range
 
 struct arguments
 {
-    bool emit_glabels;       // -g, --glabel
     std::string output_file; // -o, --output
     std::string log_file;    // --log
     std::string section;     // -s, --section
@@ -46,7 +45,6 @@ struct arguments
 };
 
 const arguments default_arguments{
-    .emit_glabels = false,
     .output_file = "",
     .log_file = "",
     .section = ".text",
@@ -140,13 +138,6 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         {
             print_usage();
             exit(EXIT_SUCCESS);
-        }
-
-        if (arg == "-g" || arg == "--glabel")
-        {
-            out->emit_glabels = true;
-            ++i;
-            continue;
         }
 
         if (arg == "-o" || arg == "--output")
