@@ -852,8 +852,10 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
 
         parse_instruction(inst.opcode, &inst, conf, out);
     }
+}
 
-    auto &jmps = out->jump_destinations;
-    std::sort(jmps.begin(), jmps.end(), [](const jump_destination &l, const jump_destination &r) { return l.address < r.address || (l.address == r.address && l.type == jump_type::Jump);});
-    jmps.erase(std::unique(jmps.begin(), jmps.end(), [](const jump_destination &l, const jump_destination &r) { return (l.address == r.address) && (l.type == r.type);}), jmps.end());
+void cleanup_jumps(jump_destination_array *jumps)
+{
+    std::sort(jumps->begin(), jumps->end(), [](const jump_destination &l, const jump_destination &r) { return l.address < r.address || (l.address == r.address && l.type == jump_type::Jump);});
+    jumps->erase(std::unique(jumps->begin(), jumps->end(), [](const jump_destination &l, const jump_destination &r) { return (l.address == r.address) && (l.type == r.type);}), jumps->end());
 }

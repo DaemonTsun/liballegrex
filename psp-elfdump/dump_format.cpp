@@ -173,7 +173,7 @@ void dump_format(dump_config *conf)
 
     auto *out = conf->out;
     auto *sec = conf->section;
-    auto &jumps = conf->pdata->jump_destinations;
+    auto *jumps = conf->pdata->jump_destinations;
     u32 max_instruction_offset = conf->first_instruction_offset + conf->pdata->instructions.size() * sizeof(u32);
 
     // format functions
@@ -233,14 +233,14 @@ void dump_format(dump_config *conf)
     // do the writing
     for (const instruction &inst : conf->pdata->instructions)
     {
-        bool write_label = (jmp_i < jumps.size()) && (jumps.at(jmp_i).address <= inst.address);
+        bool write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
 
         if (write_label)
             out->write("\n");
 
         while (write_label)
         {
-            auto &jmp = jumps.at(jmp_i);
+            auto &jmp = jumps->at(jmp_i);
 
             if (jmp.type == jump_type::Jump)
                 f_jump_glabel(out, jmp.address, sec);
@@ -248,7 +248,7 @@ void dump_format(dump_config *conf)
                 f_branch_label(out, jmp.address, sec);
 
             jmp_i++;
-            write_label = (jmp_i < jumps.size()) && (jumps.at(jmp_i).address <= inst.address);
+            write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
         }
 
         f_comment_pos_addr_instr(out, pos, &inst, comment_format_string);

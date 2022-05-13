@@ -264,6 +264,20 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
+void add_symbols_to_jumps(jump_destination_array *jumps, elf_section *sec)
+{
+    // this adds symbols as jumps so they appear in the disassembly
+    
+    for (const auto &sp : sec->symbols)
+    {
+        if (sp.first < sec->vaddr
+         || sp.first > sec->vaddr + sec->content.size())
+            continue;
+
+        jumps->push_back(jump_destination{sp.first, jump_type::Jump});
+    }
+}
+
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 {
     psp_elf_read_config rconf;
@@ -282,7 +296,11 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
 
     parse_data pdata;
+    jump_destination_array jumps;
+    pdata.jump_destinations = &jumps;
     parse_allegrex(&sec.content, &pconf, &pdata);
+    add_symbols_to_jumps(&jumps, &sec);
+    cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
 
@@ -355,7 +373,10 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     in->read_at(memstr.data(), from, sz);
 
     parse_data pdata;
+    jump_destination_array jumps;
+    pdata.jump_destinations = &jumps;
     parse_allegrex(&memstr, &pconf, &pdata);
+    cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
 
