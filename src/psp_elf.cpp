@@ -54,10 +54,13 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
 
             const char *name = sec_string_table.data() + sym.st_name;
 
-            if (sym.st_shndx != section_index || name[0] == '.')
+            if (strlen(name) == 0)
                 continue;
 
-            log(conf, "  got symbol '%s' at %08x\n", name, sym.st_value);
+            if (sym.st_shndx != section_index) //|| name[0] == '.')
+                continue;
+
+            log(conf, "  symbol at %08x: '%s'\n", sym.st_value, name);
             symbols[sym.st_value] = elf_symbol{sym.st_value, std::string(name)};
         }
     }

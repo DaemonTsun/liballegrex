@@ -97,8 +97,12 @@ inline void fmt_jump_address_number(file_stream *out, u32 address, const elf_sec
 
 inline void fmt_jump_address_label(file_stream *out, u32 address, const elf_section *sec)
 {
-    // TODO: use symbols for lookup
-    out->format("func_%08x", address);
+    auto it = sec->symbols.find(address);
+
+    if (it != sec->symbols.end())
+        out->format("%s", it->second.name.c_str());
+    else
+        out->format("func_%08x", address);
 }
 
 inline void fmt_branch_address_number(file_stream *out, u32 address, const elf_section *sec)
@@ -114,8 +118,12 @@ inline void fmt_branch_address_label(file_stream *out, u32 address, const elf_se
 
 inline void fmt_jump_glabel(file_stream *out, u32 address, const elf_section *sec)
 {
-    // TODO: use symbols for lookup
-    out->format("glabel func_%08x\n", address);
+    auto it = sec->symbols.find(address);
+
+    if (it != sec->symbols.end())
+        out->format("glabel %s\n", it->second.name.c_str());
+    else
+        out->format("glabel func_%08x\n", address);
 }
 
 inline void fmt_no_jump_glabel(file_stream *out, u32 address, const elf_section *sec)
