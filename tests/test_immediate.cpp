@@ -2042,8 +2042,8 @@ define_test(lv_q_3)
     assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
     assert_argument_equals(1, memory_offset{0});
     assert_argument_equals(2, base_register{mips_register::V1});
-    assert_argument_type(3, const char *);
-    // assert_argument_equals(3, "wb");
+    assert_argument_type(3, string_arg);
+    assert_argument_equals(3, string_arg{"wb"});
 }
 
 // sc rt, offset (base)
@@ -2237,8 +2237,8 @@ define_test(sv_q_3)
     assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
     assert_argument_equals(1, memory_offset{0});
     assert_argument_equals(2, base_register{mips_register::V1});
-    assert_argument_type(3, const char *);
-    // assert_argument_equals(3, "wb");
+    assert_argument_type(3, string_arg);
+    assert_argument_equals(3, string_arg{"wb"});
 }
 
 define_default_test_main();

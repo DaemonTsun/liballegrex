@@ -25,14 +25,22 @@ constexpr format_options default_format_options =
     format_options::labels |
     format_options::pseudoinstructions;
 
+struct dump_section
+{
+    elf_section *section;
+    parse_data *pdata;
+    u32 first_instruction_offset;
+};
+
 struct dump_config
 {
     file_stream *out;
     file_stream *log;
 
-    elf_section *section;
-    parse_data *pdata;
-    u32 first_instruction_offset;
+    symbol_map *symbols;
+    // relocations;
+    jump_destination_array *jump_destinations;
+    std::vector<dump_section> dump_sections;
 
     bool verbose;
     format_options format;

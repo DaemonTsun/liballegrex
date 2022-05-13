@@ -32,17 +32,24 @@ struct elf_relocation
 
 struct elf_section
 {
-    std::map<u32, elf_symbol> symbols;
-    std::vector<elf_relocation> relocations;
     memory_stream content;
     u32 content_offset;
     u32 vaddr;
     std::string name;
 };
 
+typedef std::map<u32, elf_symbol> symbol_map;
+
+struct elf_parse_data
+{
+    symbol_map symbols;
+    std::vector<elf_relocation> relocations;
+    std::vector<elf_section> sections;
+};
+
 // its copied to memory if read from file, sorry
-void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out);
-void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out);
+void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
+void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
 
 // returns decrypted size, or 0 if input is regular ELF
 size_t decrypt_elf(file_stream *in, std::vector<u8> *out);

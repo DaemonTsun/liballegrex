@@ -47,7 +47,7 @@ struct arguments
 const arguments default_arguments{
     .output_file = "",
     .log_file = "",
-    .section = ".text",
+    .section = "",
     .decrypted_elf_output = "",
     .vaddr = INFER_VADDR,
     .ranges = {},
@@ -67,7 +67,8 @@ void print_usage()
          "  -h, --help                  show this help and exit\n"
          "  -o OUTPUT, --output OUTPUT  output filename (default: stdout)\n"
          "  --log LOGFILE               output all information messages to LOGFILE (stdout by default)\n"
-         "  -s, --section NAME          disassemble the section with name NAME (\".text\" by default)\n"
+         "  -s, --section NAME          disassemble only the section with name NAME (e.g. \".text\")\n"
+         "                              if empty, disassembles all executable sections (default).\n"
          "  --dump-decrypt OUTPUT       optional output file to dump the decrypted ELF to.\n"
          "                              if set, only dumps the ELF to OUTPUT and exits.\n" 
          "  -a VADDR, --vaddr VADDR     virtual address of the first instruction\n"
@@ -264,18 +265,11 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
-void add_symbols_to_jumps(jump_destination_array *jumps, elf_section *sec)
+void add_symbols_to_jumps(jump_destination_array *jumps, symbol_map *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
-    
-    for (const auto &sp : sec->symbols)
-    {
-        if (sp.first < sec->vaddr
-         || sp.first > sec->vaddr + sec->content.size())
-            continue;
-
+    for (const auto &sp : *syms)
         jumps->push_back(jump_destination{sp.first, jump_type::Jump});
-    }
 }
 
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -286,20 +280,41 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
 
-    elf_section sec;
-    read_elf(in, &rconf, &sec);
+    elf_parse_data epdata;
+    read_elf(in, &rconf, &epdata);
 
-    parse_config pconf;
-    pconf.log = log;
-    pconf.vaddr = sec.vaddr;
-    pconf.verbose = args.verbose;
-    pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
-
-    parse_data pdata;
     jump_destination_array jumps;
-    pdata.jump_destinations = &jumps;
-    parse_allegrex(&sec.content, &pconf, &pdata);
-    add_symbols_to_jumps(&jumps, &sec);
+
+    std::vector<parse_data> pdatas; // just memory management
+    pdatas.resize(epdata.sections.size());
+
+    dump_config dconf;
+    dconf.log = log;
+    dconf.symbols = &epdata.symbols;
+    dconf.format = args.output_format;
+    dconf.dump_sections.resize(epdata.sections.size());
+
+    for (int i = 0; i < epdata.sections.size(); ++i)
+    {
+        elf_section &sec = epdata.sections[i];
+
+        parse_config pconf;
+        pconf.log = log;
+        pconf.vaddr = sec.vaddr;
+        pconf.verbose = args.verbose;
+        pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
+
+        parse_data &pdata = pdatas[i];
+        pdata.jump_destinations = &jumps;
+        parse_allegrex(&sec.content, &pconf, &pdata);
+
+        dump_section &dsec = dconf.dump_sections[i];
+        dsec.section = &sec;
+        dsec.pdata = &pdata;
+        dsec.first_instruction_offset = sec.content_offset;
+    }
+
+    add_symbols_to_jumps(&jumps, &epdata.symbols);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
@@ -312,13 +327,8 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     if (!out)
         throw std::runtime_error("could not open output file");
 
-    dump_config dconf;
     dconf.out = &out;
-    dconf.log = log;
-    dconf.section = &sec;
-    dconf.pdata = &pdata;
-    dconf.format = args.output_format;
-    dconf.first_instruction_offset = sec.content_offset;
+    dconf.jump_destinations = &jumps;
 
     dump_format(&dconf);
 }
@@ -389,12 +399,15 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
         throw std::runtime_error("could not open output file");
 
     dump_config dconf;
+    dconf.jump_destinations = &jumps;
     dconf.out = &out;
     dconf.log = log;
-    dconf.section = nullptr;
-    dconf.pdata = &pdata;
     dconf.format = args.output_format;
-    dconf.first_instruction_offset = from;
+
+    dump_section &dsec = dconf.dump_sections.emplace_back();
+    dsec.section = nullptr;
+    dsec.pdata = &pdata;
+    dsec.first_instruction_offset = from;
 
     dump_format(&dconf);
 
@@ -448,6 +461,7 @@ try
     else
         disassemble_elf(&in, &log, args);
 
+    in.close();
     return 0;
 }
 catch (std::runtime_error &e)

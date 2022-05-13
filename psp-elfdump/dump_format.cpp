@@ -90,53 +90,53 @@ inline void fmt_argument_comma_space(file_stream *out)
     out->write(", ");
 }
 
-inline void fmt_jump_address_number(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
     out->format("%#08x", address);
 }
 
-inline void fmt_jump_address_label(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
-    auto it = sec->symbols.find(address);
+    auto it = conf->symbols->find(address);
 
-    if (it != sec->symbols.end())
+    if (it != conf->symbols->end())
         out->format("%s", it->second.name.c_str());
     else
         out->format("func_%08x", address);
 }
 
-inline void fmt_branch_address_number(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
     out->format("%#08x", address);
 }
 
-inline void fmt_branch_address_label(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
     // TODO: use symbols for lookup
     out->format(".L%08x", address);
 }
 
-inline void fmt_jump_glabel(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
-    auto it = sec->symbols.find(address);
+    auto it = conf->symbols->find(address);
 
-    if (it != sec->symbols.end())
+    if (it != conf->symbols->end())
         out->format("glabel %s\n", it->second.name.c_str());
     else
         out->format("glabel func_%08x\n", address);
 }
 
-inline void fmt_no_jump_glabel(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_no_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
 }
 
-inline void fmt_branch_label(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
 {
     // TODO: use symbols for lookup
     out->format(".L%08x:\n", address);
 }
 
-inline void fmt_no_branch_label(file_stream *out, u32 address, const elf_section *sec)
+inline void fmt_no_branch_label(file_stream *out, u32 address, const dump_config *conf)
 {
 }
 
@@ -165,16 +165,15 @@ void format_name(file_stream *out, const instruction *inst)
 // thanks for those c++ function aliases
 #define holds_type std::holds_alternative
 
-void dump_format(dump_config *conf)
+void dump_format_section(dump_config *conf, dump_section *dsec)
 {
-    assert(conf != nullptr);
-    assert(conf->pdata != nullptr);
-    assert(conf->out != nullptr);
+    assert(dsec != nullptr);
+    assert(dsec->pdata != nullptr);
 
     auto *out = conf->out;
-    auto *sec = conf->section;
-    auto *jumps = conf->pdata->jump_destinations;
-    u32 max_instruction_offset = conf->first_instruction_offset + conf->pdata->instructions.size() * sizeof(u32);
+    auto *sec = dsec->section;
+    auto *jumps = conf->jump_destinations;
+    u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
 
     // format functions
     auto f_comment_pos_addr_instr = fmt_no_comment_pos_addr_instr;
@@ -223,15 +222,23 @@ void dump_format(dump_config *conf)
         f_branch_label = fmt_branch_label;
     }
 
-    u32 pos = conf->first_instruction_offset;
+    u32 pos = dsec->first_instruction_offset;
     u32 jmp_i = 0;
 
     if (!is_set(conf->format, format_options::function_glabels)
      && !is_set(conf->format, format_options::labels))
         jmp_i = UINT32_MAX;
+    else
+    {
+        // skip symbols that come before this section
+        while (jmp_i < jumps->size() && jumps->at(jmp_i).address < dsec->pdata->vaddr)
+            ++jmp_i;
+    }
 
     // do the writing
-    for (const instruction &inst : conf->pdata->instructions)
+    out->format("\n\n/* Disassembly of section %s */\n", sec->name.c_str());
+
+    for (const instruction &inst : dsec->pdata->instructions)
     {
         bool write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
 
@@ -243,9 +250,9 @@ void dump_format(dump_config *conf)
             auto &jmp = jumps->at(jmp_i);
 
             if (jmp.type == jump_type::Jump)
-                f_jump_glabel(out, jmp.address, sec);
+                f_jump_glabel(out, jmp.address, conf);
             else
-                f_branch_label(out, jmp.address, sec);
+                f_branch_label(out, jmp.address, conf);
 
             jmp_i++;
             write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
@@ -263,8 +270,8 @@ void dump_format(dump_config *conf)
             first = false;
 
             // i hate variant
-            if (holds_type<const char*>(arg))
-                out->format("%s", std::get<const char*>(arg));
+            if (holds_type<string_arg>(arg))
+                out->format("%s", std::get<string_arg>(arg).data);
 
             else if (holds_type<mips_register>(arg))
                 f_mips_register_name(out, std::get<mips_register>(arg));
@@ -328,10 +335,10 @@ void dump_format(dump_config *conf)
                 out->format("%s <%#08x>", sc->function_name, sc->id);
             }
             else if (holds_type<jump_address>(arg))
-                f_jump_argument(out, std::get<jump_address>(arg).data, sec);
+                f_jump_argument(out, std::get<jump_address>(arg).data, conf);
 
             else if (holds_type<branch_address>(arg))
-                f_branch_argument(out, std::get<branch_address>(arg).data, sec);
+                f_branch_argument(out, std::get<branch_address>(arg).data, conf);
 
             else if (holds_type<immediate<s32>>(arg))
             {
@@ -371,4 +378,13 @@ void dump_format(dump_config *conf)
         conf->out->write("\n");
         pos += sizeof(u32);
     }
+}
+
+void dump_format(dump_config *conf)
+{
+    assert(conf != nullptr);
+    assert(conf->out != nullptr);
+
+    for (dump_section &dsec : conf->dump_sections)
+        dump_format_section(conf, &dsec);
 }

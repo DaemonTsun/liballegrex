@@ -1,6 +1,7 @@
 
 #include <algorithm>
 #include <ostream>
+#include <string.h>
 #include "parse_instructions.hpp"
 
 #define clear_instruction() \
@@ -16,7 +17,9 @@
     conf.vaddr = 0;\
     conf.log = nullptr;\
     conf.emit_pseudo = false;\
-    parse_data pdata;
+    parse_data pdata;\
+    jump_destination_array jumps;\
+    pdata.jump_destinations = &jumps;
 
 #define emit_pseudoinstructions()\
     conf.emit_pseudo = true;
@@ -193,6 +196,11 @@ std::ostream &operator<<(std::ostream &lhs, coprocessor_register rhs)
     return lhs << '[' << static_cast<int>(rhs.rd) << ", " << static_cast<int>(rhs.sel) << ']';
 }
 
+std::ostream &operator<<(std::ostream &lhs, string_arg rhs)
+{
+    return lhs << rhs.data;
+}
+
 bool operator==(const shift &lhs, const shift &rhs)
 {
     return lhs.data == rhs.data;
@@ -287,4 +295,9 @@ bool operator==(const vfpu_rotation_array &lhs, const vfpu_rotation_array &rhs)
             return false;
 
     return true;
+}
+
+bool operator==(const string_arg &lhs, const string_arg &rhs)
+{
+    return strcmp(lhs.data, rhs.data) == 0;
 }

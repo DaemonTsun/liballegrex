@@ -980,7 +980,7 @@ void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *co
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 
     if (bitrange(opcode, 1, 1))
-        add_argument("wb", inst); // ??
+        add_argument(string_arg{"wb"}, inst); // ??
 }
 
 void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)

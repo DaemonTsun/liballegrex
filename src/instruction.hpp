@@ -36,6 +36,7 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 // some instructions can have data (e.g. tge) that's not really
 // an argument, but we store it anyway
 DEFINE_TYPED_ARG(extra, u32);
+DEFINE_TYPED_ARG(string_arg, const char *);
 // error handling
 DEFINE_TYPED_ARG(error, const char *);
 
@@ -50,7 +51,6 @@ using instruction_argument =
                  vfpu_destination_prefix_array,
                  vfpu_rotation_array,
                  const syscall*,
-                 const char*,
                  shift,
                  coprocessor_register,
                  base_register,
@@ -67,6 +67,7 @@ using instruction_argument =
                  bitfield_pos,
                  bitfield_size,
                  extra,
+                 string_arg,
                  error>;
 
 struct instruction

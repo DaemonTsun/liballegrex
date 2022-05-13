@@ -74,6 +74,8 @@ bool file_stream::open(const char *path, const char *mode)
     if (!this->is_open())
         return false;
 
+    this->owns_handle = true;
+
     return true;
 }
 

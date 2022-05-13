@@ -20,7 +20,7 @@
 #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
 template<typename StreamT>
-void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, std::map<u32, elf_symbol> &symbols)
+void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, symbol_map &symbols)
 {
     // there's a good chance symbols don't exist
     for (int i = 0; i < elf_header.e_shnum; i++)
@@ -104,7 +104,7 @@ void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &e
     }
 }
 
-void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out)
+void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     Elf32_Ehdr elf_header;
 
@@ -127,7 +127,8 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *
     {
         // while we could look at program headers, PSP games
         // can have strange sections (e.g. MHFU has ~600 sections, a lot of them empty)
-        // so we just rely on the name given by command line args.
+        // so we usually rely on the name given by command line args, or disassemble
+        // all executable sections instead.
         throw std::runtime_error("no section header table index found");
     }
 
@@ -142,41 +143,59 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *
 
     log(conf, "              %-20s: offset   - size\n", "name");
 
-    int section_index = -1;
+    std::vector<int> section_indices;
 
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
         read_section(in, elf_header, i, &section_header);
         const char *section_name = string_table.data() + section_header.sh_name;
 
-        if (conf->section != section_name)
+        if (conf->section.empty())
+        {
+            if ((section_header.sh_flags & SHF_EXECINSTR) == 0) // ignore non-executable sections
+                continue;
+        }
+        else if (conf->section != section_name)
             continue;
 
         log(conf, "found section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
-        section_index = i;
-        break;
+        section_indices.push_back(i);
     }
 
-    if (section_index < 0)
-        throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
+    if (section_indices.empty())
+    {
+        if (conf->section.empty())
+            throw std::runtime_error(str("no executable sections found in input file"));
+        else
+            throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
+    }
 
-    out->name = conf->section;
-    u32 vaddr = conf->vaddr;
-
-    if (conf->vaddr == INFER_VADDR)
-        vaddr = section_header.sh_addr;
-
-    out->vaddr = vaddr;
-
-    add_symbols(in, conf, elf_header, section_index, string_table.data(), out->symbols);
     add_relocations(in, conf, elf_header, string_table.data(), out->relocations);
 
-    out->content = memory_stream(section_header.sh_size);
-    out->content_offset = section_header.sh_offset;
-    in->read_at(out->content.data(), section_header.sh_offset, section_header.sh_size);
+    for (int i : section_indices)
+    {
+        read_section(in, elf_header, i, &section_header);
+        const char *section_name = string_table.data() + section_header.sh_name;
+
+        elf_section &esec = out->sections.emplace_back();
+        esec.name = std::string(section_name);
+
+        u32 vaddr = conf->vaddr;
+
+        if (conf->vaddr == INFER_VADDR)
+            vaddr = section_header.sh_addr;
+
+        esec.vaddr = vaddr;
+
+        add_symbols(in, conf, elf_header, i, string_table.data(), out->symbols);
+
+        esec.content = memory_stream(section_header.sh_size);
+        esec.content_offset = section_header.sh_offset;
+        in->read_at(esec.content.data(), section_header.sh_offset, section_header.sh_size);
+    }
 }
 
-void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out)
+void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     memory_stream memstr = memory_stream(in->size());
     in->read_at(memstr.data(), 0, in->size());
@@ -184,7 +203,7 @@ void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_section *out
     read_elf(&memstr, conf, out);
 }
 
-void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_section *out)
+void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     std::vector<u8> decrypted_elf;
 

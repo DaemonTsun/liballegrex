@@ -837,6 +837,8 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
     assert(sz % sizeof(u32) == 0);
     assert(sz <= UINT32_MAX);
 
+    out->vaddr = conf->vaddr;
+
     u32 count = (u32)(sz / sizeof(u32));
     out->instructions.resize(count);
 

@@ -30,6 +30,7 @@ typedef std::vector<jump_destination> jump_destination_array;
 
 struct parse_data
 {
+    u32 vaddr; // start address
     std::vector<instruction> instructions;
     jump_destination_array *jump_destinations;
 };
