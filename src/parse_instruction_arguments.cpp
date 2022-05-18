@@ -225,7 +225,7 @@ void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_config *conf, 
     u16 funcnum = bitrange(code, 0, 11);
 	u16 modulenum = bitrange(code, 12, 19);
 
-    const syscall *sc = get_syscall(modulenum, funcnum);
+    const psp_function *sc = get_psp_function(modulenum, funcnum);
 
     add_argument(sc, inst);
     add_argument(extra{code}, inst);

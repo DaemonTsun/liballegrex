@@ -341,8 +341,8 @@ define_test(syscall)
     assert_mnemonic(SYSCALL);
     assert_argument_non_extra_count(1);
 
-    assert_argument_type(0, const syscall*);
-    assert_argument_equals(0, get_syscall(0, 0));
+    assert_argument_type(0, const psp_function*);
+    assert_argument_equals(0, get_psp_function(0, 0));
 
     /*
     assert_argument_type(1, extra);

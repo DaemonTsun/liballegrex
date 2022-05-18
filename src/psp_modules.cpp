@@ -2,18 +2,63 @@
 #include <array>
 #include <vector>
 
-#include "psp_syscalls.hpp"
+#include "psp_modules.hpp"
+
+#define CONCAT_(X, Y) X##Y
+#define CONCAT(X, Y) CONCAT_(X, Y)
+#define S_(x) #x
+#define S(x) S_(x)
+#define WS(X) CONCAT(L, S(X))
+#define C(x) S_(x)[0]
+#define WC(x) WS(x)[0]
+
+// https://github.com/swansontec/map-macro/blob/master/map.h
+#define EVAL0(...) __VA_ARGS__
+#define EVAL1(...) EVAL0(EVAL0(EVAL0(__VA_ARGS__)))
+#define EVAL2(...) EVAL1(EVAL1(EVAL1(__VA_ARGS__)))
+#define EVAL3(...) EVAL2(EVAL2(EVAL2(__VA_ARGS__)))
+#define EVAL4(...) EVAL3(EVAL3(EVAL3(__VA_ARGS__)))
+#define EVAL(...)  EVAL4(EVAL4(EVAL4(__VA_ARGS__)))
+
+#define MAP_END(...)
+#define MAP_OUT
+
+#define MAP_GET_END2() 0, MAP_END
+#define MAP_GET_END1(...) MAP_GET_END2
+#define MAP_GET_END(...) MAP_GET_END1
+#define MAP_NEXT0(test, next, ...) next MAP_OUT
+#define MAP_NEXT1(test, next) MAP_NEXT0(test, next, 0)
+#define MAP_NEXT(test, next)  MAP_NEXT1(MAP_GET_END test, next)
+
+#define MAP0(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP1)(f, peek, __VA_ARGS__)
+#define MAP1(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP0)(f, peek, __VA_ARGS__)
+#define MAP(f, ...) EVAL(MAP1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
+
+#define ARGS(...) MAP(WS, __VA_ARGS__)
+
+static_assert(ARGS(a, b, c) == L"abc");
+
+// type of arguments and return value of psp functions
+#define ARG_VOID           \x0001
+#define ARG_U32            \x0002
+#define ARG_S32            \x0003
+#define ARG_FLOAT          \x0004
+#define ARG_U64            \x0005
+#define ARG_S64            \x0006
+#define ARG_DOUBLE         \x0007
+#define ARG_CONST_CHAR_PTR \x0008
+#define ARG_PTR            \x0009  // u32*
+
+const char *get_psp_function_arg_name(psp_function_arg_t arg)
+{
+    // TODO: implement
+    return nullptr;
+}
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
 
-struct psp_module
-{
-    const char *name;
-    std::vector<syscall> syscalls;
-};
-
-// auto generated using PPSSPPs syscalls
+// auto generated using PPSSPPs HLE modules
 // (just iterating moduleDB & formatting print in HLE.cpp)
 const std::array _modules
 {
@@ -1995,20 +2040,20 @@ const psp_module unknown_module{
     {{0xffffffff, "unknown function", 0xffff, 0xffff}}
 };
 
-const syscall *get_syscall(u16 mod, u16 fun)
+const psp_function *get_psp_function(u16 mod, u16 fun)
 {
     if (mod >= _modules.size())
-        return &unknown_module.syscalls.at(0);
+        return &unknown_module.functions.at(0);
 
     const psp_module &m = _modules.at(mod);
     
-    if (fun >= m.syscalls.size())
-        return &unknown_module.syscalls.at(0);
+    if (fun >= m.functions.size())
+        return &unknown_module.functions.at(0);
 
-    return &m.syscalls.at(fun);
+    return &m.functions.at(fun);
 }
 
-const char *get_module_name(u16 mod)
+const char *get_psp_module_name(u16 mod)
 {
     if (mod >= _modules.size())
         return unknown_module.name;
@@ -2016,7 +2061,7 @@ const char *get_module_name(u16 mod)
     return _modules.at(mod).name;
 }
 
-const char *get_function_name(u16 mod, u16 fun)
+const char *get_psp_function_name(u16 mod, u16 fun)
 {
-    return get_syscall(mod, fun)->function_name;
+    return get_psp_function(mod, fun)->name;
 }

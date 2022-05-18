@@ -92,7 +92,7 @@ inline void fmt_argument_comma_space(file_stream *out)
 
 inline void fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("%#08x", address);
+    out->format("0x%08x", address);
 }
 
 inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
@@ -107,7 +107,7 @@ inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_con
 
 inline void fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("%#08x", address);
+    out->format("0x%08x", address);
 }
 
 inline void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
@@ -329,10 +329,10 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
                 out->write(")");
             }
 
-            else if (holds_type<const syscall*>(arg))
+            else if (holds_type<const psp_function*>(arg))
             {
-                const syscall *sc = std::get<const syscall*>(arg);
-                out->format("%s <%#08x>", sc->function_name, sc->id);
+                const psp_function *sc = std::get<const psp_function*>(arg);
+                out->format("%s <0x%08x>", sc->name, sc->nid);
             }
             else if (holds_type<jump_address>(arg))
                 f_jump_argument(out, std::get<jump_address>(arg).data, conf);

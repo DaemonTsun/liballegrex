@@ -4,7 +4,7 @@
 #include <vector>
 #include <variant>
 
-#include "psp_syscalls.hpp"
+#include "psp_modules.hpp"
 #include "mips_registers.hpp"
 #include "allegrex_mnemonics.hpp"
 #include "allegrex_vfpu.hpp"
@@ -50,7 +50,7 @@ using instruction_argument =
                  vfpu_prefix_array,
                  vfpu_destination_prefix_array,
                  vfpu_rotation_array,
-                 const syscall*,
+                 const psp_function*,
                  shift,
                  coprocessor_register,
                  base_register,
