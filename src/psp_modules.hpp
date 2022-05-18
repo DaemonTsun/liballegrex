@@ -10,23 +10,18 @@ struct psp_function
     u32 nid;
     const char *name;
 
-    /*
     psp_function_arg_t ret;
     const psp_function_arg_t *args;
-    */
 
+    const char *header_file; // pspsdk header file
     u16 module_num;
     u16 function_num;
 
-    /* TODO: implement these
-     * const char *header_file;
-     * const char *lib_name;
-     * ??? flags; // user, kernel, etc
-     */
 };
 
 struct psp_module
 {
+    u16 module_num;
     const char *name;
     std::vector<psp_function> functions;
 };

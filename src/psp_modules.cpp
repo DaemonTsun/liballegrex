@@ -11,6 +11,7 @@
 #define WS(X) CONCAT(L, S(X))
 #define C(x) S_(x)[0]
 #define WC(x) WS(x)[0]
+#define RET(x) WS(x)[0] // same as WC
 
 // https://github.com/swansontec/map-macro/blob/master/map.h
 #define EVAL0(...) __VA_ARGS__
@@ -39,6 +40,7 @@
 static_assert(ARGS(a, b, c) == L"abc");
 
 // type of arguments and return value of psp functions
+#define ARG_NONE           \x0000
 #define ARG_VOID           \x0001
 #define ARG_U32            \x0002
 #define ARG_S32            \x0003
@@ -48,12 +50,16 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_DOUBLE         \x0007
 #define ARG_CONST_CHAR_PTR \x0008
 #define ARG_PTR            \x0009  // u32*
+#define ARG_UNKNOWN        \xffff
+
 
 const char *get_psp_function_arg_name(psp_function_arg_t arg)
 {
     // TODO: implement
     return nullptr;
 }
+
+const char *unknown_header = "unknown header";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -62,1982 +68,5610 @@ const char *get_psp_function_arg_name(psp_function_arg_t arg)
 // (just iterating moduleDB & formatting print in HLE.cpp)
 const std::array _modules
 {
-    psp_module{"Kernel_Library", {
-        {0x092968f4, "sceKernelCpuSuspendIntr", 0, 0}, // s32 sceKernelCpuSuspendIntr()
-        {0x5f10d406, "sceKernelCpuResumeIntr", 0, 1}, // void sceKernelCpuResumeIntr(u32)
-        {0x3b84732d, "sceKernelCpuResumeIntrWithSync", 0, 2}, // void sceKernelCpuResumeIntrWithSync(u32)
-        {0x47a0b729, "sceKernelIsCpuIntrSuspended", 0, 3}, // s32 sceKernelIsCpuIntrSuspended(s32)
-        {0xb55249d2, "sceKernelIsCpuIntrEnable", 0, 4}, // s32 sceKernelIsCpuIntrEnable()
-        {0xa089eca4, "sceKernelMemset", 0, 5}, // u32 sceKernelMemset(u32, u32, u32)
-        {0xdc692ee3, "sceKernelTryLockLwMutex", 0, 6}, // s32 sceKernelTryLockLwMutex(u32, s32)
-        {0x37431849, "sceKernelTryLockLwMutex_600", 0, 7}, // s32 sceKernelTryLockLwMutex_600(u32, s32)
-        {0xbea46419, "sceKernelLockLwMutex", 0, 8}, // s32 sceKernelLockLwMutex(u32, s32, u32)
-        {0x1fc64e09, "sceKernelLockLwMutexCB", 0, 9}, // s32 sceKernelLockLwMutexCB(u32, s32, u32)
-        {0x15b6446b, "sceKernelUnlockLwMutex", 0, 10}, // s32 sceKernelUnlockLwMutex(u32, s32)
-        {0xc1734599, "sceKernelReferLwMutexStatus", 0, 11}, // s32 sceKernelReferLwMutexStatus(u32, u32)
-        {0x293b45b8, "sceKernelGetThreadId", 0, 12}, // s32 sceKernelGetThreadId()
-        {0xd13bde95, "sceKernelCheckThreadStack", 0, 13}, // s32 sceKernelCheckThreadStack()
-        {0x1839852a, "sceKernelMemcpy", 0, 14}, // u32 sceKernelMemcpy(u32, u32, u32)
-        {0xfa835cde, "sceKernelGetTlsAddr", 0, 15}, // s32 sceKernelGetTlsAddr(s32)
-        {0x05572a5f, "sceKernelExitGame", 0, 16}, // void sceKernelExitGame()
-        {0x4ac57943, "sceKernelRegisterExitCallback", 0, 17}, // s32 sceKernelRegisterExitCallback(s32)
-    }},
-    psp_module{"ThreadManForUser", {
-        {0x55c20a00, "sceKernelCreateEventFlag", 1, 0}, // s32 sceKernelCreateEventFlag(const char *, u32, u32, u32)
-        {0x812346e4, "sceKernelClearEventFlag", 1, 1}, // u32 sceKernelClearEventFlag(s32, u32)
-        {0xef9e4c70, "sceKernelDeleteEventFlag", 1, 2}, // u32 sceKernelDeleteEventFlag(s32)
-        {0x1fb15a32, "sceKernelSetEventFlag", 1, 3}, // u32 sceKernelSetEventFlag(s32, u32)
-        {0x402fcf22, "sceKernelWaitEventFlag", 1, 4}, // s32 sceKernelWaitEventFlag(s32, u32, u32, u32 *, u32 *)
-        {0x328c546a, "sceKernelWaitEventFlagCB", 1, 5}, // s32 sceKernelWaitEventFlagCB(s32, u32, u32, u32 *, u32 *)
-        {0x30fd48f0, "sceKernelPollEventFlag", 1, 6}, // s32 sceKernelPollEventFlag(s32, u32, u32, u32 *)
-        {0xcd203292, "sceKernelCancelEventFlag", 1, 7}, // u32 sceKernelCancelEventFlag(s32, u32, u32 *)
-        {0xa66b0120, "sceKernelReferEventFlagStatus", 1, 8}, // u32 sceKernelReferEventFlagStatus(s32, u32)
-        {0x8ffdf9a2, "sceKernelCancelSema", 1, 9}, // s32 sceKernelCancelSema(s32, s32, u32)
-        {0xd6da4ba1, "sceKernelCreateSema", 1, 10}, // s32 sceKernelCreateSema(const char *, u32, s32, s32, u32)
-        {0x28b6489c, "sceKernelDeleteSema", 1, 11}, // s32 sceKernelDeleteSema(s32)
-        {0x58b1f937, "sceKernelPollSema", 1, 12}, // s32 sceKernelPollSema(s32, s32)
-        {0xbc6febc5, "sceKernelReferSemaStatus", 1, 13}, // s32 sceKernelReferSemaStatus(s32, u32)
-        {0x3f53e640, "sceKernelSignalSema", 1, 14}, // s32 sceKernelSignalSema(s32, s32)
-        {0x4e3a1105, "sceKernelWaitSema", 1, 15}, // s32 sceKernelWaitSema(s32, s32, u32)
-        {0x6d212bac, "sceKernelWaitSemaCB", 1, 16}, // s32 sceKernelWaitSemaCB(s32, s32, u32)
-        {0x60107536, "sceKernelDeleteLwMutex", 1, 17}, // s32 sceKernelDeleteLwMutex(u32)
-        {0x19cff145, "sceKernelCreateLwMutex", 1, 18}, // s32 sceKernelCreateLwMutex(u32, const char *, u32, s32, u32)
-        {0x4c145944, "sceKernelReferLwMutexStatusByID", 1, 19}, // s32 sceKernelReferLwMutexStatusByID(s32, u32)
-        {0xf8170fbe, "sceKernelDeleteMutex", 1, 20}, // s32 sceKernelDeleteMutex(s32)
-        {0xb011b11f, "sceKernelLockMutex", 1, 21}, // s32 sceKernelLockMutex(s32, s32, u32)
-        {0x5bf4dd27, "sceKernelLockMutexCB", 1, 22}, // s32 sceKernelLockMutexCB(s32, s32, u32)
-        {0x6b30100f, "sceKernelUnlockMutex", 1, 23}, // s32 sceKernelUnlockMutex(s32, s32)
-        {0xb7d098c6, "sceKernelCreateMutex", 1, 24}, // s32 sceKernelCreateMutex(const char *, u32, s32, u32)
-        {0x0ddcd2c9, "sceKernelTryLockMutex", 1, 25}, // s32 sceKernelTryLockMutex(s32, s32)
-        {0xa9c2cb9a, "sceKernelReferMutexStatus", 1, 26}, // s32 sceKernelReferMutexStatus(s32, u32)
-        {0x87d9223c, "sceKernelCancelMutex", 1, 27}, // s32 sceKernelCancelMutex(s32, s32, u32)
-        {0xfccfad26, "sceKernelCancelWakeupThread", 1, 28}, // s32 sceKernelCancelWakeupThread(s32)
-        {0x1af94d03, "sceKernelDonateWakeupThread", 1, 29}, //  sceKernelDonateWakeupThread()
-        {0xea748e31, "sceKernelChangeCurrentThreadAttr", 1, 30}, // s32 sceKernelChangeCurrentThreadAttr(u32, u32)
-        {0x71bc9871, "sceKernelChangeThreadPriority", 1, 31}, // s32 sceKernelChangeThreadPriority(s32, s32)
-        {0x446d8de6, "sceKernelCreateThread", 1, 32}, // s32 sceKernelCreateThread(const char *, u32, u32, s32, u32, u32)
-        {0x9fa03cd3, "sceKernelDeleteThread", 1, 33}, // s32 sceKernelDeleteThread(s32)
-        {0xbd123d9e, "sceKernelDelaySysClockThread", 1, 34}, // s32 sceKernelDelaySysClockThread()
-        {0x1181e963, "sceKernelDelaySysClockThreadCB", 1, 35}, // s32 sceKernelDelaySysClockThreadCB()
-        {0xceadeb47, "sceKernelDelayThread", 1, 36}, // s32 sceKernelDelayThread(u32)
-        {0x68da9e36, "sceKernelDelayThreadCB", 1, 37}, // s32 sceKernelDelayThreadCB(u32)
-        {0xaa73c935, "sceKernelExitThread", 1, 38}, // s32 sceKernelExitThread(s32)
-        {0x809ce29b, "sceKernelExitDeleteThread", 1, 39}, // s32 sceKernelExitDeleteThread(s32)
-        {0x94aa61ee, "sceKernelGetThreadCurrentPriority", 1, 40}, // s32 sceKernelGetThreadCurrentPriority()
-        {0x293b45b8, "sceKernelGetThreadId", 1, 41}, // s32 sceKernelGetThreadId()
-        {0x3b183e26, "sceKernelGetThreadExitStatus", 1, 42}, // s32 sceKernelGetThreadExitStatus(s32)
-        {0x52089ca1, "sceKernelGetThreadStackFreeSize", 1, 43}, // s32 sceKernelGetThreadStackFreeSize(s32)
-        {0xffc36a14, "sceKernelReferThreadRunStatus", 1, 44}, // u32 sceKernelReferThreadRunStatus(u32, u32)
-        {0x17c1684e, "sceKernelReferThreadStatus", 1, 45}, // s32 sceKernelReferThreadStatus(u32, u32 *)
-        {0x2c34e053, "sceKernelReleaseWaitThread", 1, 46}, // s32 sceKernelReleaseWaitThread(s32)
-        {0x75156e8f, "sceKernelResumeThread", 1, 47}, // s32 sceKernelResumeThread(s32)
-        {0x3ad58b8c, "sceKernelSuspendDispatchThread", 1, 48}, // u32 sceKernelSuspendDispatchThread()
-        {0x27e22ec2, "sceKernelResumeDispatchThread", 1, 49}, // u32 sceKernelResumeDispatchThread(u32)
-        {0x912354a7, "sceKernelRotateThreadReadyQueue", 1, 50}, // s32 sceKernelRotateThreadReadyQueue(s32)
-        {0x9ace131e, "sceKernelSleepThread", 1, 51}, // s32 sceKernelSleepThread()
-        {0x82826f70, "sceKernelSleepThreadCB", 1, 52}, // s32 sceKernelSleepThreadCB()
-        {0xf475845d, "sceKernelStartThread", 1, 53}, // s32 sceKernelStartThread(s32, s32, u32)
-        {0x9944f31f, "sceKernelSuspendThread", 1, 54}, // s32 sceKernelSuspendThread(s32)
-        {0x616403ba, "sceKernelTerminateThread", 1, 55}, // s32 sceKernelTerminateThread(s32)
-        {0x383f7bcc, "sceKernelTerminateDeleteThread", 1, 56}, // s32 sceKernelTerminateDeleteThread(s32)
-        {0x840e8133, "sceKernelWaitThreadEndCB", 1, 57}, // s32 sceKernelWaitThreadEndCB(s32, u32)
-        {0xd13bde95, "sceKernelCheckThreadStack", 1, 58}, // s32 sceKernelCheckThreadStack()
-        {0x94416130, "sceKernelGetThreadmanIdList", 1, 59}, // u32 sceKernelGetThreadmanIdList(u32, u32, u32, u32)
-        {0x57cf62dd, "sceKernelGetThreadmanIdType", 1, 60}, // u32 sceKernelGetThreadmanIdType(u32)
-        {0xbc80ec7c, "sceKernelExtendThreadStack", 1, 61}, // u32 sceKernelExtendThreadStack(u32, u32, u32)
-        {0x82bc5777, "sceKernelGetSystemTimeWide", 1, 62}, // u64 sceKernelGetSystemTimeWide()
-        {0xdb738f35, "sceKernelGetSystemTime", 1, 63}, // s32 sceKernelGetSystemTime(u32)
-        {0x369ed59d, "sceKernelGetSystemTimeLow", 1, 64}, // u32 sceKernelGetSystemTimeLow()
-        {0x8218b4dd, "sceKernelReferGlobalProfiler", 1, 65}, // s32 sceKernelReferGlobalProfiler(u32)
-        {0x627e6f3a, "sceKernelReferSystemStatus", 1, 66}, // s32 sceKernelReferSystemStatus(u32)
-        {0x64d4540e, "sceKernelReferThreadProfiler", 1, 67}, // u32 sceKernelReferThreadProfiler(u32)
-        {0x6652b8ca, "sceKernelSetAlarm", 1, 68}, // s32 sceKernelSetAlarm(u32, u32, u32)
-        {0xb2c25152, "sceKernelSetSysClockAlarm", 1, 69}, // s32 sceKernelSetSysClockAlarm(u32, u32, u32)
-        {0x7e65b999, "sceKernelCancelAlarm", 1, 70}, // s32 sceKernelCancelAlarm(s32)
-        {0xdaa3f564, "sceKernelReferAlarmStatus", 1, 71}, // s32 sceKernelReferAlarmStatus(s32, u32)
-        {0xba6b92e2, "sceKernelSysClock2USec", 1, 72}, // s32 sceKernelSysClock2USec(u32, u32, u32)
-        {0x110dec9a, "sceKernelUSec2SysClock", 1, 73}, // s32 sceKernelUSec2SysClock(u32, u32)
-        {0xc8cd158c, "sceKernelUSec2SysClockWide", 1, 74}, // u64 sceKernelUSec2SysClockWide(u32)
-        {0xe1619d7c, "sceKernelSysClock2USecWide", 1, 75}, // s32 sceKernelSysClock2USecWide(u32, u32, u32, u32)
-        {0x278c0df5, "sceKernelWaitThreadEnd", 1, 76}, // s32 sceKernelWaitThreadEnd(s32, u32)
-        {0xd59ead2f, "sceKernelWakeupThread", 1, 77}, // s32 sceKernelWakeupThread(s32)
-        {0x0c106e53, "sceKernelRegisterThreadEventHandler", 1, 78}, // s32 sceKernelRegisterThreadEventHandler(const char *, s32, u32, u32, u32)
-        {0x72f3c145, "sceKernelReleaseThreadEventHandler", 1, 79}, // s32 sceKernelReleaseThreadEventHandler(s32)
-        {0x369eeb6b, "sceKernelReferThreadEventHandlerStatus", 1, 80}, // s32 sceKernelReferThreadEventHandlerStatus(s32, u32 *)
-        {0x349d6d6c, "sceKernelCheckCallback", 1, 81}, // s32 sceKernelCheckCallback()
-        {0xe81caf8f, "sceKernelCreateCallback", 1, 82}, // s32 sceKernelCreateCallback(const char *, u32, u32)
-        {0xedba5844, "sceKernelDeleteCallback", 1, 83}, // s32 sceKernelDeleteCallback(s32)
-        {0xc11ba8c4, "sceKernelNotifyCallback", 1, 84}, // s32 sceKernelNotifyCallback(s32, s32)
-        {0xba4051d6, "sceKernelCancelCallback", 1, 85}, // s32 sceKernelCancelCallback(s32)
-        {0x2a3d44ff, "sceKernelGetCallbackCount", 1, 86}, // s32 sceKernelGetCallbackCount(s32)
-        {0x730ed8bc, "sceKernelReferCallbackStatus", 1, 87}, // s32 sceKernelReferCallbackStatus(s32, u32 *)
-        {0x8125221d, "sceKernelCreateMbx", 1, 88}, // s32 sceKernelCreateMbx(const char *, u32, u32)
-        {0x86255ada, "sceKernelDeleteMbx", 1, 89}, // s32 sceKernelDeleteMbx(s32)
-        {0xe9b3061e, "sceKernelSendMbx", 1, 90}, // s32 sceKernelSendMbx(s32, u32)
-        {0x18260574, "sceKernelReceiveMbx", 1, 91}, // s32 sceKernelReceiveMbx(s32, u32, u32)
-        {0xf3986382, "sceKernelReceiveMbxCB", 1, 92}, // s32 sceKernelReceiveMbxCB(s32, u32, u32)
-        {0x0d81716a, "sceKernelPollMbx", 1, 93}, // s32 sceKernelPollMbx(s32, u32)
-        {0x87d4dd36, "sceKernelCancelReceiveMbx", 1, 94}, // s32 sceKernelCancelReceiveMbx(s32, u32)
-        {0xa8e8c846, "sceKernelReferMbxStatus", 1, 95}, // s32 sceKernelReferMbxStatus(s32, u32)
-        {0x7c0dc2a0, "sceKernelCreateMsgPipe", 1, 96}, // s32 sceKernelCreateMsgPipe(const char *, s32, u32, u32, u32)
-        {0xf0b7da1c, "sceKernelDeleteMsgPipe", 1, 97}, // s32 sceKernelDeleteMsgPipe(s32)
-        {0x876dbfad, "sceKernelSendMsgPipe", 1, 98}, // s32 sceKernelSendMsgPipe(s32, u32, u32, u32, u32, u32)
-        {0x7c41f2c2, "sceKernelSendMsgPipeCB", 1, 99}, // s32 sceKernelSendMsgPipeCB(s32, u32, u32, u32, u32, u32)
-        {0x884c9f90, "sceKernelTrySendMsgPipe", 1, 100}, // s32 sceKernelTrySendMsgPipe(s32, u32, u32, u32, u32)
-        {0x74829b76, "sceKernelReceiveMsgPipe", 1, 101}, // s32 sceKernelReceiveMsgPipe(s32, u32, u32, u32, u32, u32)
-        {0xfbfa697d, "sceKernelReceiveMsgPipeCB", 1, 102}, // s32 sceKernelReceiveMsgPipeCB(s32, u32, u32, u32, u32, u32)
-        {0xdf52098f, "sceKernelTryReceiveMsgPipe", 1, 103}, // s32 sceKernelTryReceiveMsgPipe(s32, u32, u32, u32, u32)
-        {0x349b864d, "sceKernelCancelMsgPipe", 1, 104}, // s32 sceKernelCancelMsgPipe(s32, u32, u32)
-        {0x33be4024, "sceKernelReferMsgPipeStatus", 1, 105}, // s32 sceKernelReferMsgPipeStatus(s32, u32)
-        {0x56c039b5, "sceKernelCreateVpl", 1, 106}, // s32 sceKernelCreateVpl(const char *, s32, u32, u32, u32)
-        {0x89b3d48c, "sceKernelDeleteVpl", 1, 107}, // s32 sceKernelDeleteVpl(s32)
-        {0xbed27435, "sceKernelAllocateVpl", 1, 108}, // s32 sceKernelAllocateVpl(s32, u32, u32, u32)
-        {0xec0a693f, "sceKernelAllocateVplCB", 1, 109}, // s32 sceKernelAllocateVplCB(s32, u32, u32, u32)
-        {0xaf36d708, "sceKernelTryAllocateVpl", 1, 110}, // s32 sceKernelTryAllocateVpl(s32, u32, u32)
-        {0xb736e9ff, "sceKernelFreeVpl", 1, 111}, // s32 sceKernelFreeVpl(s32, u32)
-        {0x1d371b8a, "sceKernelCancelVpl", 1, 112}, // s32 sceKernelCancelVpl(s32, u32)
-        {0x39810265, "sceKernelReferVplStatus", 1, 113}, // s32 sceKernelReferVplStatus(s32, u32)
-        {0xc07bb470, "sceKernelCreateFpl", 1, 114}, // s32 sceKernelCreateFpl(const char *, u32, u32, u32, u32, u32)
-        {0xed1410e0, "sceKernelDeleteFpl", 1, 115}, // s32 sceKernelDeleteFpl(s32)
-        {0xd979e9bf, "sceKernelAllocateFpl", 1, 116}, // s32 sceKernelAllocateFpl(s32, u32, u32)
-        {0xe7282cb6, "sceKernelAllocateFplCB", 1, 117}, // s32 sceKernelAllocateFplCB(s32, u32, u32)
-        {0x623ae665, "sceKernelTryAllocateFpl", 1, 118}, // s32 sceKernelTryAllocateFpl(s32, u32)
-        {0xf6414a71, "sceKernelFreeFpl", 1, 119}, // s32 sceKernelFreeFpl(s32, u32)
-        {0xa8aa591f, "sceKernelCancelFpl", 1, 120}, // s32 sceKernelCancelFpl(s32, u32)
-        {0xd8199e4c, "sceKernelReferFplStatus", 1, 121}, // s32 sceKernelReferFplStatus(s32, u32)
-        {0x20fff560, "sceKernelCreateVTimer", 1, 122}, // u32 sceKernelCreateVTimer(const char *, u32)
-        {0x328f9e52, "sceKernelDeleteVTimer", 1, 123}, // u32 sceKernelDeleteVTimer(s32)
-        {0xc68d9437, "sceKernelStartVTimer", 1, 124}, // u32 sceKernelStartVTimer(s32)
-        {0xd0aeee87, "sceKernelStopVTimer", 1, 125}, // u32 sceKernelStopVTimer(s32)
-        {0xd2d615ef, "sceKernelCancelVTimerHandler", 1, 126}, // u32 sceKernelCancelVTimerHandler(s32)
-        {0xb3a59970, "sceKernelGetVTimerBase", 1, 127}, // u32 sceKernelGetVTimerBase(s32, u32)
-        {0xb7c18b77, "sceKernelGetVTimerBaseWide", 1, 128}, // u64 sceKernelGetVTimerBaseWide(s32)
-        {0x034a921f, "sceKernelGetVTimerTime", 1, 129}, // u32 sceKernelGetVTimerTime(s32, u32)
-        {0xc0b3ffd2, "sceKernelGetVTimerTimeWide", 1, 130}, // u64 sceKernelGetVTimerTimeWide(s32)
-        {0x5f32beaa, "sceKernelReferVTimerStatus", 1, 131}, // u32 sceKernelReferVTimerStatus(s32, u32)
-        {0x542ad630, "sceKernelSetVTimerTime", 1, 132}, // u32 sceKernelSetVTimerTime(s32, u32)
-        {0xfb6425c3, "sceKernelSetVTimerTimeWide", 1, 133}, // u64 sceKernelSetVTimerTimeWide(s32, u64)
-        {0xd8b299ae, "sceKernelSetVTimerHandler", 1, 134}, // u32 sceKernelSetVTimerHandler(s32, u32, u32, u32)
-        {0x53b00e9a, "sceKernelSetVTimerHandlerWide", 1, 135}, // u32 sceKernelSetVTimerHandlerWide(s32, u64, u32, u32)
-        {0x8daff657, "sceKernelCreateTlspl", 1, 136}, // s32 sceKernelCreateTlspl(const char *, u32, u32, u32, u32, u32)
-        {0x32bf938e, "sceKernelDeleteTlspl", 1, 137}, // s32 sceKernelDeleteTlspl(s32)
-        {0x721067f3, "sceKernelReferTlsplStatus", 1, 138}, // s32 sceKernelReferTlsplStatus(s32, u32)
-        {0x4a719fb2, "sceKernelFreeTlspl", 1, 139}, // s32 sceKernelFreeTlspl(s32)
-        {0x0e927aed, "_sceKernelReturnFromTimerHandler", 1, 140}, // void _sceKernelReturnFromTimerHandler()
-        {0x532a522e, "_sceKernelExitThread", 1, 141}, // void _sceKernelExitThread(s32)
-        {0x71ec4271, "sceKernelLibcGettimeofday", 1, 142}, // u32 sceKernelLibcGettimeofday(u32, u32)
-        {0x79d1c3fa, "sceKernelDcacheWritebackAll", 1, 143}, // s32 sceKernelDcacheWritebackAll()
-        {0x91e4f6a7, "sceKernelLibcClock", 1, 144}, // u32 sceKernelLibcClock()
-        {0xb435dec5, "sceKernelDcacheWritebackInvalidateAll", 1, 145}, // s32 sceKernelDcacheWritebackInvalidateAll()
-    }},
-    psp_module{"ThreadManForKernel", {
-        {0xceadeb47, "sceKernelDelayThread", 2, 0}, // s32 sceKernelDelayThread(u32)
-        {0x446d8de6, "sceKernelCreateThread", 2, 1}, // s32 sceKernelCreateThread(const char *, u32, u32, s32, u32, u32)
-        {0xf475845d, "sceKernelStartThread", 2, 2}, // s32 sceKernelStartThread(s32, s32, u32)
-        {0x9fa03cd3, "sceKernelDeleteThread", 2, 3}, // s32 sceKernelDeleteThread(s32)
-        {0xaa73c935, "sceKernelExitThread", 2, 4}, // s32 sceKernelExitThread(s32)
-        {0x809ce29b, "sceKernelExitDeleteThread", 2, 5}, // s32 sceKernelExitDeleteThread(s32)
-        {0x9944f31f, "sceKernelSuspendThread", 2, 6}, // s32 sceKernelSuspendThread(s32)
-        {0x75156e8f, "sceKernelResumeThread", 2, 7}, // s32 sceKernelResumeThread(s32)
-        {0x94416130, "sceKernelGetThreadmanIdList", 2, 8}, // u32 sceKernelGetThreadmanIdList(u32, u32, u32, u32)
-        {0x278c0df5, "sceKernelWaitThreadEnd", 2, 9}, // s32 sceKernelWaitThreadEnd(s32, u32)
-        {0xd6da4ba1, "sceKernelCreateSema", 2, 10}, // s32 sceKernelCreateSema(const char *, u32, s32, s32, u32)
-        {0x28b6489c, "sceKernelDeleteSema", 2, 11}, // s32 sceKernelDeleteSema(s32)
-        {0x3f53e640, "sceKernelSignalSema", 2, 12}, // s32 sceKernelSignalSema(s32, s32)
-        {0x4e3a1105, "sceKernelWaitSema", 2, 13}, // s32 sceKernelWaitSema(s32, s32, u32)
-        {0x58b1f937, "sceKernelPollSema", 2, 14}, // s32 sceKernelPollSema(s32, s32)
-        {0x55c20a00, "sceKernelCreateEventFlag", 2, 15}, // s32 sceKernelCreateEventFlag(const char *, u32, u32, u32)
-        {0xef9e4c70, "sceKernelDeleteEventFlag", 2, 16}, // u32 sceKernelDeleteEventFlag(s32)
-        {0x1fb15a32, "sceKernelSetEventFlag", 2, 17}, // u32 sceKernelSetEventFlag(s32, u32)
-        {0x812346e4, "sceKernelClearEventFlag", 2, 18}, // u32 sceKernelClearEventFlag(s32, u32)
-        {0x402fcf22, "sceKernelWaitEventFlag", 2, 19}, // s32 sceKernelWaitEventFlag(s32, u32, u32, u32 *, u32 *)
-        {0xc07bb470, "sceKernelCreateFpl", 2, 20}, // s32 sceKernelCreateFpl(const char *, u32, u32, u32, u32, u32)
-        {0xed1410e0, "sceKernelDeleteFpl", 2, 21}, // s32 sceKernelDeleteFpl(s32)
-        {0x623ae665, "sceKernelTryAllocateFpl", 2, 22}, // s32 sceKernelTryAllocateFpl(s32, u32)
-        {0x616403ba, "sceKernelTerminateThread", 2, 23}, // s32 sceKernelTerminateThread(s32)
-        {0x383f7bcc, "sceKernelTerminateDeleteThread", 2, 24}, // s32 sceKernelTerminateDeleteThread(s32)
-        {0x57cf62dd, "sceKernelGetThreadmanIdType", 2, 25}, // u32 sceKernelGetThreadmanIdType(u32)
-        {0x94aa61ee, "sceKernelGetThreadCurrentPriority", 2, 26}, // s32 sceKernelGetThreadCurrentPriority()
-        {0x293b45b8, "sceKernelGetThreadId", 2, 27}, // s32 sceKernelGetThreadId()
-        {0x3b183e26, "sceKernelGetThreadExitStatus", 2, 28}, // s32 sceKernelGetThreadExitStatus(s32)
-        {0x82bc5777, "sceKernelGetSystemTimeWide", 2, 29}, // u64 sceKernelGetSystemTimeWide()
-        {0xdb738f35, "sceKernelGetSystemTime", 2, 30}, // s32 sceKernelGetSystemTime(u32)
-        {0x369ed59d, "sceKernelGetSystemTimeLow", 2, 31}, // u32 sceKernelGetSystemTimeLow()
-        {0x6652b8ca, "sceKernelSetAlarm", 2, 32}, // s32 sceKernelSetAlarm(u32, u32, u32)
-        {0xb2c25152, "sceKernelSetSysClockAlarm", 2, 33}, // s32 sceKernelSetSysClockAlarm(u32, u32, u32)
-        {0x7e65b999, "sceKernelCancelAlarm", 2, 34}, // s32 sceKernelCancelAlarm(s32)
-        {0xdaa3f564, "sceKernelReferAlarmStatus", 2, 35}, // s32 sceKernelReferAlarmStatus(s32, u32)
-        {0x8125221d, "sceKernelCreateMbx", 2, 36}, // s32 sceKernelCreateMbx(const char *, u32, u32)
-        {0x86255ada, "sceKernelDeleteMbx", 2, 37}, // s32 sceKernelDeleteMbx(s32)
-        {0xe9b3061e, "sceKernelSendMbx", 2, 38}, // s32 sceKernelSendMbx(s32, u32)
-        {0x18260574, "sceKernelReceiveMbx", 2, 39}, // s32 sceKernelReceiveMbx(s32, u32, u32)
-        {0xf3986382, "sceKernelReceiveMbxCB", 2, 40}, // s32 sceKernelReceiveMbxCB(s32, u32, u32)
-        {0x0d81716a, "sceKernelPollMbx", 2, 41}, // s32 sceKernelPollMbx(s32, u32)
-        {0x87d4dd36, "sceKernelCancelReceiveMbx", 2, 42}, // s32 sceKernelCancelReceiveMbx(s32, u32)
-        {0xa8e8c846, "sceKernelReferMbxStatus", 2, 43}, // s32 sceKernelReferMbxStatus(s32, u32)
-        {0x56c039b5, "sceKernelCreateVpl", 2, 44}, // s32 sceKernelCreateVpl(const char *, s32, u32, u32, u32)
-        {0x89b3d48c, "sceKernelDeleteVpl", 2, 45}, // s32 sceKernelDeleteVpl(s32)
-        {0xbed27435, "sceKernelAllocateVpl", 2, 46}, // s32 sceKernelAllocateVpl(s32, u32, u32, u32)
-        {0xec0a693f, "sceKernelAllocateVplCB", 2, 47}, // s32 sceKernelAllocateVplCB(s32, u32, u32, u32)
-        {0xaf36d708, "sceKernelTryAllocateVpl", 2, 48}, // s32 sceKernelTryAllocateVpl(s32, u32, u32)
-        {0xb736e9ff, "sceKernelFreeVpl", 2, 49}, // s32 sceKernelFreeVpl(s32, u32)
-        {0x1d371b8a, "sceKernelCancelVpl", 2, 50}, // s32 sceKernelCancelVpl(s32, u32)
-        {0x39810265, "sceKernelReferVplStatus", 2, 51}, // s32 sceKernelReferVplStatus(s32, u32)
-    }},
-    psp_module{"LoadExecForUser", {
-        {0x05572a5f, "sceKernelExitGame", 3, 0}, // void sceKernelExitGame()
-        {0x4ac57943, "sceKernelRegisterExitCallback", 3, 1}, // s32 sceKernelRegisterExitCallback(s32)
-        {0xbd2f1094, "sceKernelLoadExec", 3, 2}, // s32 sceKernelLoadExec(const char *, u32)
-        {0x2ac9954b, "sceKernelExitGameWithStatus", 3, 3}, // void sceKernelExitGameWithStatus()
-        {0x362a956b, "LoadExecForUser_362A956B", 3, 4}, // s32 LoadExecForUser_362A956B()
-        {0x8ada38d3, "LoadExecForUser_8ADA38D3", 3, 5}, //  LoadExecForUser_8ADA38D3()
-    }},
-    psp_module{"UtilsForKernel", {
-        {0xc2df770e, "sceKernelIcacheInvalidateRange", 4, 0}, //  sceKernelIcacheInvalidateRange()
-        {0x78934841, "sceKernelGzipDecompress", 4, 1}, //  sceKernelGzipDecompress()
-        {0xe8db3ce6, "sceKernelDeflateDecompress", 4, 2}, //  sceKernelDeflateDecompress()
-        {0x840259f1, "sceKernelUtilsSha1Digest", 4, 3}, //  sceKernelUtilsSha1Digest()
-        {0x9e5c5086, "sceKernelUtilsMd5BlockInit", 4, 4}, //  sceKernelUtilsMd5BlockInit()
-        {0x61e1e525, "sceKernelUtilsMd5BlockUpdate", 4, 5}, //  sceKernelUtilsMd5BlockUpdate()
-        {0xb8d24e78, "sceKernelUtilsMd5BlockResult", 4, 6}, //  sceKernelUtilsMd5BlockResult()
-        {0xc8186a58, "sceKernelUtilsMd5Digest", 4, 7}, //  sceKernelUtilsMd5Digest()
-        {0x6c6887ee, "UtilsForKernel_6C6887EE", 4, 8}, //  UtilsForKernel_6C6887EE()
-        {0x91e4f6a7, "sceKernelLibcClock", 4, 9}, //  sceKernelLibcClock()
-        {0x27cc57f0, "sceKernelLibcTime", 4, 10}, //  sceKernelLibcTime()
-        {0x79d1c3fa, "sceKernelDcacheWritebackAll", 4, 11}, //  sceKernelDcacheWritebackAll()
-        {0x3ee30821, "sceKernelDcacheWritebackRange", 4, 12}, //  sceKernelDcacheWritebackRange()
-        {0x34b9fa9e, "sceKernelDcacheWritebackInvalidateRange", 4, 13}, //  sceKernelDcacheWritebackInvalidateRange()
-        {0xb435dec5, "sceKernelDcacheWritebackInvalidateAll", 4, 14}, //  sceKernelDcacheWritebackInvalidateAll()
-        {0xbfa98062, "sceKernelDcacheInvalidateRange", 4, 15}, //  sceKernelDcacheInvalidateRange()
-        {0x920f104a, "sceKernelIcacheInvalidateAll", 4, 16}, //  sceKernelIcacheInvalidateAll()
-        {0xe860e75e, "sceKernelUtilsMt19937Init", 4, 17}, //  sceKernelUtilsMt19937Init()
-        {0x06fb8a63, "sceKernelUtilsMt19937UInt", 4, 18}, //  sceKernelUtilsMt19937UInt()
-    }},
-    psp_module{"SysMemUserForUser", {
-        {0xa291f107, "sceKernelMaxFreeMemSize", 5, 0}, // u32 sceKernelMaxFreeMemSize()
-        {0xf919f628, "sceKernelTotalFreeMemSize", 5, 1}, // u32 sceKernelTotalFreeMemSize()
-        {0x3fc9ae6a, "sceKernelDevkitVersion", 5, 2}, // u32 sceKernelDevkitVersion()
-        {0x237dbd4f, "sceKernelAllocPartitionMemory", 5, 3}, // s32 sceKernelAllocPartitionMemory(s32, const char *, s32, u32, u32)
-        {0xb6d61d02, "sceKernelFreePartitionMemory", 5, 4}, // s32 sceKernelFreePartitionMemory(s32)
-        {0x9d9a5ba1, "sceKernelGetBlockHeadAddr", 5, 5}, // u32 sceKernelGetBlockHeadAddr(s32)
-        {0x13a5abef, "sceKernelPrintf", 5, 6}, // s32 sceKernelPrintf(const char *)
-        {0x7591c7db, "sceKernelSetCompiledSdkVersion", 5, 7}, // s32 sceKernelSetCompiledSdkVersion(s32)
-        {0x342061e5, "sceKernelSetCompiledSdkVersion370", 5, 8}, // s32 sceKernelSetCompiledSdkVersion370(s32)
-        {0x315ad3a0, "sceKernelSetCompiledSdkVersion380_390", 5, 9}, // s32 sceKernelSetCompiledSdkVersion380_390(s32)
-        {0xebd5c3e6, "sceKernelSetCompiledSdkVersion395", 5, 10}, // s32 sceKernelSetCompiledSdkVersion395(s32)
-        {0x057e7380, "sceKernelSetCompiledSdkVersion401_402", 5, 11}, // s32 sceKernelSetCompiledSdkVersion401_402(s32)
-        {0xf77d77cb, "sceKernelSetCompilerVersion", 5, 12}, // s32 sceKernelSetCompilerVersion(s32)
-        {0x91de343c, "sceKernelSetCompiledSdkVersion500_505", 5, 13}, // s32 sceKernelSetCompiledSdkVersion500_505(s32)
-        {0x7893f79a, "sceKernelSetCompiledSdkVersion507", 5, 14}, // s32 sceKernelSetCompiledSdkVersion507(s32)
-        {0x35669d4c, "sceKernelSetCompiledSdkVersion600_602", 5, 15}, // s32 sceKernelSetCompiledSdkVersion600_602(s32)
-        {0x1b4217bc, "sceKernelSetCompiledSdkVersion603_605", 5, 16}, // s32 sceKernelSetCompiledSdkVersion603_605(s32)
-        {0x358ca1bb, "sceKernelSetCompiledSdkVersion606", 5, 17}, // s32 sceKernelSetCompiledSdkVersion606(s32)
-        {0xfc114573, "sceKernelGetCompiledSdkVersion", 5, 18}, // s32 sceKernelGetCompiledSdkVersion()
-        {0x2a3e5280, "sceKernelQueryMemoryInfo", 5, 19}, //  sceKernelQueryMemoryInfo()
-        {0xacbd88ca, "SysMemUserForUser_ACBD88CA", 5, 20}, // u32 SysMemUserForUser_ACBD88CA()
-        {0x945e45da, "SysMemUserForUser_945E45DA", 5, 21}, // u32 SysMemUserForUser_945E45DA()
-        {0xa6848df8, "sceKernelSetUsersystemLibWork", 5, 22}, //  sceKernelSetUsersystemLibWork()
-        {0x6231a71d, "sceKernelSetPTRIG", 5, 23}, //  sceKernelSetPTRIG()
-        {0x39f49610, "sceKernelGetPTRIG", 5, 24}, //  sceKernelGetPTRIG()
-        {0xdb83a952, "SysMemUserForUser_DB83A952", 5, 25}, // u32 SysMemUserForUser_DB83A952(u32, u32)
-        {0x50f61d8a, "SysMemUserForUser_50F61D8A", 5, 26}, // u32 SysMemUserForUser_50F61D8A(u32)
-        {0xfe707fdf, "SysMemUserForUser_FE707FDF", 5, 27}, // u32 SysMemUserForUser_FE707FDF(const char *, u32, u32, u32)
-        {0xd8de5c1e, "SysMemUserForUser_D8DE5C1E", 5, 28}, // u32 SysMemUserForUser_D8DE5C1E()
-    }},
-    psp_module{"InterruptManager", {
-        {0xca04a2b9, "sceKernelRegisterSubIntrHandler", 6, 0}, // u32 sceKernelRegisterSubIntrHandler(u32, u32, u32, u32)
-        {0xd61e6961, "sceKernelReleaseSubIntrHandler", 6, 1}, // u32 sceKernelReleaseSubIntrHandler(u32, u32)
-        {0xfb8e22ec, "sceKernelEnableSubIntr", 6, 2}, // u32 sceKernelEnableSubIntr(u32, u32)
-        {0x8a389411, "sceKernelDisableSubIntr", 6, 3}, // u32 sceKernelDisableSubIntr(u32, u32)
-        {0x5cb5a78b, "sceKernelSuspendSubIntr", 6, 4}, //  sceKernelSuspendSubIntr()
-        {0x7860e0dc, "sceKernelResumeSubIntr", 6, 5}, //  sceKernelResumeSubIntr()
-        {0xfc4374b8, "sceKernelIsSubInterruptOccurred", 6, 6}, //  sceKernelIsSubInterruptOccurred()
-        {0xd2e8363f, "QueryIntrHandlerInfo", 6, 7}, // s32 QueryIntrHandlerInfo()
-        {0xeee43f47, "sceKernelRegisterUserSpaceIntrStack", 6, 8}, //  sceKernelRegisterUserSpaceIntrStack()
-    }},
-    psp_module{"IoFileMgrForUser", {
-        {0xb29ddf9c, "sceIoDopen", 7, 0}, // s32 sceIoDopen(const char *)
-        {0xe3eb004c, "sceIoDread", 7, 1}, // s32 sceIoDread(s32, u32)
-        {0xeb092469, "sceIoDclose", 7, 2}, // s32 sceIoDclose(s32)
-        {0xe95a012b, "sceIoIoctlAsync", 7, 3}, // s32 sceIoIoctlAsync(s32, u32, u32 *, s32, u32 *, s32)
-        {0x63632449, "sceIoIoctl", 7, 4}, // s32 sceIoIoctl(s32, u32, u32 *, s32, u32 *, s32)
-        {0xace946e8, "sceIoGetstat", 7, 5}, // s32 sceIoGetstat(const char *, u32)
-        {0xb8a740f4, "sceIoChstat", 7, 6}, // s32 sceIoChstat(const char *, u32, u32)
-        {0x55f4717d, "sceIoChdir", 7, 7}, // s32 sceIoChdir(const char *)
-        {0x08bd7374, "sceIoGetDevType", 7, 8}, // u32 sceIoGetDevType(s32)
-        {0xb2a628c1, "sceIoAssign", 7, 9}, // s32 sceIoAssign(const char *, const char *, const char *, s32, u32, s32)
-        {0xe8bc6571, "sceIoCancel", 7, 10}, // s32 sceIoCancel(s32)
-        {0xb293727f, "sceIoChangeAsyncPriority", 7, 11}, // s32 sceIoChangeAsyncPriority(s32, u32)
-        {0x810c4bc3, "sceIoClose", 7, 12}, // s32 sceIoClose(s32)
-        {0xff5940b6, "sceIoCloseAsync", 7, 13}, // s32 sceIoCloseAsync(s32)
-        {0x54f5fb11, "sceIoDevctl", 7, 14}, // s32 sceIoDevctl(const char *, u32, u32 *, s32, u32 *, s32)
-        {0xcb05f8d6, "sceIoGetAsyncStat", 7, 15}, // s32 sceIoGetAsyncStat(s32, s32, )
-        {0x27eb27b8, "sceIoLseek", 7, 16}, // s64 sceIoLseek(s32, s64, s32)
-        {0x68963324, "sceIoLseek32", 7, 17}, // s32 sceIoLseek32(s32, s32, s32)
-        {0x1b385d8f, "sceIoLseek32Async", 7, 18}, // s32 sceIoLseek32Async(s32, s32, s32)
-        {0x71b19e77, "sceIoLseekAsync", 7, 19}, // s32 sceIoLseekAsync(s32, s64, s32)
-        {0x109f50bc, "sceIoOpen", 7, 20}, // s32 sceIoOpen(const char *, s32, s32)
-        {0x89aa9906, "sceIoOpenAsync", 7, 21}, // s32 sceIoOpenAsync(const char *, s32, s32)
-        {0x06a70004, "sceIoMkdir", 7, 22}, // s32 sceIoMkdir(const char *, s32)
-        {0x3251ea56, "sceIoPollAsync", 7, 23}, // s32 sceIoPollAsync(s32, )
-        {0x6a638d83, "sceIoRead", 7, 24}, // s32 sceIoRead(s32, u32, s32)
-        {0xa0b5a7c2, "sceIoReadAsync", 7, 25}, // s32 sceIoReadAsync(s32, u32, s32)
-        {0xf27a9c51, "sceIoRemove", 7, 26}, // s32 sceIoRemove(const char *)
-        {0x779103a0, "sceIoRename", 7, 27}, // s32 sceIoRename(const char *, const char *)
-        {0x1117c65f, "sceIoRmdir", 7, 28}, // s32 sceIoRmdir(const char *)
-        {0xa12a0514, "sceIoSetAsyncCallback", 7, 29}, // s32 sceIoSetAsyncCallback(s32, u32, u32)
-        {0xab96437f, "sceIoSync", 7, 30}, // s32 sceIoSync(const char *, s32)
-        {0x6d08a871, "sceIoUnassign", 7, 31}, // s32 sceIoUnassign(const char *)
-        {0x42ec03ac, "sceIoWrite", 7, 32}, // s32 sceIoWrite(s32, u32, s32)
-        {0x0facab19, "sceIoWriteAsync", 7, 33}, // s32 sceIoWriteAsync(s32, u32, s32)
-        {0x35dbd746, "sceIoWaitAsyncCB", 7, 34}, // s32 sceIoWaitAsyncCB(s32, )
-        {0xe23eec33, "sceIoWaitAsync", 7, 35}, // s32 sceIoWaitAsync(s32, )
-        {0x5c2be2cc, "sceIoGetFdList", 7, 36}, // s32 sceIoGetFdList(u32, s32, u32 *)
-        {0x13370001, "__IoAsyncFinish", 7, 37}, // s32 __IoAsyncFinish(s32)
-    }},
-    psp_module{"ModuleMgrForUser", {
-        {0x977de386, "sceKernelLoadModule", 8, 0}, // u32 sceKernelLoadModule(const char *, u32, u32)
-        {0xb7f46618, "sceKernelLoadModuleByID", 8, 1}, // u32 sceKernelLoadModuleByID(u32, u32, u32)
-        {0x50f0c1ec, "sceKernelStartModule", 8, 2}, // void sceKernelStartModule(u32, u32, u32, u32, u32)
-        {0xd675ebb8, "sceKernelSelfStopUnloadModule", 8, 3}, // u32 sceKernelSelfStopUnloadModule(u32, u32, u32)
-        {0xd1ff982a, "sceKernelStopModule", 8, 4}, // u32 sceKernelStopModule(u32, u32, u32, u32, u32)
-        {0x2e0911aa, "sceKernelUnloadModule", 8, 5}, // u32 sceKernelUnloadModule(u32)
-        {0x710f61b5, "sceKernelLoadModuleMs", 8, 6}, //  sceKernelLoadModuleMs()
-        {0xf9275d98, "sceKernelLoadModuleBufferUsbWlan", 8, 7}, // s32 sceKernelLoadModuleBufferUsbWlan(u32, u32, u32, u32)
-        {0xcc1d3699, "sceKernelStopUnloadSelfModule", 8, 8}, //  sceKernelStopUnloadSelfModule()
-        {0x748cbed9, "sceKernelQueryModuleInfo", 8, 9}, // u32 sceKernelQueryModuleInfo(u32, u32)
-        {0xd8b73127, "sceKernelGetModuleIdByAddress", 8, 10}, // u32 sceKernelGetModuleIdByAddress(u32)
-        {0xf0a26395, "sceKernelGetModuleId", 8, 11}, // u32 sceKernelGetModuleId()
-        {0x8f2df740, "sceKernelStopUnloadSelfModuleWithStatus", 8, 12}, // u32 sceKernelStopUnloadSelfModuleWithStatus(u32, u32, u32, u32, u32)
-        {0xfef27dc1, "sceKernelLoadModuleDNAS", 8, 13}, // u32 sceKernelLoadModuleDNAS(const char *, u32)
-        {0x644395e2, "sceKernelGetModuleIdList", 8, 14}, // u32 sceKernelGetModuleIdList(u32, u32, u32)
-        {0xf2d8d1b4, "sceKernelLoadModuleNpDrm", 8, 15}, // u32 sceKernelLoadModuleNpDrm(const char *, u32, u32)
-        {0xe4c4211c, "ModuleMgrForUser_E4C4211C", 8, 16}, //  ModuleMgrForUser_E4C4211C()
-        {0xfbe27467, "ModuleMgrForUser_FBE27467", 8, 17}, //  ModuleMgrForUser_FBE27467()
-    }},
-    psp_module{"ModuleMgrForKernel", {
-        {0x50f0c1ec, "sceKernelStartModule", 9, 0}, // void sceKernelStartModule(u32, u32, u32, u32, u32)
-        {0x977de386, "sceKernelLoadModule", 9, 1}, // u32 sceKernelLoadModule(const char *, u32, u32)
-        {0xa1a78c58, "sceKernelLoadModuleForLoadExecVSHDisc", 9, 2}, // u32 sceKernelLoadModuleForLoadExecVSHDisc(const char *, u32, u32)
-        {0xcc1d3699, "sceKernelSelfStopUnloadModule", 9, 3}, // u32 sceKernelSelfStopUnloadModule(u32, u32, u32)
-        {0xd1ff982a, "sceKernelStopModule", 9, 4}, // u32 sceKernelStopModule(u32, u32, u32, u32, u32)
-        {0x748cbed9, "sceKernelQueryModuleInfo", 9, 5}, // u32 sceKernelQueryModuleInfo(u32, u32)
-        {0x644395e2, "sceKernelGetModuleIdList", 9, 6}, // u32 sceKernelGetModuleIdList(u32, u32, u32)
-        {0x2e0911aa, "sceKernelUnloadModule", 9, 7}, // u32 sceKernelUnloadModule(u32)
-    }},
-    psp_module{"StdioForUser", {
-        {0x172d316e, "sceKernelStdin", 10, 0}, // s32 sceKernelStdin()
-        {0xa6bab2e9, "sceKernelStdout", 10, 1}, // s32 sceKernelStdout()
-        {0xf78ba90a, "sceKernelStderr", 10, 2}, // s32 sceKernelStderr()
-        {0x432d8f5c, "sceKernelRegisterStdoutPipe", 10, 3}, // s32 sceKernelRegisterStdoutPipe(u32)
-        {0x6f797e03, "sceKernelRegisterStderrPipe", 10, 4}, // s32 sceKernelRegisterStderrPipe(u32)
-        {0xa46785c9, "sceKernelStdioSendChar", 10, 5}, //  sceKernelStdioSendChar()
-        {0x0cbb0571, "sceKernelStdioLseek", 10, 6}, //  sceKernelStdioLseek()
-        {0x3054d478, "sceKernelStdioRead", 10, 7}, //  sceKernelStdioRead()
-        {0xa3b931db, "sceKernelStdioWrite", 10, 8}, //  sceKernelStdioWrite()
-        {0x924aba61, "sceKernelStdioOpen", 10, 9}, //  sceKernelStdioOpen()
-        {0x9d061c19, "sceKernelStdioClose", 10, 10}, //  sceKernelStdioClose()
-    }},
-    psp_module{"sceHprm", {
-        {0x089fdfa4, "sceHprm_089fdfa4", 11, 0}, //  sceHprm_089fdfa4()
-        {0x1910b327, "sceHprmPeekCurrentKey", 11, 1}, // u32 sceHprmPeekCurrentKey(u32)
-        {0x208db1bd, "sceHprmIsRemoteExist", 11, 2}, // u32 sceHprmIsRemoteExist()
-        {0x7e69eda4, "sceHprmIsHeadphoneExist", 11, 3}, // u32 sceHprmIsHeadphoneExist()
-        {0x219c58f1, "sceHprmIsMicrophoneExist", 11, 4}, // u32 sceHprmIsMicrophoneExist()
-        {0xc7154136, "sceHprmRegisterCallback", 11, 5}, //  sceHprmRegisterCallback()
-        {0x444ed0b7, "sceHprmUnregitserCallback", 11, 6}, //  sceHprmUnregitserCallback()
-        {0x2bcec83e, "sceHprmPeekLatch", 11, 7}, // u32 sceHprmPeekLatch(u32)
-        {0x40d2f9f0, "sceHprmReadLatch", 11, 8}, // u32 sceHprmReadLatch(u32)
-    }},
-    psp_module{"sceCcc", {
-        {0xb4d1cbbf, "sceCccSetTable", 12, 0}, // void sceCccSetTable(u32, u32)
-        {0x00d1378f, "sceCccUTF8toUTF16", 12, 1}, // s32 sceCccUTF8toUTF16(u32, u32, u32)
-        {0x6f82ee03, "sceCccUTF8toSJIS", 12, 2}, // s32 sceCccUTF8toSJIS(u32, u32, u32)
-        {0x41b724a5, "sceCccUTF16toUTF8", 12, 3}, // s32 sceCccUTF16toUTF8(u32, u32, u32)
-        {0xf1b73d12, "sceCccUTF16toSJIS", 12, 4}, // s32 sceCccUTF16toSJIS(u32, u32, u32)
-        {0xa62e6e80, "sceCccSJIStoUTF8", 12, 5}, // s32 sceCccSJIStoUTF8(u32, u32, u32)
-        {0xbeb47224, "sceCccSJIStoUTF16", 12, 6}, // s32 sceCccSJIStoUTF16(u32, u32, u32)
-        {0xb7d3c112, "sceCccStrlenUTF8", 12, 7}, // s32 sceCccStrlenUTF8(u32)
-        {0x4bdeb2a8, "sceCccStrlenUTF16", 12, 8}, // s32 sceCccStrlenUTF16(u32)
-        {0xd9392ccb, "sceCccStrlenSJIS", 12, 9}, // s32 sceCccStrlenSJIS(u32)
-        {0x92c05851, "sceCccEncodeUTF8", 12, 10}, // u32 sceCccEncodeUTF8(u32, u32)
-        {0x8406f469, "sceCccEncodeUTF16", 12, 11}, // void sceCccEncodeUTF16(u32, u32)
-        {0x068c4320, "sceCccEncodeSJIS", 12, 12}, // u32 sceCccEncodeSJIS(u32, u32)
-        {0xc6a8bee2, "sceCccDecodeUTF8", 12, 13}, // u32 sceCccDecodeUTF8(u32)
-        {0xe0cf8091, "sceCccDecodeUTF16", 12, 14}, // u32 sceCccDecodeUTF16(u32)
-        {0x953e6c10, "sceCccDecodeSJIS", 12, 15}, // u32 sceCccDecodeSJIS(u32)
-        {0x90521ac5, "sceCccIsValidUTF8", 12, 16}, // s32 sceCccIsValidUTF8(u32)
-        {0xcc0a8bda, "sceCccIsValidUTF16", 12, 17}, // s32 sceCccIsValidUTF16(u32)
-        {0x67bf0d19, "sceCccIsValidSJIS", 12, 18}, // s32 sceCccIsValidSJIS(u32)
-        {0x76e33e9c, "sceCccIsValidUCS2", 12, 19}, // s32 sceCccIsValidUCS2(u32)
-        {0xd2b18485, "sceCccIsValidUCS4", 12, 20}, // s32 sceCccIsValidUCS4(u32)
-        {0xa2d5d209, "sceCccIsValidJIS", 12, 21}, // s32 sceCccIsValidJIS(u32)
-        {0xbd11eef3, "sceCccIsValidUnicode", 12, 22}, // s32 sceCccIsValidUnicode(u32)
-        {0x17e1d813, "sceCccSetErrorCharUTF8", 12, 23}, // u32 sceCccSetErrorCharUTF8(u32)
-        {0xb8476cf4, "sceCccSetErrorCharUTF16", 12, 24}, // u32 sceCccSetErrorCharUTF16(u32)
-        {0xc56949ad, "sceCccSetErrorCharSJIS", 12, 25}, // u32 sceCccSetErrorCharSJIS(u32)
-        {0x70ecaa10, "sceCccUCStoJIS", 12, 26}, // u32 sceCccUCStoJIS(u32, u32)
-        {0xfb7846e2, "sceCccJIStoUCS", 12, 27}, // u32 sceCccJIStoUCS(u32, u32)
-    }},
-    psp_module{"sceCtrl", {
-        {0x3e65a0ea, "sceCtrlInit", 13, 0}, //  sceCtrlInit()
-        {0x1f4011e6, "sceCtrlSetSamplingMode", 13, 1}, // u32 sceCtrlSetSamplingMode(u32)
-        {0x6a2774f3, "sceCtrlSetSamplingCycle", 13, 2}, // u32 sceCtrlSetSamplingCycle(u32)
-        {0x02baad91, "sceCtrlGetSamplingCycle", 13, 3}, // s32 sceCtrlGetSamplingCycle(u32)
-        {0xda6b76a1, "sceCtrlGetSamplingMode", 13, 4}, // s32 sceCtrlGetSamplingMode(u32)
-        {0x1f803938, "sceCtrlReadBufferPositive", 13, 5}, // s32 sceCtrlReadBufferPositive(u32, u32)
-        {0x3a622550, "sceCtrlPeekBufferPositive", 13, 6}, // s32 sceCtrlPeekBufferPositive(u32, u32)
-        {0xc152080a, "sceCtrlPeekBufferNegative", 13, 7}, // s32 sceCtrlPeekBufferNegative(u32, u32)
-        {0x60b81f86, "sceCtrlReadBufferNegative", 13, 8}, // s32 sceCtrlReadBufferNegative(u32, u32)
-        {0xb1d0e5cd, "sceCtrlPeekLatch", 13, 9}, // s32 sceCtrlPeekLatch(u32)
-        {0x0b588501, "sceCtrlReadLatch", 13, 10}, // s32 sceCtrlReadLatch(u32)
-        {0x348d99d4, "sceCtrlSetSuspendingExtraSamples", 13, 11}, //  sceCtrlSetSuspendingExtraSamples()
-        {0xaf5960f3, "sceCtrlGetSuspendingExtraSamples", 13, 12}, //  sceCtrlGetSuspendingExtraSamples()
-        {0xa68fd260, "sceCtrlClearRapidFire", 13, 13}, //  sceCtrlClearRapidFire()
-        {0x6841be1a, "sceCtrlSetRapidFire", 13, 14}, //  sceCtrlSetRapidFire()
-        {0xa7144800, "sceCtrlSetIdleCancelThreshold", 13, 15}, // s32 sceCtrlSetIdleCancelThreshold(s32, s32)
-        {0x687660fa, "sceCtrlGetIdleCancelThreshold", 13, 16}, // s32 sceCtrlGetIdleCancelThreshold(u32, u32)
-    }},
-    psp_module{"sceDisplay", {
-        {0x0e20f177, "sceDisplaySetMode", 14, 0}, // u32 sceDisplaySetMode(s32, s32, s32)
-        {0x289d82fe, "sceDisplaySetFrameBuf", 14, 1}, // u32 sceDisplaySetFrameBuf(u32, s32, s32, s32)
-        {0xeeda2e54, "sceDisplayGetFrameBuf", 14, 2}, // u32 sceDisplayGetFrameBuf(u32 *, u32 *, u32 *, s32)
-        {0x36cdfade, "sceDisplayWaitVblank", 14, 3}, // u32 sceDisplayWaitVblank()
-        {0x984c27e7, "sceDisplayWaitVblankStart", 14, 4}, // u32 sceDisplayWaitVblankStart()
-        {0x40f1469c, "sceDisplayWaitVblankStartMulti", 14, 5}, // u32 sceDisplayWaitVblankStartMulti(s32)
-        {0x8eb9ec49, "sceDisplayWaitVblankCB", 14, 6}, // u32 sceDisplayWaitVblankCB()
-        {0x46f186c3, "sceDisplayWaitVblankStartCB", 14, 7}, // u32 sceDisplayWaitVblankStartCB()
-        {0x77ed8b3a, "sceDisplayWaitVblankStartMultiCB", 14, 8}, // u32 sceDisplayWaitVblankStartMultiCB(s32)
-        {0xdba6c4c4, "sceDisplayGetFramePerSec", 14, 9}, // float sceDisplayGetFramePerSec()
-        {0x773dd3a3, "sceDisplayGetCurrentHcount", 14, 10}, // u32 sceDisplayGetCurrentHcount()
-        {0x210eab3a, "sceDisplayGetAccumulatedHcount", 14, 11}, // s32 sceDisplayGetAccumulatedHcount()
-        {0xa83ef139, "sceDisplayAdjustAccumulatedHcount", 14, 12}, // s32 sceDisplayAdjustAccumulatedHcount(s32)
-        {0x9c6eaad7, "sceDisplayGetVcount", 14, 13}, // u32 sceDisplayGetVcount()
-        {0xdea197d4, "sceDisplayGetMode", 14, 14}, // u32 sceDisplayGetMode(u32 *, u32 *, u32 *)
-        {0x7ed59bc4, "sceDisplaySetHoldMode", 14, 15}, // u32 sceDisplaySetHoldMode(u32)
-        {0xa544c486, "sceDisplaySetResumeMode", 14, 16}, // u32 sceDisplaySetResumeMode(u32)
-        {0xbf79f646, "sceDisplayGetResumeMode", 14, 17}, // u32 sceDisplayGetResumeMode(u32 *)
-        {0xb4f378fa, "sceDisplayIsForeground", 14, 18}, // u32 sceDisplayIsForeground()
-        {0x31c4baa8, "sceDisplayGetBrightness", 14, 19}, // u32 sceDisplayGetBrightness(u32 *, u32 *)
-        {0x9e3c6dc6, "sceDisplaySetBrightness", 14, 20}, // u32 sceDisplaySetBrightness(s32, s32)
-        {0x4d4e10ec, "sceDisplayIsVblank", 14, 21}, // u32 sceDisplayIsVblank()
-        {0x21038913, "sceDisplayIsVsync", 14, 22}, // u32 sceDisplayIsVsync()
-    }},
-    psp_module{"sceAudio", {
-        {0x01562ba3, "sceAudioOutput2Reserve", 15, 0}, // u32 sceAudioOutput2Reserve(s32)
-        {0x2d53f36e, "sceAudioOutput2OutputBlocking", 15, 1}, // u32 sceAudioOutput2OutputBlocking(u32, u32)
-        {0x63f2889c, "sceAudioOutput2ChangeLength", 15, 2}, // u32 sceAudioOutput2ChangeLength(s32)
-        {0x647cef33, "sceAudioOutput2GetRestSample", 15, 3}, // s32 sceAudioOutput2GetRestSample()
-        {0x43196845, "sceAudioOutput2Release", 15, 4}, // u32 sceAudioOutput2Release()
-        {0x80f1f7e0, "sceAudioInit", 15, 5}, // u32 sceAudioInit()
-        {0x210567f7, "sceAudioEnd", 15, 6}, // u32 sceAudioEnd()
-        {0xa2beaa6c, "sceAudioSetFrequency", 15, 7}, // u32 sceAudioSetFrequency(s32)
-        {0x927ac32b, "sceAudioSetVolumeOffset", 15, 8}, // u32 sceAudioSetVolumeOffset()
-        {0x8c1009b2, "sceAudioOutput", 15, 9}, // u32 sceAudioOutput(s32, u32, u32)
-        {0x136caf51, "sceAudioOutputBlocking", 15, 10}, // u32 sceAudioOutputBlocking(s32, u32, u32)
-        {0xe2d56b2d, "sceAudioOutputPanned", 15, 11}, // u32 sceAudioOutputPanned(s32, u32, u32, u32)
-        {0x13f592bc, "sceAudioOutputPannedBlocking", 15, 12}, // u32 sceAudioOutputPannedBlocking(s32, u32, u32, u32)
-        {0x5ec81c55, "sceAudioChReserve", 15, 13}, // u32 sceAudioChReserve(s32, s32, s32)
-        {0x6fc46853, "sceAudioChRelease", 15, 14}, // u32 sceAudioChRelease(s32)
-        {0xe9d97901, "sceAudioGetChannelRestLen", 15, 15}, // s32 sceAudioGetChannelRestLen(s32)
-        {0xb011922f, "sceAudioGetChannelRestLength", 15, 16}, // s32 sceAudioGetChannelRestLength(s32)
-        {0xcb2e439e, "sceAudioSetChannelDataLen", 15, 17}, // u32 sceAudioSetChannelDataLen(s32, s32)
-        {0x95fd0c2d, "sceAudioChangeChannelConfig", 15, 18}, // u32 sceAudioChangeChannelConfig(s32, s32)
-        {0xb7e1d8e7, "sceAudioChangeChannelVolume", 15, 19}, // u32 sceAudioChangeChannelVolume(s32, u32, u32)
-        {0x38553111, "sceAudioSRCChReserve", 15, 20}, // u32 sceAudioSRCChReserve(s32, s32, s32)
-        {0x5c37c0ae, "sceAudioSRCChRelease", 15, 21}, // u32 sceAudioSRCChRelease()
-        {0xe0727056, "sceAudioSRCOutputBlocking", 15, 22}, // u32 sceAudioSRCOutputBlocking(u32, u32)
-        {0x41efade7, "sceAudioOneshotOutput", 15, 23}, //  sceAudioOneshotOutput()
-        {0xb61595c0, "sceAudioLoopbackTest", 15, 24}, //  sceAudioLoopbackTest()
-        {0x7de61688, "sceAudioInputInit", 15, 25}, //  sceAudioInputInit()
-        {0xe926d3fb, "sceAudioInputInitEx", 15, 26}, //  sceAudioInputInitEx()
-        {0x6d4bec68, "sceAudioInput", 15, 27}, // s32 sceAudioInput(u32, u32, u32)
-        {0x086e5895, "sceAudioInputBlocking", 15, 28}, // s32 sceAudioInputBlocking(u32, u32, u32)
-        {0xa708c6a6, "sceAudioGetInputLength", 15, 29}, // s32 sceAudioGetInputLength()
-        {0xa633048e, "sceAudioPollInputEnd", 15, 30}, //  sceAudioPollInputEnd()
-        {0x87b2e651, "sceAudioWaitInputEnd", 15, 31}, //  sceAudioWaitInputEnd()
-        {0x36fd8aa9, "sceAudioRoutingSetMode", 15, 32}, // u32 sceAudioRoutingSetMode(u32)
-        {0x39240e7d, "sceAudioRoutingGetMode", 15, 33}, // u32 sceAudioRoutingGetMode()
-        {0xbb548475, "sceAudioRoutingSetVolumeMode", 15, 34}, // u32 sceAudioRoutingSetVolumeMode(u32)
-        {0x28235c56, "sceAudioRoutingGetVolumeMode", 15, 35}, // u32 sceAudioRoutingGetVolumeMode()
-    }},
-    psp_module{"sceSasCore", {
-        {0x42778a9f, "__sceSasInit", 16, 0}, // u32 __sceSasInit(u32, u32, u32, u32, u32)
-        {0xa3589d81, "__sceSasCore", 16, 1}, // u32 __sceSasCore(u32, u32)
-        {0x50a14dfc, "__sceSasCoreWithMix", 16, 2}, // u32 __sceSasCoreWithMix(u32, u32, s32, s32)
-        {0x68a46b95, "__sceSasGetEndFlag", 16, 3}, // u32 __sceSasGetEndFlag(u32)
-        {0x440ca7d8, "__sceSasSetVolume", 16, 4}, // u32 __sceSasSetVolume(u32, s32, s32, s32, s32, s32)
-        {0xad84d37f, "__sceSasSetPitch", 16, 5}, // u32 __sceSasSetPitch(u32, s32, s32)
-        {0x99944089, "__sceSasSetVoice", 16, 6}, // u32 __sceSasSetVoice(u32, s32, u32, s32, s32)
-        {0xb7660a23, "__sceSasSetNoise", 16, 7}, // u32 __sceSasSetNoise(u32, s32, s32)
-        {0x019b25eb, "__sceSasSetADSR", 16, 8}, // u32 __sceSasSetADSR(u32, s32, s32, s32, s32, s32, s32)
-        {0x9ec3676a, "__sceSasSetADSRmode", 16, 9}, // u32 __sceSasSetADSRmode(u32, s32, s32, s32, s32, s32, s32)
-        {0x5f9529f6, "__sceSasSetSL", 16, 10}, // u32 __sceSasSetSL(u32, s32, s32)
-        {0x74ae582a, "__sceSasGetEnvelopeHeight", 16, 11}, // u32 __sceSasGetEnvelopeHeight(u32, s32)
-        {0xcbcd4f79, "__sceSasSetSimpleADSR", 16, 12}, // u32 __sceSasSetSimpleADSR(u32, s32, u32, u32)
-        {0xa0cf2fa4, "__sceSasSetKeyOff", 16, 13}, // u32 __sceSasSetKeyOff(u32, s32)
-        {0x76f01aca, "__sceSasSetKeyOn", 16, 14}, // u32 __sceSasSetKeyOn(u32, s32)
-        {0xf983b186, "__sceSasRevVON", 16, 15}, // u32 __sceSasRevVON(u32, s32, s32)
-        {0xd5a229c9, "__sceSasRevEVOL", 16, 16}, // u32 __sceSasRevEVOL(u32, u32, u32)
-        {0x33d4ab37, "__sceSasRevType", 16, 17}, // u32 __sceSasRevType(u32, s32)
-        {0x267a6dd2, "__sceSasRevParam", 16, 18}, // u32 __sceSasRevParam(u32, s32, s32)
-        {0x2c8e6ab3, "__sceSasGetPauseFlag", 16, 19}, // u32 __sceSasGetPauseFlag(u32)
-        {0x787d04d5, "__sceSasSetPause", 16, 20}, // u32 __sceSasSetPause(u32, u32, s32)
-        {0xa232cbe6, "__sceSasSetTrianglarWave", 16, 21}, // u32 __sceSasSetTrianglarWave(u32, s32, s32)
-        {0xd5ebbbcd, "__sceSasSetSteepWave", 16, 22}, // u32 __sceSasSetSteepWave(u32, s32, s32)
-        {0xbd11b7c2, "__sceSasGetGrain", 16, 23}, // u32 __sceSasGetGrain(u32)
-        {0xd1e0a01e, "__sceSasSetGrain", 16, 24}, // u32 __sceSasSetGrain(u32, s32)
-        {0xe175ef66, "__sceSasGetOutputmode", 16, 25}, // u32 __sceSasGetOutputmode(u32)
-        {0xe855bf76, "__sceSasSetOutputmode", 16, 26}, // u32 __sceSasSetOutputmode(u32, u32)
-        {0x07f58c24, "__sceSasGetAllEnvelopeHeights", 16, 27}, // u32 __sceSasGetAllEnvelopeHeights(u32, u32)
-        {0xe1cd9561, "__sceSasSetVoicePCM", 16, 28}, // u32 __sceSasSetVoicePCM(u32, s32, u32, s32, s32)
-        {0x4aa9ead6, "__sceSasSetVoiceATRAC3", 16, 29}, // u32 __sceSasSetVoiceATRAC3(u32, s32, u32)
-        {0x7497ea85, "__sceSasConcatenateATRAC3", 16, 30}, // u32 __sceSasConcatenateATRAC3(u32, s32, u32, s32)
-        {0xf6107f00, "__sceSasUnsetATRAC3", 16, 31}, // u32 __sceSasUnsetATRAC3(u32, s32)
-    }},
-    psp_module{"sceLibFont", {
-        {0x67f17ed7, "sceFontNewLib", 17, 0}, // u32 sceFontNewLib(u32, u32)
-        {0x574b6fbc, "sceFontDoneLib", 17, 1}, // s32 sceFontDoneLib(u32)
-        {0x48293280, "sceFontSetResolution", 17, 2}, // s32 sceFontSetResolution(u32, float, float)
-        {0x27f6e642, "sceFontGetNumFontList", 17, 3}, // s32 sceFontGetNumFontList(u32, u32)
-        {0xbc75d85b, "sceFontGetFontList", 17, 4}, // s32 sceFontGetFontList(u32, u32, s32)
-        {0x099ef33c, "sceFontFindOptimumFont", 17, 5}, // s32 sceFontFindOptimumFont(u32, u32, u32)
-        {0x681e61a7, "sceFontFindFont", 17, 6}, // s32 sceFontFindFont(u32, u32, u32)
-        {0x2f67356a, "sceFontCalcMemorySize", 17, 7}, // s32 sceFontCalcMemorySize()
-        {0x5333322d, "sceFontGetFontInfoByIndexNumber", 17, 8}, // s32 sceFontGetFontInfoByIndexNumber(u32, u32, u32)
-        {0xa834319d, "sceFontOpen", 17, 9}, // u32 sceFontOpen(u32, u32, u32, u32 *)
-        {0x57fcb733, "sceFontOpenUserFile", 17, 10}, // u32 sceFontOpenUserFile(u32, const char *, u32, u32 *)
-        {0xbb8e7fe6, "sceFontOpenUserMemory", 17, 11}, // u32 sceFontOpenUserMemory(u32, u32, u32, u32 *)
-        {0x3aea8cb6, "sceFontClose", 17, 12}, // s32 sceFontClose(u32)
-        {0x0da7535e, "sceFontGetFontInfo", 17, 13}, // s32 sceFontGetFontInfo(u32, u32)
-        {0xdcc80c2f, "sceFontGetCharInfo", 17, 14}, // s32 sceFontGetCharInfo(u32, u32, u32)
-        {0xaa3de7b5, "sceFontGetShadowInfo", 17, 15}, // s32 sceFontGetShadowInfo(u32, u32, u32)
-        {0x5c3e4a9e, "sceFontGetCharImageRect", 17, 16}, // s32 sceFontGetCharImageRect(u32, u32, u32)
-        {0x48b06520, "sceFontGetShadowImageRect", 17, 17}, // s32 sceFontGetShadowImageRect(u32, u32, u32)
-        {0x980f4895, "sceFontGetCharGlyphImage", 17, 18}, // s32 sceFontGetCharGlyphImage(u32, u32, u32)
-        {0xca1e6945, "sceFontGetCharGlyphImage_Clip", 17, 19}, // s32 sceFontGetCharGlyphImage_Clip(u32, u32, u32, s32, s32, s32, s32)
-        {0x74b21701, "sceFontPixelToPointH", 17, 20}, // float sceFontPixelToPointH(s32, float, u32)
-        {0xf8f0752e, "sceFontPixelToPointV", 17, 21}, // float sceFontPixelToPointV(s32, float, u32)
-        {0x472694cd, "sceFontPointToPixelH", 17, 22}, // float sceFontPointToPixelH(s32, float, u32)
-        {0x3c4b7e82, "sceFontPointToPixelV", 17, 23}, // float sceFontPointToPixelV(s32, float, u32)
-        {0xee232411, "sceFontSetAltCharacterCode", 17, 24}, // s32 sceFontSetAltCharacterCode(u32, u32)
-        {0x568be516, "sceFontGetShadowGlyphImage", 17, 25}, // s32 sceFontGetShadowGlyphImage(u32, u32, u32)
-        {0x5dcf6858, "sceFontGetShadowGlyphImage_Clip", 17, 26}, // s32 sceFontGetShadowGlyphImage_Clip(u32, u32, u32, s32, s32, s32, s32)
-        {0x02d7f94b, "sceFontFlush", 17, 27}, // s32 sceFontFlush(u32)
-    }},
-    psp_module{"sceNet", {
-        {0x39af39a6, "sceNetInit", 18, 0}, // s32 sceNetInit(u32, u32, u32, u32, u32)
-        {0x281928a9, "sceNetTerm", 18, 1}, // u32 sceNetTerm()
-        {0x89360950, "sceNetEtherNtostr", 18, 2}, // void sceNetEtherNtostr(u32, u32)
-        {0xd27961c9, "sceNetEtherStrton", 18, 3}, // void sceNetEtherStrton(u32, u32)
-        {0x0bf0a3ae, "sceNetGetLocalEtherAddr", 18, 4}, // u32 sceNetGetLocalEtherAddr(u32)
-        {0x50647530, "sceNetFreeThreadinfo", 18, 5}, // s32 sceNetFreeThreadinfo(s32)
-        {0xcc393e48, "sceNetGetMallocStat", 18, 6}, // s32 sceNetGetMallocStat(u32)
-        {0xad6844c6, "sceNetThreadAbort", 18, 7}, // s32 sceNetThreadAbort(s32)
-    }},
-    psp_module{"sceNetResolver", {
-        {0x224c5f44, "sceNetResolverStartNtoA", 19, 0}, //  sceNetResolverStartNtoA()
-        {0x244172af, "sceNetResolverCreate", 19, 1}, //  sceNetResolverCreate()
-        {0x94523e09, "sceNetResolverDelete", 19, 2}, //  sceNetResolverDelete()
-        {0xf3370e61, "sceNetResolverInit", 19, 3}, // s32 sceNetResolverInit()
-        {0x808f6063, "sceNetResolverStop", 19, 4}, //  sceNetResolverStop()
-        {0x6138194a, "sceNetResolverTerm", 19, 5}, //  sceNetResolverTerm()
-        {0x629e2fb7, "sceNetResolverStartAtoN", 19, 6}, //  sceNetResolverStartAtoN()
-        {0x14c17ef9, "sceNetResolverStartNtoAAsync", 19, 7}, //  sceNetResolverStartNtoAAsync()
-        {0xaac09184, "sceNetResolverStartAtoNAsync", 19, 8}, //  sceNetResolverStartAtoNAsync()
-        {0x12748eb9, "sceNetResolverWaitAsync", 19, 9}, //  sceNetResolverWaitAsync()
-        {0x4ee99358, "sceNetResolverPollAsync", 19, 10}, //  sceNetResolverPollAsync()
-    }},
-    psp_module{"sceNetInet", {
-        {0x17943399, "sceNetInetInit", 20, 0}, // s32 sceNetInetInit()
-        {0x4cfe4e56, "sceNetInetShutdown", 20, 1}, //  sceNetInetShutdown()
-        {0xa9ed66b9, "sceNetInetTerm", 20, 2}, // s32 sceNetInetTerm()
-        {0x8b7b220f, "sceNetInetSocket", 20, 3}, // s32 sceNetInetSocket(s32, s32, s32)
-        {0x2fe71fe7, "sceNetInetSetsockopt", 20, 4}, // s32 sceNetInetSetsockopt(s32, s32, s32, u32, s32)
-        {0x4a114c7c, "sceNetInetGetsockopt", 20, 5}, //  sceNetInetGetsockopt()
-        {0x410b34aa, "sceNetInetConnect", 20, 6}, // s32 sceNetInetConnect(s32, u32, s32)
-        {0x805502dd, "sceNetInetCloseWithRST", 20, 7}, //  sceNetInetCloseWithRST()
-        {0xd10a1a7a, "sceNetInetListen", 20, 8}, //  sceNetInetListen()
-        {0xdb094e1b, "sceNetInetAccept", 20, 9}, //  sceNetInetAccept()
-        {0xfaabb1dd, "sceNetInetPoll", 20, 10}, // s32 sceNetInetPoll(u32 *, u32, s32)
-        {0x5be8d595, "sceNetInetSelect", 20, 11}, //  sceNetInetSelect()
-        {0x8d7284ea, "sceNetInetClose", 20, 12}, //  sceNetInetClose()
-        {0xcda85c99, "sceNetInetRecv", 20, 13}, // s32 sceNetInetRecv(s32, u32, u32, u32)
-        {0xc91142e4, "sceNetInetRecvfrom", 20, 14}, //  sceNetInetRecvfrom()
-        {0xeece61d2, "sceNetInetRecvmsg", 20, 15}, //  sceNetInetRecvmsg()
-        {0x7aa671bc, "sceNetInetSend", 20, 16}, // s32 sceNetInetSend(s32, u32, u32, u32)
-        {0x05038fc7, "sceNetInetSendto", 20, 17}, //  sceNetInetSendto()
-        {0x774e36f4, "sceNetInetSendmsg", 20, 18}, //  sceNetInetSendmsg()
-        {0xfbabe411, "sceNetInetGetErrno", 20, 19}, // s32 sceNetInetGetErrno()
-        {0x1a33f9ae, "sceNetInetBind", 20, 20}, //  sceNetInetBind()
-        {0xb75d5b0a, "sceNetInetInetAddr", 20, 21}, //  sceNetInetInetAddr()
-        {0x1bdf5d13, "sceNetInetInetAton", 20, 22}, // s32 sceNetInetInetAton(const char *, u32)
-        {0xd0792666, "sceNetInetInetNtop", 20, 23}, //  sceNetInetInetNtop()
-        {0xe30b8c19, "sceNetInetInetPton", 20, 24}, //  sceNetInetInetPton()
-        {0x8ca3a97e, "sceNetInetGetPspError", 20, 25}, //  sceNetInetGetPspError()
-        {0xe247b6d6, "sceNetInetGetpeername", 20, 26}, //  sceNetInetGetpeername()
-        {0x162e6fd5, "sceNetInetGetsockname", 20, 27}, //  sceNetInetGetsockname()
-        {0x80a21abd, "sceNetInetSocketAbort", 20, 28}, //  sceNetInetSocketAbort()
-        {0x39b0c7d3, "sceNetInetGetUdpcbstat", 20, 29}, //  sceNetInetGetUdpcbstat()
-        {0xb3888ad4, "sceNetInetGetTcpcbstat", 20, 30}, //  sceNetInetGetTcpcbstat()
-    }},
-    psp_module{"sceNetApctl", {
-        {0xcfb957c6, "sceNetApctlConnect", 21, 0}, // s32 sceNetApctlConnect(s32)
-        {0x24fe91a1, "sceNetApctlDisconnect", 21, 1}, // s32 sceNetApctlDisconnect()
-        {0x5deac81b, "sceNetApctlGetState", 21, 2}, // s32 sceNetApctlGetState(u32)
-        {0x8abadd51, "sceNetApctlAddHandler", 21, 3}, // u32 sceNetApctlAddHandler(u32, u32)
-        {0xe2f91f9b, "sceNetApctlInit", 21, 4}, // s32 sceNetApctlInit(s32, s32)
-        {0x5963991b, "sceNetApctlDelHandler", 21, 5}, // s32 sceNetApctlDelHandler(u32)
-        {0xb3edd0ec, "sceNetApctlTerm", 21, 6}, // s32 sceNetApctlTerm()
-        {0x2befdf23, "sceNetApctlGetInfo", 21, 7}, // s32 sceNetApctlGetInfo(s32, u32)
-        {0xa3e77e13, "sceNetApctlScanSSID2", 21, 8}, // s32 sceNetApctlScanSSID2()
-        {0xe9b2e5e6, "sceNetApctlScanUser", 21, 9}, // s32 sceNetApctlScanUser()
-        {0xf25a5006, "sceNetApctlGetBSSDescIDList2", 21, 10}, // s32 sceNetApctlGetBSSDescIDList2(u32, u32, u32, u32)
-        {0x2935c45b, "sceNetApctlGetBSSDescEntry2", 21, 11}, // s32 sceNetApctlGetBSSDescEntry2(s32, s32, u32)
-        {0x04776994, "sceNetApctlGetBSSDescEntryUser", 21, 12}, // s32 sceNetApctlGetBSSDescEntryUser(s32, s32, u32)
-        {0x6bddcb8c, "sceNetApctlGetBSSDescIDListUser", 21, 13}, // s32 sceNetApctlGetBSSDescIDListUser(u32, u32)
-        {0x7cfab990, "sceNetApctlAddInternalHandler", 21, 14}, // s32 sceNetApctlAddInternalHandler(u32, u32)
-        {0xe11bafab, "sceNetApctlDelInternalHandler", 21, 15}, // s32 sceNetApctlDelInternalHandler(u32)
-        {0xa7bb73df, "sceNetApctl_A7BB73DF", 21, 16}, // s32 sceNetApctl_A7BB73DF(u32, u32)
-        {0x6f5d2981, "sceNetApctl_6F5D2981", 21, 17}, // s32 sceNetApctl_6F5D2981(u32)
-        {0x69745f0a, "sceNetApctl_lib2_69745F0A", 21, 18}, // s32 sceNetApctl_lib2_69745F0A(s32)
-        {0x4c19731f, "sceNetApctl_lib2_4C19731F", 21, 19}, // s32 sceNetApctl_lib2_4C19731F(s32, u32)
-        {0xb3cf6849, "sceNetApctlScan", 21, 20}, // s32 sceNetApctlScan()
-        {0x0c7ffa5c, "sceNetApctlGetBSSDescIDList", 21, 21}, // s32 sceNetApctlGetBSSDescIDList(u32, u32)
-        {0x96beb231, "sceNetApctlGetBSSDescEntry", 21, 22}, // s32 sceNetApctlGetBSSDescEntry(s32, s32, u32)
-        {0xc20a144c, "sceNetApctl_lib2_C20A144C", 21, 23}, // s32 sceNetApctl_lib2_C20A144C(s32, u32)
-        {0x756e6f10, "__NetApctlCallbacks", 21, 24}, // void __NetApctlCallbacks()
-    }},
-    psp_module{"sceNetAdhoc", {
-        {0xe1d621d7, "sceNetAdhocInit", 22, 0}, // u32 sceNetAdhocInit()
-        {0xa62c6f57, "sceNetAdhocTerm", 22, 1}, // s32 sceNetAdhocTerm()
-        {0x0ad043ed, "sceNetAdhocctlConnect", 22, 2}, // s32 sceNetAdhocctlConnect(const char *)
-        {0x6f92741b, "sceNetAdhocPdpCreate", 22, 3}, // s32 sceNetAdhocPdpCreate(const char *, s32, s32, u32)
-        {0xabed3790, "sceNetAdhocPdpSend", 22, 4}, // s32 sceNetAdhocPdpSend(s32, const char *, u32, u32 *, s32, s32, s32)
-        {0xdfe53e03, "sceNetAdhocPdpRecv", 22, 5}, // s32 sceNetAdhocPdpRecv(s32, u32 *, u32 *, u32 *, u32 *, u32, s32)
-        {0x7f27bb5e, "sceNetAdhocPdpDelete", 22, 6}, // s32 sceNetAdhocPdpDelete(s32, s32)
-        {0xc7c1fc57, "sceNetAdhocGetPdpStat", 22, 7}, // s32 sceNetAdhocGetPdpStat(u32, u32)
-        {0x157e6225, "sceNetAdhocPtpClose", 22, 8}, // s32 sceNetAdhocPtpClose(s32, s32)
-        {0x4da4c788, "sceNetAdhocPtpSend", 22, 9}, // s32 sceNetAdhocPtpSend(s32, u32, u32, s32, s32)
-        {0x877f6d66, "sceNetAdhocPtpOpen", 22, 10}, // s32 sceNetAdhocPtpOpen(const char *, s32, const char *, s32, s32, s32, s32, s32)
-        {0x8bea2b3e, "sceNetAdhocPtpRecv", 22, 11}, // s32 sceNetAdhocPtpRecv(s32, u32, u32, s32, s32)
-        {0x9df81198, "sceNetAdhocPtpAccept", 22, 12}, // s32 sceNetAdhocPtpAccept(s32, u32, u32, s32, s32)
-        {0xe08bdac1, "sceNetAdhocPtpListen", 22, 13}, // s32 sceNetAdhocPtpListen(const char *, s32, s32, s32, s32, s32, s32)
-        {0xfc6fc07b, "sceNetAdhocPtpConnect", 22, 14}, // s32 sceNetAdhocPtpConnect(s32, s32, s32)
-        {0x9ac2eeac, "sceNetAdhocPtpFlush", 22, 15}, // s32 sceNetAdhocPtpFlush(s32, s32, s32)
-        {0xb9685118, "sceNetAdhocGetPtpStat", 22, 16}, // s32 sceNetAdhocGetPtpStat(u32, u32)
-        {0x3278ab0c, "sceNetAdhocGameModeCreateReplica", 22, 17}, // s32 sceNetAdhocGameModeCreateReplica(const char *, u32, s32)
-        {0x98c204c8, "sceNetAdhocGameModeUpdateMaster", 22, 18}, // s32 sceNetAdhocGameModeUpdateMaster()
-        {0xfa324b4e, "sceNetAdhocGameModeUpdateReplica", 22, 19}, // s32 sceNetAdhocGameModeUpdateReplica(s32, u32)
-        {0xa0229362, "sceNetAdhocGameModeDeleteMaster", 22, 20}, // s32 sceNetAdhocGameModeDeleteMaster()
-        {0x0b2228e9, "sceNetAdhocGameModeDeleteReplica", 22, 21}, // s32 sceNetAdhocGameModeDeleteReplica(s32)
-        {0x7f75c338, "sceNetAdhocGameModeCreateMaster", 22, 22}, // s32 sceNetAdhocGameModeCreateMaster(u32, s32)
-        {0x73bfd52d, "sceNetAdhocSetSocketAlert", 22, 23}, // s32 sceNetAdhocSetSocketAlert(s32, s32)
-        {0x4d2ce199, "sceNetAdhocGetSocketAlert", 22, 24}, // s32 sceNetAdhocGetSocketAlert(s32, u32)
-        {0x7a662d6b, "sceNetAdhocPollSocket", 22, 25}, // s32 sceNetAdhocPollSocket(u32, s32, s32, s32)
-        {0x756e6e6f, "__NetTriggerCallbacks", 22, 26}, // void __NetTriggerCallbacks()
-    }},
-    psp_module{"sceNetAdhocMatching", {
-        {0x2a2a1e07, "sceNetAdhocMatchingInit", 23, 0}, // s32 sceNetAdhocMatchingInit(u32)
-        {0x7945ecda, "sceNetAdhocMatchingTerm", 23, 1}, // s32 sceNetAdhocMatchingTerm()
-        {0xca5eda6f, "sceNetAdhocMatchingCreate", 23, 2}, // s32 sceNetAdhocMatchingCreate(s32, s32, s32, s32, s32, s32, s32, s32, u32)
-        {0x93ef3843, "sceNetAdhocMatchingStart", 23, 3}, // s32 sceNetAdhocMatchingStart(s32, s32, s32, s32, s32, s32, u32)
-        {0xe8454c65, "sceNetAdhocMatchingStart2", 23, 4}, // s32 sceNetAdhocMatchingStart2(s32, s32, s32, s32, s32, s32, s32, s32, u32)
-        {0x32b156b3, "sceNetAdhocMatchingStop", 23, 5}, // s32 sceNetAdhocMatchingStop(s32)
-        {0xf16eaf4f, "sceNetAdhocMatchingDelete", 23, 6}, // s32 sceNetAdhocMatchingDelete(s32)
-        {0x5e3d4b79, "sceNetAdhocMatchingSelectTarget", 23, 7}, // s32 sceNetAdhocMatchingSelectTarget(s32, const char *, s32, u32)
-        {0xea3c6108, "sceNetAdhocMatchingCancelTarget", 23, 8}, // s32 sceNetAdhocMatchingCancelTarget(s32, const char *)
-        {0x8f58bedf, "sceNetAdhocMatchingCancelTargetWithOpt", 23, 9}, // s32 sceNetAdhocMatchingCancelTargetWithOpt(s32, const char *, s32, u32)
-        {0xb5d96c2a, "sceNetAdhocMatchingGetHelloOpt", 23, 10}, // s32 sceNetAdhocMatchingGetHelloOpt(s32, u32, u32)
-        {0xb58e61b7, "sceNetAdhocMatchingSetHelloOpt", 23, 11}, // s32 sceNetAdhocMatchingSetHelloOpt(s32, s32, u32)
-        {0xc58bcd9e, "sceNetAdhocMatchingGetMembers", 23, 12}, // s32 sceNetAdhocMatchingGetMembers(s32, u32, u32)
-        {0xf79472d7, "sceNetAdhocMatchingSendData", 23, 13}, // s32 sceNetAdhocMatchingSendData(s32, const char *, s32, u32)
-        {0xec19337d, "sceNetAdhocMatchingAbortSendData", 23, 14}, // s32 sceNetAdhocMatchingAbortSendData(s32, const char *)
-        {0x40f8f435, "sceNetAdhocMatchingGetPoolMaxAlloc", 23, 15}, // s32 sceNetAdhocMatchingGetPoolMaxAlloc()
-        {0x9c5cfb7d, "sceNetAdhocMatchingGetPoolStat", 23, 16}, // s32 sceNetAdhocMatchingGetPoolStat(u32)
-        {0x756e6f00, "__NetMatchingCallbacks", 23, 17}, // void __NetMatchingCallbacks()
-    }},
-    psp_module{"sceNetAdhocDiscover", {
-        {0x941b3877, "sceNetAdhocDiscoverInitStart", 24, 0}, // s32 sceNetAdhocDiscoverInitStart(u32)
-        {0x52de1b97, "sceNetAdhocDiscoverUpdate", 24, 1}, // s32 sceNetAdhocDiscoverUpdate()
-        {0x944ddbc6, "sceNetAdhocDiscoverGetStatus", 24, 2}, // s32 sceNetAdhocDiscoverGetStatus()
-        {0xa2246614, "sceNetAdhocDiscoverTerm", 24, 3}, // s32 sceNetAdhocDiscoverTerm()
-        {0xf7d13214, "sceNetAdhocDiscoverStop", 24, 4}, // s32 sceNetAdhocDiscoverStop()
-        {0xa423a21b, "sceNetAdhocDiscoverRequestSuspend", 24, 5}, // s32 sceNetAdhocDiscoverRequestSuspend()
-    }},
-    psp_module{"sceNetAdhocctl", {
-        {0xe26f226e, "sceNetAdhocctlInit", 25, 0}, // u32 sceNetAdhocctlInit(s32, s32, u32)
-        {0x9d689e13, "sceNetAdhocctlTerm", 25, 1}, // s32 sceNetAdhocctlTerm()
-        {0x20b317a0, "sceNetAdhocctlAddHandler", 25, 2}, // u32 sceNetAdhocctlAddHandler(u32, u32)
-        {0x6402490b, "sceNetAdhocctlDelHandler", 25, 3}, // u32 sceNetAdhocctlDelHandler(u32)
-        {0x34401d65, "sceNetAdhocctlDisconnect", 25, 4}, // u32 sceNetAdhocctlDisconnect()
-        {0x0ad043ed, "sceNetAdhocctlConnect", 25, 5}, // s32 sceNetAdhocctlConnect(const char *)
-        {0x08fff7a0, "sceNetAdhocctlScan", 25, 6}, // s32 sceNetAdhocctlScan()
-        {0x75ecd386, "sceNetAdhocctlGetState", 25, 7}, // s32 sceNetAdhocctlGetState(u32)
-        {0x8916c003, "sceNetAdhocctlGetNameByAddr", 25, 8}, // s32 sceNetAdhocctlGetNameByAddr(const char *, u32)
-        {0xded9d28e, "sceNetAdhocctlGetParameter", 25, 9}, // s32 sceNetAdhocctlGetParameter(u32)
-        {0x81aee1be, "sceNetAdhocctlGetScanInfo", 25, 10}, // s32 sceNetAdhocctlGetScanInfo(u32, u32)
-        {0x5e7f79c9, "sceNetAdhocctlJoin", 25, 11}, // s32 sceNetAdhocctlJoin(u32)
-        {0x8db83fdc, "sceNetAdhocctlGetPeerInfo", 25, 12}, // s32 sceNetAdhocctlGetPeerInfo(const char *, s32, u32)
-        {0xec0635c1, "sceNetAdhocctlCreate", 25, 13}, // s32 sceNetAdhocctlCreate(const char *)
-        {0xa5c055ce, "sceNetAdhocctlCreateEnterGameMode", 25, 14}, // s32 sceNetAdhocctlCreateEnterGameMode(const char *, s32, s32, u32, s32, s32)
-        {0x1ff89745, "sceNetAdhocctlJoinEnterGameMode", 25, 15}, // s32 sceNetAdhocctlJoinEnterGameMode(const char *, const char *, s32, s32)
-        {0xcf8e084d, "sceNetAdhocctlExitGameMode", 25, 16}, // s32 sceNetAdhocctlExitGameMode()
-        {0xe162cb14, "sceNetAdhocctlGetPeerList", 25, 17}, // s32 sceNetAdhocctlGetPeerList(u32, u32)
-        {0x362cbe8f, "sceNetAdhocctlGetAdhocId", 25, 18}, // s32 sceNetAdhocctlGetAdhocId(u32)
-        {0x5a014ce0, "sceNetAdhocctlGetGameModeInfo", 25, 19}, // s32 sceNetAdhocctlGetGameModeInfo(u32)
-        {0x99560abe, "sceNetAdhocctlGetAddrByName", 25, 20}, // s32 sceNetAdhocctlGetAddrByName(const char *, u32, u32)
-        {0xb0b80e80, "sceNetAdhocctlCreateEnterGameModeMin", 25, 21}, // s32 sceNetAdhocctlCreateEnterGameModeMin(const char *, s32, s32, s32, u32, u32, s32)
-    }},
-    psp_module{"sceRtc", {
-        {0xc41c2853, "sceRtcGetTickResolution", 26, 0}, // u32 sceRtcGetTickResolution()
-        {0x3f7ad767, "sceRtcGetCurrentTick", 26, 1}, // u32 sceRtcGetCurrentTick(u32)
-        {0x011f03c1, "sceRtcGetAccumulativeTime", 26, 2}, // u64 sceRtcGetAccumulativeTime()
-        {0x029ca3b3, "sceRtcGetAccumlativeTime", 26, 3}, // u64 sceRtcGetAccumlativeTime()
-        {0x4cfa57b0, "sceRtcGetCurrentClock", 26, 4}, // s32 sceRtcGetCurrentClock(u32, s32)
-        {0xe7c27d1b, "sceRtcGetCurrentClockLocalTime", 26, 5}, // s32 sceRtcGetCurrentClockLocalTime(u32)
-        {0x34885e0d, "sceRtcConvertUtcToLocalTime", 26, 6}, // s32 sceRtcConvertUtcToLocalTime(u32, u32)
-        {0x779242a2, "sceRtcConvertLocalTimeToUTC", 26, 7}, // s32 sceRtcConvertLocalTimeToUTC(u32, u32)
-        {0x42307a17, "sceRtcIsLeapYear", 26, 8}, // u32 sceRtcIsLeapYear(u32)
-        {0x05ef322c, "sceRtcGetDaysInMonth", 26, 9}, // u32 sceRtcGetDaysInMonth(u32, u32)
-        {0x57726bc1, "sceRtcGetDayOfWeek", 26, 10}, // u32 sceRtcGetDayOfWeek(u32, u32, u32)
-        {0x4b1b5e82, "sceRtcCheckValid", 26, 11}, // s32 sceRtcCheckValid(u32)
-        {0x3a807cc8, "sceRtcSetTime_t", 26, 12}, // s32 sceRtcSetTime_t(u32, u32)
-        {0x27c4594c, "sceRtcGetTime_t", 26, 13}, // s32 sceRtcGetTime_t(u32, u32 *)
-        {0xf006f264, "sceRtcSetDosTime", 26, 14}, // s32 sceRtcSetDosTime(u32, u32)
-        {0x36075567, "sceRtcGetDosTime", 26, 15}, // s32 sceRtcGetDosTime(u32, u32 *)
-        {0x7ace4c04, "sceRtcSetWin32FileTime", 26, 16}, // s32 sceRtcSetWin32FileTime(u32, u64)
-        {0xcf561893, "sceRtcGetWin32FileTime", 26, 17}, // s32 sceRtcGetWin32FileTime(u32, u32)
-        {0x7ed29e40, "sceRtcSetTick", 26, 18}, // u32 sceRtcSetTick(u32, )
-        {0x6ff40acc, "sceRtcGetTick", 26, 19}, // s32 sceRtcGetTick(u32, )
-        {0x9ed0ae87, "sceRtcCompareTick", 26, 20}, // s32 sceRtcCompareTick(u32, u32)
-        {0x44f45e05, "sceRtcTickAddTicks", 26, 21}, // s32 sceRtcTickAddTicks(u32, u32, u64)
-        {0x26d25a5d, "sceRtcTickAddMicroseconds", 26, 22}, // s32 sceRtcTickAddMicroseconds(u32, u32, u64)
-        {0xf2a4afe5, "sceRtcTickAddSeconds", 26, 23}, // s32 sceRtcTickAddSeconds(u32, u32, u64)
-        {0xe6605bca, "sceRtcTickAddMinutes", 26, 24}, // s32 sceRtcTickAddMinutes(u32, u32, u64)
-        {0x26d7a24a, "sceRtcTickAddHours", 26, 25}, // s32 sceRtcTickAddHours(u32, u32, s32)
-        {0xe51b4b7a, "sceRtcTickAddDays", 26, 26}, // s32 sceRtcTickAddDays(u32, u32, s32)
-        {0xcf3a2ca8, "sceRtcTickAddWeeks", 26, 27}, // s32 sceRtcTickAddWeeks(u32, u32, s32)
-        {0xdbf74f1b, "sceRtcTickAddMonths", 26, 28}, // s32 sceRtcTickAddMonths(u32, u32, s32)
-        {0x42842c77, "sceRtcTickAddYears", 26, 29}, // s32 sceRtcTickAddYears(u32, u32, s32)
-        {0xc663b3b9, "sceRtcFormatRFC2822", 26, 30}, // s32 sceRtcFormatRFC2822(u32, u32, s32)
-        {0x7de6711b, "sceRtcFormatRFC2822LocalTime", 26, 31}, // s32 sceRtcFormatRFC2822LocalTime(u32, u32)
-        {0x0498fb3c, "sceRtcFormatRFC3339", 26, 32}, // s32 sceRtcFormatRFC3339(u32, u32, s32)
-        {0x27f98543, "sceRtcFormatRFC3339LocalTime", 26, 33}, // s32 sceRtcFormatRFC3339LocalTime(u32, u32)
-        {0xdfbc5f16, "sceRtcParseDateTime", 26, 34}, // s32 sceRtcParseDateTime(u32, u32)
-        {0x28e1e988, "sceRtcParseRFC3339", 26, 35}, //  sceRtcParseRFC3339()
-        {0xe1c93e47, "sceRtcGetTime64_t", 26, 36}, // s32 sceRtcGetTime64_t(u32, )
-        {0x1909c99b, "sceRtcSetTime64_t", 26, 37}, // s32 sceRtcSetTime64_t(u32, u64)
-        {0x62685e98, "sceRtcGetLastAdjustedTime", 26, 38}, // s32 sceRtcGetLastAdjustedTime(u32)
-        {0x203ceb0d, "sceRtcGetLastReincarnatedTime", 26, 39}, // s32 sceRtcGetLastReincarnatedTime(u32)
-        {0x7d1fbed3, "sceRtcSetAlarmTick", 26, 40}, // s32 sceRtcSetAlarmTick(u32, u32)
-        {0xf5fcc995, "sceRtcGetCurrentNetworkTick", 26, 41}, //  sceRtcGetCurrentNetworkTick()
-        {0x81fcda34, "sceRtcIsAlarmed", 26, 42}, //  sceRtcIsAlarmed()
-        {0xfb3b18cd, "sceRtcRegisterCallback", 26, 43}, //  sceRtcRegisterCallback()
-        {0x6a676d2d, "sceRtcUnregisterCallback", 26, 44}, //  sceRtcUnregisterCallback()
-        {0xc2ddbeb5, "sceRtcGetAlarmTick", 26, 45}, //  sceRtcGetAlarmTick()
-    }},
-    psp_module{"sceWlanDrv", {
-        {0xd7763699, "sceWlanGetSwitchState", 27, 0}, // u32 sceWlanGetSwitchState()
-        {0x0c622081, "sceWlanGetEtherAddr", 27, 1}, // u32 sceWlanGetEtherAddr(u32)
-        {0x93440b11, "sceWlanDevIsPowerOn", 27, 2}, // u32 sceWlanDevIsPowerOn()
-    }},
-    psp_module{"sceMpeg", {
-        {0xe1ce83a7, "sceMpegGetAtracAu", 28, 0}, // s32 sceMpegGetAtracAu(u32, u32, u32, u32)
-        {0xfe246728, "sceMpegGetAvcAu", 28, 1}, // s32 sceMpegGetAvcAu(u32, u32, u32, u32)
-        {0xd8c5f121, "sceMpegCreate", 28, 2}, // u32 sceMpegCreate(u32, u32, u32, u32, u32, u32, u32)
-        {0xf8dcb679, "sceMpegQueryAtracEsSize", 28, 3}, // s32 sceMpegQueryAtracEsSize(u32, u32, u32)
-        {0xc132e22f, "sceMpegQueryMemSize", 28, 4}, // u32 sceMpegQueryMemSize()
-        {0x21ff80e4, "sceMpegQueryStreamOffset", 28, 5}, // s32 sceMpegQueryStreamOffset(u32, u32, u32)
-        {0x611e9e11, "sceMpegQueryStreamSize", 28, 6}, // u32 sceMpegQueryStreamSize(u32, u32)
-        {0x42560f23, "sceMpegRegistStream", 28, 7}, // s32 sceMpegRegistStream(u32, u32, u32)
-        {0x591a4aa2, "sceMpegUnRegistStream", 28, 8}, // u32 sceMpegUnRegistStream(u32, s32)
-        {0x707b7629, "sceMpegFlushAllStream", 28, 9}, // u32 sceMpegFlushAllStream(u32)
-        {0x500f0429, "sceMpegFlushStream", 28, 10}, // u32 sceMpegFlushStream(u32, s32)
-        {0xa780cf7e, "sceMpegMallocAvcEsBuf", 28, 11}, // s32 sceMpegMallocAvcEsBuf(u32)
-        {0xceb870b1, "sceMpegFreeAvcEsBuf", 28, 12}, // s32 sceMpegFreeAvcEsBuf(u32, s32)
-        {0x167afd9e, "sceMpegInitAu", 28, 13}, // s32 sceMpegInitAu(u32, u32, u32)
-        {0x682a619b, "sceMpegInit", 28, 14}, // u32 sceMpegInit()
-        {0x606a4649, "sceMpegDelete", 28, 15}, // s32 sceMpegDelete(u32)
-        {0x874624d6, "sceMpegFinish", 28, 16}, // u32 sceMpegFinish()
-        {0x800c44df, "sceMpegAtracDecode", 28, 17}, // u32 sceMpegAtracDecode(u32, u32, u32, s32)
-        {0x0e3c2e9d, "sceMpegAvcDecode", 28, 18}, // u32 sceMpegAvcDecode(u32, u32, u32, u32, u32)
-        {0x740fccd1, "sceMpegAvcDecodeStop", 28, 19}, // u32 sceMpegAvcDecodeStop(u32, u32, u32, u32)
-        {0x4571cc64, "sceMpegAvcDecodeFlush", 28, 20}, // u32 sceMpegAvcDecodeFlush(u32)
-        {0x0f6c18d7, "sceMpegAvcDecodeDetail", 28, 21}, // s32 sceMpegAvcDecodeDetail(u32, u32)
-        {0xa11c7026, "sceMpegAvcDecodeMode", 28, 22}, // s32 sceMpegAvcDecodeMode(u32, u32)
-        {0x37295ed8, "sceMpegRingbufferConstruct", 28, 23}, // u32 sceMpegRingbufferConstruct(u32, u32, u32, u32, u32, u32)
-        {0x13407f13, "sceMpegRingbufferDestruct", 28, 24}, // u32 sceMpegRingbufferDestruct(u32)
-        {0xb240a59e, "sceMpegRingbufferPut", 28, 25}, // u32 sceMpegRingbufferPut(u32, u32, u32)
-        {0xb5f6dc87, "sceMpegRingbufferAvailableSize", 28, 26}, // s32 sceMpegRingbufferAvailableSize(u32)
-        {0xd7a29f46, "sceMpegRingbufferQueryMemSize", 28, 27}, // u32 sceMpegRingbufferQueryMemSize(s32)
-        {0x769bebb6, "sceMpegRingbufferQueryPackNum", 28, 28}, // s32 sceMpegRingbufferQueryPackNum(u32)
-        {0x211a057c, "sceMpegAvcQueryYCbCrSize", 28, 29}, // s32 sceMpegAvcQueryYCbCrSize(u32, u32, u32, u32, u32)
-        {0xf0eb1125, "sceMpegAvcDecodeYCbCr", 28, 30}, // s32 sceMpegAvcDecodeYCbCr(u32, u32, u32, u32)
-        {0xf2930c9c, "sceMpegAvcDecodeStopYCbCr", 28, 31}, // u32 sceMpegAvcDecodeStopYCbCr(u32, u32, u32)
-        {0x67179b1b, "sceMpegAvcInitYCbCr", 28, 32}, // u32 sceMpegAvcInitYCbCr(u32, s32, s32, s32, u32)
-        {0x0558b075, "sceMpegAvcCopyYCbCr", 28, 33}, // u32 sceMpegAvcCopyYCbCr(u32, u32, u32)
-        {0x31bd0272, "sceMpegAvcCsc", 28, 34}, // u32 sceMpegAvcCsc(u32, u32, u32, s32, u32)
-        {0x9dcfb7ea, "sceMpegChangeGetAuMode", 28, 35}, // u32 sceMpegChangeGetAuMode(u32, s32, s32)
-        {0x8c1e027d, "sceMpegGetPcmAu", 28, 36}, // u32 sceMpegGetPcmAu(u32, s32, u32, u32)
-        {0xc02cf6b5, "sceMpegQueryPcmEsSize", 28, 37}, // s32 sceMpegQueryPcmEsSize(u32, u32, u32)
-        {0xc45c99cc, "sceMpegQueryUserdataEsSize", 28, 38}, // u32 sceMpegQueryUserdataEsSize(u32, u32, u32)
-        {0x234586ae, "sceMpegChangeGetAvcAuMode", 28, 39}, // u32 sceMpegChangeGetAvcAuMode(u32, u32, s32)
-        {0x63b9536a, "sceMpegAvcResourceGetAvcDecTopAddr", 28, 40}, // u32 sceMpegAvcResourceGetAvcDecTopAddr(u32)
-        {0x8160a2fe, "sceMpegAvcResourceFinish", 28, 41}, // u32 sceMpegAvcResourceFinish(u32)
-        {0xaf26bb01, "sceMpegAvcResourceGetAvcEsBuf", 28, 42}, // u32 sceMpegAvcResourceGetAvcEsBuf(u32)
-        {0xfcbdb5ad, "sceMpegAvcResourceInit", 28, 43}, // u32 sceMpegAvcResourceInit(u32)
-        {0xf5e7ea31, "sceMpegAvcConvertToYuv420", 28, 44}, // s32 sceMpegAvcConvertToYuv420(u32, u32, u32, s32)
-        {0x01977054, "sceMpegGetUserdataAu", 28, 45}, // s32 sceMpegGetUserdataAu(u32, u32, u32, u32)
-        {0x3c37a7a6, "sceMpegNextAvcRpAu", 28, 46}, // u32 sceMpegNextAvcRpAu(u32, u32)
-        {0x11f95cf1, "sceMpegGetAvcNalAu", 28, 47}, // u32 sceMpegGetAvcNalAu(u32)
-        {0xab0e9556, "sceMpegAvcDecodeDetailIndex", 28, 48}, // u32 sceMpegAvcDecodeDetailIndex(u32)
-        {0xcf3547a2, "sceMpegAvcDecodeDetail2", 28, 49}, // u32 sceMpegAvcDecodeDetail2(u32)
-        {0x921fcccf, "sceMpegGetAvcEsAu", 28, 50}, // u32 sceMpegGetAvcEsAu(u32)
-        {0xe95838f6, "sceMpegAvcCscInfo", 28, 51}, // u32 sceMpegAvcCscInfo(u32)
-        {0xd1ce4950, "sceMpegAvcCscMode", 28, 52}, // u32 sceMpegAvcCscMode(u32)
-        {0xdbb60658, "sceMpegFlushAu", 28, 53}, // u32 sceMpegFlushAu(u32)
-        {0xd4dd6e75, "sceMpeg_D4DD6E75", 28, 54}, //  sceMpeg_D4DD6E75()
-        {0x11cab459, "sceMpeg_11CAB459", 28, 55}, //  sceMpeg_11CAB459()
-        {0xc345ded2, "sceMpeg_C345DED2", 28, 56}, //  sceMpeg_C345DED2()
-        {0xb27711a8, "sceMpeg_B27711A8", 28, 57}, //  sceMpeg_B27711A8()
-        {0x988e9e12, "sceMpeg_988E9E12", 28, 58}, //  sceMpeg_988E9E12()
-    }},
-    psp_module{"sceMp3", {
-        {0x07ec321a, "sceMp3ReserveMp3Handle", 29, 0}, // u32 sceMp3ReserveMp3Handle(u32)
-        {0x0db149f4, "sceMp3NotifyAddStreamData", 29, 1}, // s32 sceMp3NotifyAddStreamData(u32, s32)
-        {0x2a368661, "sceMp3ResetPlayPosition", 29, 2}, // s32 sceMp3ResetPlayPosition(u32)
-        {0x354d27ea, "sceMp3GetSumDecodedSample", 29, 3}, // s32 sceMp3GetSumDecodedSample(u32)
-        {0x35750070, "sceMp3InitResource", 29, 4}, // s32 sceMp3InitResource()
-        {0x3c2fa058, "sceMp3TermResource", 29, 5}, // s32 sceMp3TermResource()
-        {0x3cef484f, "sceMp3SetLoopNum", 29, 6}, // s32 sceMp3SetLoopNum(u32, s32)
-        {0x44e07129, "sceMp3Init", 29, 7}, // s32 sceMp3Init(u32)
-        {0x732b042a, "sceMp3EndEntry", 29, 8}, // u32 sceMp3EndEntry()
-        {0x7f696782, "sceMp3GetMp3ChannelNum", 29, 9}, // s32 sceMp3GetMp3ChannelNum(u32)
-        {0x87677e40, "sceMp3GetBitRate", 29, 10}, // s32 sceMp3GetBitRate(u32)
-        {0x87c263d1, "sceMp3GetMaxOutputSample", 29, 11}, // s32 sceMp3GetMaxOutputSample(u32)
-        {0x8ab81558, "sceMp3StartEntry", 29, 12}, // u32 sceMp3StartEntry()
-        {0x8f450998, "sceMp3GetSamplingRate", 29, 13}, // s32 sceMp3GetSamplingRate(u32)
-        {0xa703fe0f, "sceMp3GetInfoToAddStreamData", 29, 14}, // s32 sceMp3GetInfoToAddStreamData(u32, u32 *, u32 *, u32 *)
-        {0xd021c0fb, "sceMp3Decode", 29, 15}, // s32 sceMp3Decode(u32, u32 *)
-        {0xd0a56296, "sceMp3CheckStreamDataNeeded", 29, 16}, // s32 sceMp3CheckStreamDataNeeded(u32)
-        {0xd8f54a51, "sceMp3GetLoopNum", 29, 17}, // s32 sceMp3GetLoopNum(u32)
-        {0xf5478233, "sceMp3ReleaseMp3Handle", 29, 18}, // s32 sceMp3ReleaseMp3Handle(u32)
-        {0xae6d2027, "sceMp3GetMPEGVersion", 29, 19}, // u32 sceMp3GetMPEGVersion(u32)
-        {0x3548aec8, "sceMp3GetFrameNum", 29, 20}, // s32 sceMp3GetFrameNum(u32)
-        {0x0840e808, "sceMp3ResetPlayPositionByFrame", 29, 21}, // s32 sceMp3ResetPlayPositionByFrame(u32, s32)
-        {0x1b839b83, "sceMp3LowLevelInit", 29, 22}, // u32 sceMp3LowLevelInit(u32, u32)
-        {0xe3ee2c81, "sceMp3LowLevelDecode", 29, 23}, // u32 sceMp3LowLevelDecode(u32, u32, u32, u32, u32)
-    }},
-    psp_module{"sceHttp", {
-        {0xab1abe07, "sceHttpInit", 30, 0}, // s32 sceHttpInit(s32)
-        {0xd1c8945e, "sceHttpEnd", 30, 1}, // s32 sceHttpEnd()
-        {0xa6800c34, "sceHttpInitCache", 30, 2}, // s32 sceHttpInitCache(s32)
-        {0x78b54c09, "sceHttpEndCache", 30, 3}, // s32 sceHttpEndCache()
-        {0x59e6d16f, "sceHttpEnableCache", 30, 4}, // s32 sceHttpEnableCache(s32)
-        {0xccbd167a, "sceHttpDisableCache", 30, 5}, // s32 sceHttpDisableCache(s32)
-        {0xd70d4847, "sceHttpGetProxy", 30, 6}, // u32 sceHttpGetProxy(u32, u32, u32, u32, u32, u32)
-        {0x4cc7d78f, "sceHttpGetStatusCode", 30, 7}, // s32 sceHttpGetStatusCode(s32, u32)
-        {0xedeeb999, "sceHttpReadData", 30, 8}, // s32 sceHttpReadData(s32, u32, u32)
-        {0xbb70706f, "sceHttpSendRequest", 30, 9}, // s32 sceHttpSendRequest(s32, u32, u32)
-        {0xa5512e01, "sceHttpDeleteRequest", 30, 10}, // s32 sceHttpDeleteRequest(s32)
-        {0x15540184, "sceHttpDeleteHeader", 30, 11}, // s32 sceHttpDeleteHeader(s32, const char *)
-        {0x5152773b, "sceHttpDeleteConnection", 30, 12}, // s32 sceHttpDeleteConnection(s32)
-        {0x8acd1f73, "sceHttpSetConnectTimeOut", 30, 13}, // s32 sceHttpSetConnectTimeOut(s32, u32)
-        {0x9988172d, "sceHttpSetSendTimeOut", 30, 14}, // s32 sceHttpSetSendTimeOut(s32, u32)
-        {0xf0f46c62, "sceHttpSetProxy", 30, 15}, // u32 sceHttpSetProxy(u32, u32, u32, u32, u32)
-        {0x0dafa58f, "sceHttpEnableCookie", 30, 16}, // s32 sceHttpEnableCookie(s32)
-        {0x78a0d3ec, "sceHttpEnableKeepAlive", 30, 17}, // s32 sceHttpEnableKeepAlive(s32)
-        {0x0b12abfb, "sceHttpDisableCookie", 30, 18}, // s32 sceHttpDisableCookie(s32)
-        {0xc7ef2559, "sceHttpDisableKeepAlive", 30, 19}, // s32 sceHttpDisableKeepAlive(s32)
-        {0xe4d21302, "sceHttpsInit", 30, 20}, // s32 sceHttpsInit(s32, s32, s32, s32)
-        {0xf9d8eb63, "sceHttpsEnd", 30, 21}, // s32 sceHttpsEnd()
-        {0x47347b50, "sceHttpCreateRequest", 30, 22}, // s32 sceHttpCreateRequest(s32, s32, const char *, u64)
-        {0x8eefd953, "sceHttpCreateConnection", 30, 23}, // s32 sceHttpCreateConnection(s32, const char *, const char *, u32, s32)
-        {0xd081ec8f, "sceHttpGetNetworkErrno", 30, 24}, // s32 sceHttpGetNetworkErrno(s32, u32)
-        {0x3eaba285, "sceHttpAddExtraHeader", 30, 25}, // s32 sceHttpAddExtraHeader(s32, const char *, const char *, s32)
-        {0xc10b6bd9, "sceHttpAbortRequest", 30, 26}, // s32 sceHttpAbortRequest(s32)
-        {0xfcf8c055, "sceHttpDeleteTemplate", 30, 27}, // s32 sceHttpDeleteTemplate(s32)
-        {0xf49934f6, "sceHttpSetMallocFunction", 30, 28}, // s32 sceHttpSetMallocFunction(u32, u32, u32)
-        {0x03d9526f, "sceHttpSetResolveRetry", 30, 29}, // s32 sceHttpSetResolveRetry(s32, s32)
-        {0x47940436, "sceHttpSetResolveTimeOut", 30, 30}, // s32 sceHttpSetResolveTimeOut(s32, u32)
-        {0x2a6c3296, "sceHttpSetAuthInfoCB", 30, 31}, // s32 sceHttpSetAuthInfoCB(s32, u32)
-        {0x0809c831, "sceHttpEnableRedirect", 30, 32}, // s32 sceHttpEnableRedirect(s32)
-        {0x9fc5f10d, "sceHttpEnableAuth", 30, 33}, // s32 sceHttpEnableAuth(s32)
-        {0x1a0ebb69, "sceHttpDisableRedirect", 30, 34}, // s32 sceHttpDisableRedirect(s32)
-        {0xae948fee, "sceHttpDisableAuth", 30, 35}, // s32 sceHttpDisableAuth(s32)
-        {0x76d1363b, "sceHttpSaveSystemCookie", 30, 36}, // s32 sceHttpSaveSystemCookie()
-        {0x87797bdd, "sceHttpsLoadDefaultCert", 30, 37}, // s32 sceHttpsLoadDefaultCert(s32, s32)
-        {0xf1657b22, "sceHttpLoadSystemCookie", 30, 38}, // s32 sceHttpLoadSystemCookie()
-        {0x9b1f1f36, "sceHttpCreateTemplate", 30, 39}, // s32 sceHttpCreateTemplate(const char *, s32, s32)
-        {0xb509b09e, "sceHttpCreateRequestWithURL", 30, 40}, // s32 sceHttpCreateRequestWithURL(s32, s32, const char *, u64)
-        {0xcdf8ecb9, "sceHttpCreateConnectionWithURL", 30, 41}, // s32 sceHttpCreateConnectionWithURL(s32, const char *, s32)
-        {0x1f0fc3e3, "sceHttpSetRecvTimeOut", 30, 42}, // s32 sceHttpSetRecvTimeOut(s32, u32)
-        {0xdb266ccf, "sceHttpGetAllHeader", 30, 43}, // s32 sceHttpGetAllHeader(s32, u32, u32)
-        {0x0282a3bd, "sceHttpGetContentLength", 30, 44}, // s32 sceHttpGetContentLength(s32, u64)
-        {0x7774bf4c, "sceHttpAddCookie", 30, 45}, //  sceHttpAddCookie()
-        {0x68ab0f86, "sceHttpsInitWithPath", 30, 46}, //  sceHttpsInitWithPath()
-        {0xb3faf831, "sceHttpsDisableOption", 30, 47}, //  sceHttpsDisableOption()
-        {0x2255551e, "sceHttpGetNetworkPspError", 30, 48}, //  sceHttpGetNetworkPspError()
-        {0xab1540d5, "sceHttpsGetSslError", 30, 49}, //  sceHttpsGetSslError()
-        {0xa4496de5, "sceHttpSetRedirectCallback", 30, 50}, //  sceHttpSetRedirectCallback()
-        {0x267618f4, "sceHttpSetAuthInfoCallback", 30, 51}, //  sceHttpSetAuthInfoCallback()
-        {0x569a1481, "sceHttpsSetSslCallback", 30, 52}, //  sceHttpsSetSslCallback()
-        {0xbac31bf1, "sceHttpsEnableOption", 30, 53}, //  sceHttpsEnableOption()
-    }},
-    psp_module{"scePower", {
-        {0x04b7766e, "scePowerRegisterCallback", 31, 0}, // s32 scePowerRegisterCallback(s32, s32)
-        {0x2b51fe2f, "scePower_2B51FE2F", 31, 1}, //  scePower_2B51FE2F()
-        {0x442bfbac, "scePowerGetBacklightMaximum", 31, 2}, //  scePowerGetBacklightMaximum()
-        {0xefd3c963, "scePowerTick", 31, 3}, // s32 scePowerTick()
-        {0xedc13fe5, "scePowerGetIdleTimer", 31, 4}, //  scePowerGetIdleTimer()
-        {0x7f30b3b1, "scePowerIdleTimerEnable", 31, 5}, //  scePowerIdleTimerEnable()
-        {0x972ce941, "scePowerIdleTimerDisable", 31, 6}, //  scePowerIdleTimerDisable()
-        {0x27f3292c, "scePowerBatteryUpdateInfo", 31, 7}, //  scePowerBatteryUpdateInfo()
-        {0xe8e4e204, "scePowerGetForceSuspendCapacity", 31, 8}, //  scePowerGetForceSuspendCapacity()
-        {0xb999184c, "scePowerGetLowBatteryCapacity", 31, 9}, //  scePowerGetLowBatteryCapacity()
-        {0x87440f5e, "scePowerIsPowerOnline", 31, 10}, // s32 scePowerIsPowerOnline()
-        {0x0afd0d8b, "scePowerIsBatteryExist", 31, 11}, // s32 scePowerIsBatteryExist()
-        {0x1e490401, "scePowerIsBatteryCharging", 31, 12}, // s32 scePowerIsBatteryCharging()
-        {0xb4432bc8, "scePowerGetBatteryChargingStatus", 31, 13}, // s32 scePowerGetBatteryChargingStatus()
-        {0xd3075926, "scePowerIsLowBattery", 31, 14}, // s32 scePowerIsLowBattery()
-        {0x78a1a796, "scePowerIsSuspendRequired", 31, 15}, //  scePowerIsSuspendRequired()
-        {0x94f5a53f, "scePowerGetBatteryRemainCapacity", 31, 16}, //  scePowerGetBatteryRemainCapacity()
-        {0xfd18a0ff, "scePowerGetBatteryFullCapacity", 31, 17}, //  scePowerGetBatteryFullCapacity()
-        {0x2085d15d, "scePowerGetBatteryLifePercent", 31, 18}, // s32 scePowerGetBatteryLifePercent()
-        {0x8efb3fa2, "scePowerGetBatteryLifeTime", 31, 19}, // s32 scePowerGetBatteryLifeTime()
-        {0x28e12023, "scePowerGetBatteryTemp", 31, 20}, // s32 scePowerGetBatteryTemp()
-        {0x862ae1a6, "scePowerGetBatteryElec", 31, 21}, //  scePowerGetBatteryElec()
-        {0x483ce86b, "scePowerGetBatteryVolt", 31, 22}, //  scePowerGetBatteryVolt()
-        {0xcb49f5ce, "scePowerGetBatteryChargeCycle", 31, 23}, //  scePowerGetBatteryChargeCycle()
-        {0x23436a4a, "scePowerGetInnerTemp", 31, 24}, //  scePowerGetInnerTemp()
-        {0x0cd21b1f, "scePowerSetPowerSwMode", 31, 25}, //  scePowerSetPowerSwMode()
-        {0x165ce085, "scePowerGetPowerSwMode", 31, 26}, //  scePowerGetPowerSwMode()
-        {0xd6d016ef, "scePowerLock", 31, 27}, //  scePowerLock()
-        {0xca3d34c1, "scePowerUnlock", 31, 28}, //  scePowerUnlock()
-        {0xdb62c9cf, "scePowerCancelRequest", 31, 29}, //  scePowerCancelRequest()
-        {0x7fa406dd, "scePowerIsRequest", 31, 30}, //  scePowerIsRequest()
-        {0x2b7c7cf4, "scePowerRequestStandby", 31, 31}, //  scePowerRequestStandby()
-        {0xac32c9cc, "scePowerRequestSuspend", 31, 32}, //  scePowerRequestSuspend()
-        {0x2875994b, "scePower_2875994B", 31, 33}, //  scePower_2875994B()
-        {0x0074ef9b, "scePowerGetResumeCount", 31, 34}, //  scePowerGetResumeCount()
-        {0xdfa8baf8, "scePowerUnregisterCallback", 31, 35}, // s32 scePowerUnregisterCallback(s32)
-        {0xdb9d28dd, "scePowerUnregitserCallback", 31, 36}, // s32 scePowerUnregitserCallback(s32)
-        {0x843fbf43, "scePowerSetCpuClockFrequency", 31, 37}, // u32 scePowerSetCpuClockFrequency(u32)
-        {0xb8d7b3fb, "scePowerSetBusClockFrequency", 31, 38}, // u32 scePowerSetBusClockFrequency(u32)
-        {0xfee03a2f, "scePowerGetCpuClockFrequency", 31, 39}, // u32 scePowerGetCpuClockFrequency()
-        {0x478fe6f5, "scePowerGetBusClockFrequency", 31, 40}, // u32 scePowerGetBusClockFrequency()
-        {0xfdb5bfe9, "scePowerGetCpuClockFrequencyInt", 31, 41}, // u32 scePowerGetCpuClockFrequencyInt()
-        {0xbd681969, "scePowerGetBusClockFrequencyInt", 31, 42}, // u32 scePowerGetBusClockFrequencyInt()
-        {0xb1a52c83, "scePowerGetCpuClockFrequencyFloat", 31, 43}, // float scePowerGetCpuClockFrequencyFloat()
-        {0x9badb3eb, "scePowerGetBusClockFrequencyFloat", 31, 44}, // float scePowerGetBusClockFrequencyFloat()
-        {0x737486f2, "scePowerSetClockFrequency", 31, 45}, // u32 scePowerSetClockFrequency(u32, u32, u32)
-        {0x34f9c463, "scePowerGetPllClockFrequencyInt", 31, 46}, // u32 scePowerGetPllClockFrequencyInt()
-        {0xea382a27, "scePowerGetPllClockFrequencyFloat", 31, 47}, // float scePowerGetPllClockFrequencyFloat()
-        {0xebd177d6, "scePowerSetClockFrequency350", 31, 48}, // u32 scePowerSetClockFrequency350(u32, u32, u32)
-        {0x469989ad, "scePower_469989ad", 31, 49}, // u32 scePower_469989ad(u32, u32, u32)
-        {0x545a7f3c, "scePower_545A7F3C", 31, 50}, //  scePower_545A7F3C()
-        {0xa4e93389, "scePower_A4E93389", 31, 51}, //  scePower_A4E93389()
-        {0xa85880d0, "scePower_a85880d0_IsPSPNonFat", 31, 52}, // u32 scePower_a85880d0_IsPSPNonFat()
-        {0x3951af53, "scePowerWaitRequestCompletion", 31, 53}, //  scePowerWaitRequestCompletion()
-        {0x0442d852, "scePowerRequestColdReset", 31, 54}, //  scePowerRequestColdReset()
-        {0xbafa3df0, "scePowerGetCallbackMode", 31, 55}, //  scePowerGetCallbackMode()
-        {0xa9d22232, "scePowerSetCallbackMode", 31, 56}, //  scePowerSetCallbackMode()
-        {0x23c31ffe, "scePowerVolatileMemLock", 31, 57}, // s32 scePowerVolatileMemLock(s32, u32, u32)
-        {0xfa97a599, "scePowerVolatileMemTryLock", 31, 58}, // s32 scePowerVolatileMemTryLock(s32, u32, u32)
-        {0xb3edd801, "scePowerVolatileMemUnlock", 31, 59}, // s32 scePowerVolatileMemUnlock(s32)
-    }},
-    psp_module{"sceImpose", {
-        {0x36aa6e91, "sceImposeSetLanguageMode", 32, 0}, // u32 sceImposeSetLanguageMode(u32, u32)
-        {0x381bd9e7, "sceImposeHomeButton", 32, 1}, //  sceImposeHomeButton()
-        {0x0f341be4, "sceImposeGetHomePopup", 32, 2}, //  sceImposeGetHomePopup()
-        {0x5595a71a, "sceImposeSetHomePopup", 32, 3}, //  sceImposeSetHomePopup()
-        {0x24fd7bcf, "sceImposeGetLanguageMode", 32, 4}, // u32 sceImposeGetLanguageMode(u32, u32)
-        {0x8c943191, "sceImposeGetBatteryIconStatus", 32, 5}, // u32 sceImposeGetBatteryIconStatus(u32, u32)
-        {0x72189c48, "sceImposeSetUMDPopup", 32, 6}, // u32 sceImposeSetUMDPopup(s32)
-        {0xe0887bc8, "sceImposeGetUMDPopup", 32, 7}, // u32 sceImposeGetUMDPopup()
-        {0x8f6e3518, "sceImposeGetBacklightOffTime", 32, 8}, // u32 sceImposeGetBacklightOffTime()
-        {0x967f6d4a, "sceImposeSetBacklightOffTime", 32, 9}, // u32 sceImposeSetBacklightOffTime(s32)
-        {0xfcd44963, "sceImpose_FCD44963", 32, 10}, //  sceImpose_FCD44963()
-        {0xa9884b00, "sceImpose_A9884B00", 32, 11}, //  sceImpose_A9884B00()
-        {0xbb3f5dec, "sceImpose_BB3F5DEC", 32, 12}, //  sceImpose_BB3F5DEC()
-        {0x9ba61b49, "sceImpose_9BA61B49", 32, 13}, //  sceImpose_9BA61B49()
-        {0xff1a2f07, "sceImpose_FF1A2F07", 32, 14}, //  sceImpose_FF1A2F07()
-    }},
-    psp_module{"sceSuspendForUser", {
-        {0xeadb1bd7, "sceKernelPowerLock", 33, 0}, // s32 sceKernelPowerLock(s32)
-        {0x3aee7261, "sceKernelPowerUnlock", 33, 1}, // s32 sceKernelPowerUnlock(s32)
-        {0x090ccb3f, "sceKernelPowerTick", 33, 2}, // s32 sceKernelPowerTick(s32)
-        {0xa14f40b2, "sceKernelVolatileMemTryLock", 33, 3}, // s32 sceKernelVolatileMemTryLock(s32, u32, u32)
-        {0xa569e425, "sceKernelVolatileMemUnlock", 33, 4}, // s32 sceKernelVolatileMemUnlock(s32)
-        {0x3e0271d3, "sceKernelVolatileMemLock", 33, 5}, // s32 sceKernelVolatileMemLock(s32, u32, u32)
-    }},
-    psp_module{"sceGe_user", {
-        {0xe47e40e4, "sceGeEdramGetAddr", 34, 0}, // u32 sceGeEdramGetAddr()
-        {0xab49e76a, "sceGeListEnQueue", 34, 1}, // u32 sceGeListEnQueue(u32, u32, s32, u32 *)
-        {0x1c0d95a6, "sceGeListEnQueueHead", 34, 2}, // u32 sceGeListEnQueueHead(u32, u32, s32, u32 *)
-        {0xe0d68148, "sceGeListUpdateStallAddr", 34, 3}, // s32 sceGeListUpdateStallAddr(u32, u32)
-        {0x03444eb4, "sceGeListSync", 34, 4}, // s32 sceGeListSync(u32, u32)
-        {0xb287bd61, "sceGeDrawSync", 34, 5}, // u32 sceGeDrawSync(u32)
-        {0xb448ec0d, "sceGeBreak", 34, 6}, // s32 sceGeBreak(u32, u32)
-        {0x4c06e472, "sceGeContinue", 34, 7}, // s32 sceGeContinue()
-        {0xa4fc06a4, "sceGeSetCallback", 34, 8}, // u32 sceGeSetCallback(u32)
-        {0x05db22ce, "sceGeUnsetCallback", 34, 9}, // s32 sceGeUnsetCallback(u32)
-        {0x1f6752ad, "sceGeEdramGetSize", 34, 10}, // u32 sceGeEdramGetSize()
-        {0xb77905ea, "sceGeEdramSetAddrTranslation", 34, 11}, // u32 sceGeEdramSetAddrTranslation(s32)
-        {0xdc93cfef, "sceGeGetCmd", 34, 12}, // u32 sceGeGetCmd(s32)
-        {0x57c8945b, "sceGeGetMtx", 34, 13}, // s32 sceGeGetMtx(s32, u32)
-        {0x438a385a, "sceGeSaveContext", 34, 14}, // u32 sceGeSaveContext(u32)
-        {0x0bf608fb, "sceGeRestoreContext", 34, 15}, // u32 sceGeRestoreContext(u32)
-        {0x5fb86ab0, "sceGeListDeQueue", 34, 16}, // s32 sceGeListDeQueue(u32)
-        {0xe66cb92e, "sceGeGetStack", 34, 17}, // s32 sceGeGetStack(s32, u32)
-    }},
-    psp_module{"sceUmdUser", {
-        {0xc6183d47, "sceUmdActivate", 35, 0}, // s32 sceUmdActivate(s32, const char *)
-        {0x6b4a146c, "sceUmdGetDriveStat", 35, 1}, // u32 sceUmdGetDriveStat()
-        {0x46ebb729, "sceUmdCheckMedium", 35, 2}, // s32 sceUmdCheckMedium()
-        {0xe83742ba, "sceUmdDeactivate", 35, 3}, // s32 sceUmdDeactivate(u32, const char *)
-        {0x8ef08fce, "sceUmdWaitDriveStat", 35, 4}, // s32 sceUmdWaitDriveStat(u32)
-        {0x56202973, "sceUmdWaitDriveStatWithTimer", 35, 5}, // s32 sceUmdWaitDriveStatWithTimer(u32, u32)
-        {0x4a9e5e29, "sceUmdWaitDriveStatCB", 35, 6}, // s32 sceUmdWaitDriveStatCB(u32, u32)
-        {0x6af9b50a, "sceUmdCancelWaitDriveStat", 35, 7}, // u32 sceUmdCancelWaitDriveStat()
-        {0x20628e6f, "sceUmdGetErrorStat", 35, 8}, // u32 sceUmdGetErrorStat()
-        {0x340b7686, "sceUmdGetDiscInfo", 35, 9}, // u32 sceUmdGetDiscInfo(u32)
-        {0xaee7404d, "sceUmdRegisterUMDCallBack", 35, 10}, // u32 sceUmdRegisterUMDCallBack(u32)
-        {0xbd2bde07, "sceUmdUnRegisterUMDCallBack", 35, 11}, // s32 sceUmdUnRegisterUMDCallBack(s32)
-        {0x87533940, "sceUmdReplaceProhibit", 35, 12}, // u32 sceUmdReplaceProhibit()
-        {0xcbe9f02a, "sceUmdReplacePermit", 35, 13}, // u32 sceUmdReplacePermit()
-        {0x14c6c45c, "sceUmdUnuseUMDInMsUsbWlan", 35, 14}, //  sceUmdUnuseUMDInMsUsbWlan()
-        {0xb103fa38, "sceUmdUseUMDInMsUsbWlan", 35, 15}, //  sceUmdUseUMDInMsUsbWlan()
-    }},
-    psp_module{"sceDmac", {
-        {0x617f3fe6, "sceDmacMemcpy", 36, 0}, // u32 sceDmacMemcpy(u32, u32, u32)
-        {0xd97f94d8, "sceDmacTryMemcpy", 36, 1}, // u32 sceDmacTryMemcpy(u32, u32, u32)
-    }},
-    psp_module{"sceUtility", {
-        {0x1579a159, "sceUtilityLoadNetModule", 37, 0}, // u32 sceUtilityLoadNetModule(u32)
-        {0x64d50c56, "sceUtilityUnloadNetModule", 37, 1}, // u32 sceUtilityUnloadNetModule(u32)
-        {0xf88155f6, "sceUtilityNetconfShutdownStart", 37, 2}, // s32 sceUtilityNetconfShutdownStart()
-        {0x4db1e739, "sceUtilityNetconfInitStart", 37, 3}, // s32 sceUtilityNetconfInitStart(u32)
-        {0x91e70e35, "sceUtilityNetconfUpdate", 37, 4}, // s32 sceUtilityNetconfUpdate(s32)
-        {0x6332aa39, "sceUtilityNetconfGetStatus", 37, 5}, // s32 sceUtilityNetconfGetStatus()
-        {0x5eee6548, "sceUtilityCheckNetParam", 37, 6}, // s32 sceUtilityCheckNetParam(s32)
-        {0x434d4b3a, "sceUtilityGetNetParam", 37, 7}, //  sceUtilityGetNetParam()
-        {0x4fed24d8, "sceUtilityGetNetParamLatestID", 37, 8}, //  sceUtilityGetNetParamLatestID()
-        {0x67af3428, "sceUtilityMsgDialogShutdownStart", 37, 9}, // s32 sceUtilityMsgDialogShutdownStart()
-        {0x2ad8e239, "sceUtilityMsgDialogInitStart", 37, 10}, // s32 sceUtilityMsgDialogInitStart(u32)
-        {0x95fc253b, "sceUtilityMsgDialogUpdate", 37, 11}, // s32 sceUtilityMsgDialogUpdate(s32)
-        {0x9a1c91d7, "sceUtilityMsgDialogGetStatus", 37, 12}, // s32 sceUtilityMsgDialogGetStatus()
-        {0x4928bd96, "sceUtilityMsgDialogAbort", 37, 13}, // s32 sceUtilityMsgDialogAbort()
-        {0x9790b33c, "sceUtilitySavedataShutdownStart", 37, 14}, // s32 sceUtilitySavedataShutdownStart()
-        {0x50c4cd57, "sceUtilitySavedataInitStart", 37, 15}, // s32 sceUtilitySavedataInitStart(u32)
-        {0xd4b95ffb, "sceUtilitySavedataUpdate", 37, 16}, // s32 sceUtilitySavedataUpdate(s32)
-        {0x8874dbe0, "sceUtilitySavedataGetStatus", 37, 17}, // s32 sceUtilitySavedataGetStatus()
-        {0x3dfaeba9, "sceUtilityOskShutdownStart", 37, 18}, // s32 sceUtilityOskShutdownStart()
-        {0xf6269b82, "sceUtilityOskInitStart", 37, 19}, // s32 sceUtilityOskInitStart(u32)
-        {0x4b85c861, "sceUtilityOskUpdate", 37, 20}, // s32 sceUtilityOskUpdate(s32)
-        {0xf3f76017, "sceUtilityOskGetStatus", 37, 21}, // s32 sceUtilityOskGetStatus()
-        {0x41e30674, "sceUtilitySetSystemParamString", 37, 22}, // u32 sceUtilitySetSystemParamString(u32, u32)
-        {0x45c18506, "sceUtilitySetSystemParamInt", 37, 23}, // u32 sceUtilitySetSystemParamInt(u32, u32)
-        {0x34b78343, "sceUtilityGetSystemParamString", 37, 24}, // u32 sceUtilityGetSystemParamString(u32, u32, s32)
-        {0xa5da2406, "sceUtilityGetSystemParamInt", 37, 25}, // u32 sceUtilityGetSystemParamInt(u32, u32)
-        {0xc492f751, "sceUtilityGameSharingInitStart", 37, 26}, // s32 sceUtilityGameSharingInitStart(u32)
-        {0xefc6f80f, "sceUtilityGameSharingShutdownStart", 37, 27}, // s32 sceUtilityGameSharingShutdownStart()
-        {0x7853182d, "sceUtilityGameSharingUpdate", 37, 28}, // s32 sceUtilityGameSharingUpdate(s32)
-        {0x946963f3, "sceUtilityGameSharingGetStatus", 37, 29}, // s32 sceUtilityGameSharingGetStatus()
-        {0x2995d020, "sceUtilitySavedataErrInitStart", 37, 30}, //  sceUtilitySavedataErrInitStart()
-        {0xb62a4061, "sceUtilitySavedataErrShutdownStart", 37, 31}, //  sceUtilitySavedataErrShutdownStart()
-        {0xed0fad38, "sceUtilitySavedataErrUpdate", 37, 32}, //  sceUtilitySavedataErrUpdate()
-        {0x88bc7406, "sceUtilitySavedataErrGetStatus", 37, 33}, //  sceUtilitySavedataErrGetStatus()
-        {0xbda7d894, "sceUtilityHtmlViewerGetStatus", 37, 34}, //  sceUtilityHtmlViewerGetStatus()
-        {0xcdc3aa41, "sceUtilityHtmlViewerInitStart", 37, 35}, //  sceUtilityHtmlViewerInitStart()
-        {0xf5ce1134, "sceUtilityHtmlViewerShutdownStart", 37, 36}, //  sceUtilityHtmlViewerShutdownStart()
-        {0x05afb9e4, "sceUtilityHtmlViewerUpdate", 37, 37}, //  sceUtilityHtmlViewerUpdate()
-        {0x16a1a8d8, "sceUtilityAuthDialogGetStatus", 37, 38}, //  sceUtilityAuthDialogGetStatus()
-        {0x943cba46, "sceUtilityAuthDialogInitStart", 37, 39}, //  sceUtilityAuthDialogInitStart()
-        {0x0f3eeaac, "sceUtilityAuthDialogShutdownStart", 37, 40}, //  sceUtilityAuthDialogShutdownStart()
-        {0x147f7c85, "sceUtilityAuthDialogUpdate", 37, 41}, //  sceUtilityAuthDialogUpdate()
-        {0xc629af26, "sceUtilityLoadAvModule", 37, 42}, // u32 sceUtilityLoadAvModule(u32)
-        {0xf7d8d092, "sceUtilityUnloadAvModule", 37, 43}, // u32 sceUtilityUnloadAvModule(u32)
-        {0x2a2b3de0, "sceUtilityLoadModule", 37, 44}, // u32 sceUtilityLoadModule(u32)
-        {0xe49bfe92, "sceUtilityUnloadModule", 37, 45}, // u32 sceUtilityUnloadModule(u32)
-        {0x0251b134, "sceUtilityScreenshotInitStart", 37, 46}, // s32 sceUtilityScreenshotInitStart(u32)
-        {0xf9e0008c, "sceUtilityScreenshotShutdownStart", 37, 47}, // s32 sceUtilityScreenshotShutdownStart()
-        {0xab083ea9, "sceUtilityScreenshotUpdate", 37, 48}, // s32 sceUtilityScreenshotUpdate(s32)
-        {0xd81957b7, "sceUtilityScreenshotGetStatus", 37, 49}, // s32 sceUtilityScreenshotGetStatus()
-        {0x86a03a27, "sceUtilityScreenshotContStart", 37, 50}, // s32 sceUtilityScreenshotContStart(u32)
-        {0x0d5bc6d2, "sceUtilityLoadUsbModule", 37, 51}, // u32 sceUtilityLoadUsbModule(u32)
-        {0xf64910f0, "sceUtilityUnloadUsbModule", 37, 52}, // u32 sceUtilityUnloadUsbModule(u32)
-        {0x24ac31eb, "sceUtilityGamedataInstallInitStart", 37, 53}, // s32 sceUtilityGamedataInstallInitStart(u32)
-        {0x32e32dcb, "sceUtilityGamedataInstallShutdownStart", 37, 54}, // s32 sceUtilityGamedataInstallShutdownStart()
-        {0x4aecd179, "sceUtilityGamedataInstallUpdate", 37, 55}, // s32 sceUtilityGamedataInstallUpdate(s32)
-        {0xb57e95d9, "sceUtilityGamedataInstallGetStatus", 37, 56}, // s32 sceUtilityGamedataInstallGetStatus()
-        {0x180f7b62, "sceUtilityGamedataInstallAbort", 37, 57}, // s32 sceUtilityGamedataInstallAbort()
-        {0x16d02af0, "sceUtilityNpSigninInitStart", 37, 58}, // s32 sceUtilityNpSigninInitStart(u32)
-        {0xe19c97d6, "sceUtilityNpSigninShutdownStart", 37, 59}, // s32 sceUtilityNpSigninShutdownStart()
-        {0xf3fbc572, "sceUtilityNpSigninUpdate", 37, 60}, // s32 sceUtilityNpSigninUpdate(s32)
-        {0x86abdb1b, "sceUtilityNpSigninGetStatus", 37, 61}, // s32 sceUtilityNpSigninGetStatus()
-        {0x1281da8e, "sceUtilityInstallInitStart", 37, 62}, // void sceUtilityInstallInitStart(u32)
-        {0x5ef1c24a, "sceUtilityInstallShutdownStart", 37, 63}, //  sceUtilityInstallShutdownStart()
-        {0xa03d29ba, "sceUtilityInstallUpdate", 37, 64}, //  sceUtilityInstallUpdate()
-        {0xc4700fa3, "sceUtilityInstallGetStatus", 37, 65}, //  sceUtilityInstallGetStatus()
-        {0x54a5c62f, "sceUtilityStoreCheckoutShutdownStart", 37, 66}, // s32 sceUtilityStoreCheckoutShutdownStart()
-        {0xda97f1aa, "sceUtilityStoreCheckoutInitStart", 37, 67}, // s32 sceUtilityStoreCheckoutInitStart(u32)
-        {0xb8592d5f, "sceUtilityStoreCheckoutUpdate", 37, 68}, // s32 sceUtilityStoreCheckoutUpdate(s32)
-        {0x3aad51dc, "sceUtilityStoreCheckoutGetStatus", 37, 69}, // s32 sceUtilityStoreCheckoutGetStatus()
-        {0xd17a0573, "sceUtilityPS3ScanShutdownStart", 37, 70}, //  sceUtilityPS3ScanShutdownStart()
-        {0x42071a83, "sceUtilityPS3ScanInitStart", 37, 71}, //  sceUtilityPS3ScanInitStart()
-        {0xd852cdce, "sceUtilityPS3ScanUpdate", 37, 72}, //  sceUtilityPS3ScanUpdate()
-        {0x89317c8f, "sceUtilityPS3ScanGetStatus", 37, 73}, //  sceUtilityPS3ScanGetStatus()
-        {0xe1bc175e, "sceUtility_E1BC175E", 37, 74}, //  sceUtility_E1BC175E()
-        {0x43e521b7, "sceUtility_43E521B7", 37, 75}, //  sceUtility_43E521B7()
-        {0xdb4149ee, "sceUtility_DB4149EE", 37, 76}, //  sceUtility_DB4149EE()
-        {0xcfe7c460, "sceUtility_CFE7C460", 37, 77}, //  sceUtility_CFE7C460()
-        {0xc130d441, "sceUtilityPsnShutdownStart", 37, 78}, //  sceUtilityPsnShutdownStart()
-        {0xa7bb7c67, "sceUtilityPsnInitStart", 37, 79}, //  sceUtilityPsnInitStart()
-        {0x0940a1b9, "sceUtilityPsnUpdate", 37, 80}, //  sceUtilityPsnUpdate()
-        {0x094198b8, "sceUtilityPsnGetStatus", 37, 81}, //  sceUtilityPsnGetStatus()
-        {0x9f313d14, "sceUtilityAutoConnectShutdownStart", 37, 82}, //  sceUtilityAutoConnectShutdownStart()
-        {0x3a15cd0a, "sceUtilityAutoConnectInitStart", 37, 83}, //  sceUtilityAutoConnectInitStart()
-        {0xd23665f4, "sceUtilityAutoConnectUpdate", 37, 84}, //  sceUtilityAutoConnectUpdate()
-        {0xd4c2bd73, "sceUtilityAutoConnectGetStatus", 37, 85}, //  sceUtilityAutoConnectGetStatus()
-        {0x0e0c27af, "sceUtilityAutoConnectAbort", 37, 86}, //  sceUtilityAutoConnectAbort()
-        {0x06a48659, "sceUtilityRssSubscriberShutdownStart", 37, 87}, //  sceUtilityRssSubscriberShutdownStart()
-        {0x4b0a8fe5, "sceUtilityRssSubscriberInitStart", 37, 88}, //  sceUtilityRssSubscriberInitStart()
-        {0xa084e056, "sceUtilityRssSubscriberUpdate", 37, 89}, //  sceUtilityRssSubscriberUpdate()
-        {0x2b96173b, "sceUtilityRssSubscriberGetStatus", 37, 90}, //  sceUtilityRssSubscriberGetStatus()
-        {0x149a7895, "sceUtilityDNASShutdownStart", 37, 91}, //  sceUtilityDNASShutdownStart()
-        {0xdde5389d, "sceUtilityDNASInitStart", 37, 92}, //  sceUtilityDNASInitStart()
-        {0x4a833ba4, "sceUtilityDNASUpdate", 37, 93}, //  sceUtilityDNASUpdate()
-        {0xa50e5b30, "sceUtilityDNASGetStatus", 37, 94}, //  sceUtilityDNASGetStatus()
-        {0xe7b778d8, "sceUtilityRssReaderShutdownStart", 37, 95}, //  sceUtilityRssReaderShutdownStart()
-        {0x81c44706, "sceUtilityRssReaderInitStart", 37, 96}, //  sceUtilityRssReaderInitStart()
-        {0x6f56f9cf, "sceUtilityRssReaderUpdate", 37, 97}, //  sceUtilityRssReaderUpdate()
-        {0x8326ab05, "sceUtilityRssReaderGetStatus", 37, 98}, //  sceUtilityRssReaderGetStatus()
-        {0xb0fb7ff5, "sceUtilityRssReaderContStart", 37, 99}, //  sceUtilityRssReaderContStart()
-        {0xbc6b6296, "sceNetplayDialogShutdownStart", 37, 100}, //  sceNetplayDialogShutdownStart()
-        {0x3ad50ae7, "sceNetplayDialogInitStart", 37, 101}, //  sceNetplayDialogInitStart()
-        {0x417bed54, "sceNetplayDialogUpdate", 37, 102}, //  sceNetplayDialogUpdate()
-        {0xb6cee597, "sceNetplayDialogGetStatus", 37, 103}, //  sceNetplayDialogGetStatus()
-        {0x28d35634, "sceUtility_28D35634", 37, 104}, //  sceUtility_28D35634()
-        {0x70267adf, "sceUtility_70267ADF", 37, 105}, //  sceUtility_70267ADF()
-        {0xece1d3e5, "sceUtility_ECE1D3E5", 37, 106}, //  sceUtility_ECE1D3E5()
-        {0xef3582b2, "sceUtility_EF3582B2", 37, 107}, //  sceUtility_EF3582B2()
-        {0xc0de0001, "__UtilityFinishDialog", 37, 108}, // s32 __UtilityFinishDialog(s32)
-        {0xc0de0002, "__UtilityWorkUs", 37, 109}, // s32 __UtilityWorkUs(s32)
-        {0xc0de0003, "__UtilityInitDialog", 37, 110}, // s32 __UtilityInitDialog(s32)
-    }},
-    psp_module{"sceATRAC3plus_Library", {
-        {0x7db31251, "sceAtracAddStreamData", 38, 0}, // u32 sceAtracAddStreamData(s32, u32)
-        {0x6a8c3cd5, "sceAtracDecodeData", 38, 1}, // u32 sceAtracDecodeData(s32, u32, u32 *, u32 *, u32 *)
-        {0xd5c28cc0, "sceAtracEndEntry", 38, 2}, // u32 sceAtracEndEntry()
-        {0x780f88d1, "sceAtracGetAtracID", 38, 3}, // s32 sceAtracGetAtracID(u32)
-        {0xca3ca3d2, "sceAtracGetBufferInfoForReseting", 38, 4}, // u32 sceAtracGetBufferInfoForReseting(s32, s32, u32)
-        {0xa554a158, "sceAtracGetBitrate", 38, 5}, // u32 sceAtracGetBitrate(s32, u32 *)
-        {0x31668baa, "sceAtracGetChannel", 38, 6}, // u32 sceAtracGetChannel(s32, u32 *)
-        {0xfaa4f89b, "sceAtracGetLoopStatus", 38, 7}, // u32 sceAtracGetLoopStatus(s32, u32 *, u32 *)
-        {0xe88f759b, "sceAtracGetInternalErrorInfo", 38, 8}, // u32 sceAtracGetInternalErrorInfo(s32, u32 *)
-        {0xd6a5f2f7, "sceAtracGetMaxSample", 38, 9}, // u32 sceAtracGetMaxSample(s32, u32 *)
-        {0xe23e3a35, "sceAtracGetNextDecodePosition", 38, 10}, // u32 sceAtracGetNextDecodePosition(s32, u32 *)
-        {0x36faabfb, "sceAtracGetNextSample", 38, 11}, // u32 sceAtracGetNextSample(s32, u32 *)
-        {0x9ae849a7, "sceAtracGetRemainFrame", 38, 12}, // u32 sceAtracGetRemainFrame(s32, u32 *)
-        {0x83e85ea0, "sceAtracGetSecondBufferInfo", 38, 13}, // u32 sceAtracGetSecondBufferInfo(s32, u32 *, u32 *)
-        {0xa2bba8be, "sceAtracGetSoundSample", 38, 14}, // u32 sceAtracGetSoundSample(s32, u32 *, u32 *, u32 *)
-        {0x5d268707, "sceAtracGetStreamDataInfo", 38, 15}, // u32 sceAtracGetStreamDataInfo(s32, u32 *, u32 *, u32 *)
-        {0x61eb33f5, "sceAtracReleaseAtracID", 38, 16}, // u32 sceAtracReleaseAtracID(s32)
-        {0x644e5607, "sceAtracResetPlayPosition", 38, 17}, // u32 sceAtracResetPlayPosition(s32, s32, s32, s32)
-        {0x3f6e26b5, "sceAtracSetHalfwayBuffer", 38, 18}, // u32 sceAtracSetHalfwayBuffer(s32, u32, u32, u32)
-        {0x83bf7afd, "sceAtracSetSecondBuffer", 38, 19}, // u32 sceAtracSetSecondBuffer(s32, u32, u32)
-        {0x0e2a73ab, "sceAtracSetData", 38, 20}, // u32 sceAtracSetData(s32, u32, u32)
-        {0x7a20e7af, "sceAtracSetDataAndGetID", 38, 21}, // s32 sceAtracSetDataAndGetID(u32, u32)
-        {0xd1f59fdb, "sceAtracStartEntry", 38, 22}, // u32 sceAtracStartEntry()
-        {0x868120b5, "sceAtracSetLoopNum", 38, 23}, // u32 sceAtracSetLoopNum(s32, s32)
-        {0x132f1eca, "sceAtracReinit", 38, 24}, // u32 sceAtracReinit(s32, s32)
-        {0xeca32a99, "sceAtracIsSecondBufferNeeded", 38, 25}, // s32 sceAtracIsSecondBufferNeeded(s32)
-        {0x0fae370e, "sceAtracSetHalfwayBufferAndGetID", 38, 26}, // s32 sceAtracSetHalfwayBufferAndGetID(u32, u32, u32)
-        {0x2dd3e298, "sceAtracGetBufferInfoForResetting", 38, 27}, // u32 sceAtracGetBufferInfoForResetting(s32, s32, u32)
-        {0x5cf9d852, "sceAtracSetMOutHalfwayBuffer", 38, 28}, // u32 sceAtracSetMOutHalfwayBuffer(s32, u32, u32, u32)
-        {0xf6837a1a, "sceAtracSetMOutData", 38, 29}, // u32 sceAtracSetMOutData(s32, u32, u32)
-        {0x472e3825, "sceAtracSetMOutDataAndGetID", 38, 30}, // s32 sceAtracSetMOutDataAndGetID(u32, u32)
-        {0x9cd7de03, "sceAtracSetMOutHalfwayBufferAndGetID", 38, 31}, // s32 sceAtracSetMOutHalfwayBufferAndGetID(u32, u32, u32)
-        {0xb3b5d042, "sceAtracGetOutputChannel", 38, 32}, // u32 sceAtracGetOutputChannel(s32, u32 *)
-        {0x5622b7c1, "sceAtracSetAA3DataAndGetID", 38, 33}, // s32 sceAtracSetAA3DataAndGetID(u32, u32, u32, u32 *)
-        {0x5dd66588, "sceAtracSetAA3HalfwayBufferAndGetID", 38, 34}, // s32 sceAtracSetAA3HalfwayBufferAndGetID(u32, u32, u32, u32)
-        {0x231fc6b7, "_sceAtracGetContextAddress", 38, 35}, // u32 _sceAtracGetContextAddress(s32)
-        {0x1575d64b, "sceAtracLowLevelInitDecoder", 38, 36}, // u32 sceAtracLowLevelInitDecoder(s32, u32)
-        {0x0c116e1b, "sceAtracLowLevelDecode", 38, 37}, // u32 sceAtracLowLevelDecode(s32, u32, u32 *, u32, u32 *)
-    }},
-    psp_module{"sceAtrac3plus", {
-        {0x7db31251, "sceAtracAddStreamData", 39, 0}, // u32 sceAtracAddStreamData(s32, u32)
-        {0x6a8c3cd5, "sceAtracDecodeData", 39, 1}, // u32 sceAtracDecodeData(s32, u32, u32 *, u32 *, u32 *)
-        {0xd5c28cc0, "sceAtracEndEntry", 39, 2}, // u32 sceAtracEndEntry()
-        {0x780f88d1, "sceAtracGetAtracID", 39, 3}, // s32 sceAtracGetAtracID(u32)
-        {0xca3ca3d2, "sceAtracGetBufferInfoForReseting", 39, 4}, // u32 sceAtracGetBufferInfoForReseting(s32, s32, u32)
-        {0xa554a158, "sceAtracGetBitrate", 39, 5}, // u32 sceAtracGetBitrate(s32, u32 *)
-        {0x31668baa, "sceAtracGetChannel", 39, 6}, // u32 sceAtracGetChannel(s32, u32 *)
-        {0xfaa4f89b, "sceAtracGetLoopStatus", 39, 7}, // u32 sceAtracGetLoopStatus(s32, u32 *, u32 *)
-        {0xe88f759b, "sceAtracGetInternalErrorInfo", 39, 8}, // u32 sceAtracGetInternalErrorInfo(s32, u32 *)
-        {0xd6a5f2f7, "sceAtracGetMaxSample", 39, 9}, // u32 sceAtracGetMaxSample(s32, u32 *)
-        {0xe23e3a35, "sceAtracGetNextDecodePosition", 39, 10}, // u32 sceAtracGetNextDecodePosition(s32, u32 *)
-        {0x36faabfb, "sceAtracGetNextSample", 39, 11}, // u32 sceAtracGetNextSample(s32, u32 *)
-        {0x9ae849a7, "sceAtracGetRemainFrame", 39, 12}, // u32 sceAtracGetRemainFrame(s32, u32 *)
-        {0x83e85ea0, "sceAtracGetSecondBufferInfo", 39, 13}, // u32 sceAtracGetSecondBufferInfo(s32, u32 *, u32 *)
-        {0xa2bba8be, "sceAtracGetSoundSample", 39, 14}, // u32 sceAtracGetSoundSample(s32, u32 *, u32 *, u32 *)
-        {0x5d268707, "sceAtracGetStreamDataInfo", 39, 15}, // u32 sceAtracGetStreamDataInfo(s32, u32 *, u32 *, u32 *)
-        {0x61eb33f5, "sceAtracReleaseAtracID", 39, 16}, // u32 sceAtracReleaseAtracID(s32)
-        {0x644e5607, "sceAtracResetPlayPosition", 39, 17}, // u32 sceAtracResetPlayPosition(s32, s32, s32, s32)
-        {0x3f6e26b5, "sceAtracSetHalfwayBuffer", 39, 18}, // u32 sceAtracSetHalfwayBuffer(s32, u32, u32, u32)
-        {0x83bf7afd, "sceAtracSetSecondBuffer", 39, 19}, // u32 sceAtracSetSecondBuffer(s32, u32, u32)
-        {0x0e2a73ab, "sceAtracSetData", 39, 20}, // u32 sceAtracSetData(s32, u32, u32)
-        {0x7a20e7af, "sceAtracSetDataAndGetID", 39, 21}, // s32 sceAtracSetDataAndGetID(u32, u32)
-        {0xd1f59fdb, "sceAtracStartEntry", 39, 22}, // u32 sceAtracStartEntry()
-        {0x868120b5, "sceAtracSetLoopNum", 39, 23}, // u32 sceAtracSetLoopNum(s32, s32)
-        {0x132f1eca, "sceAtracReinit", 39, 24}, // u32 sceAtracReinit(s32, s32)
-        {0xeca32a99, "sceAtracIsSecondBufferNeeded", 39, 25}, // s32 sceAtracIsSecondBufferNeeded(s32)
-        {0x0fae370e, "sceAtracSetHalfwayBufferAndGetID", 39, 26}, // s32 sceAtracSetHalfwayBufferAndGetID(u32, u32, u32)
-        {0x2dd3e298, "sceAtracGetBufferInfoForResetting", 39, 27}, // u32 sceAtracGetBufferInfoForResetting(s32, s32, u32)
-        {0x5cf9d852, "sceAtracSetMOutHalfwayBuffer", 39, 28}, // u32 sceAtracSetMOutHalfwayBuffer(s32, u32, u32, u32)
-        {0xf6837a1a, "sceAtracSetMOutData", 39, 29}, // u32 sceAtracSetMOutData(s32, u32, u32)
-        {0x472e3825, "sceAtracSetMOutDataAndGetID", 39, 30}, // s32 sceAtracSetMOutDataAndGetID(u32, u32)
-        {0x9cd7de03, "sceAtracSetMOutHalfwayBufferAndGetID", 39, 31}, // s32 sceAtracSetMOutHalfwayBufferAndGetID(u32, u32, u32)
-        {0xb3b5d042, "sceAtracGetOutputChannel", 39, 32}, // u32 sceAtracGetOutputChannel(s32, u32 *)
-        {0x5622b7c1, "sceAtracSetAA3DataAndGetID", 39, 33}, // s32 sceAtracSetAA3DataAndGetID(u32, u32, u32, u32 *)
-        {0x5dd66588, "sceAtracSetAA3HalfwayBufferAndGetID", 39, 34}, // s32 sceAtracSetAA3HalfwayBufferAndGetID(u32, u32, u32, u32)
-        {0x231fc6b7, "_sceAtracGetContextAddress", 39, 35}, // u32 _sceAtracGetContextAddress(s32)
-        {0x1575d64b, "sceAtracLowLevelInitDecoder", 39, 36}, // u32 sceAtracLowLevelInitDecoder(s32, u32)
-        {0x0c116e1b, "sceAtracLowLevelDecode", 39, 37}, // u32 sceAtracLowLevelDecode(s32, u32, u32 *, u32, u32 *)
-    }},
-    psp_module{"scePsmf", {
-        {0xc22c8327, "scePsmfSetPsmf", 40, 0}, // u32 scePsmfSetPsmf(u32, u32)
-        {0xc7db3a5b, "scePsmfGetCurrentStreamType", 40, 1}, // s32 scePsmfGetCurrentStreamType(u32, u32 *, u32 *)
-        {0x28240568, "scePsmfGetCurrentStreamNumber", 40, 2}, // s32 scePsmfGetCurrentStreamNumber(u32)
-        {0x1e6d9013, "scePsmfSpecifyStreamWithStreamType", 40, 3}, // s32 scePsmfSpecifyStreamWithStreamType(u32, s32, s32)
-        {0x0c120e1d, "scePsmfSpecifyStreamWithStreamTypeNumber", 40, 4}, // s32 scePsmfSpecifyStreamWithStreamTypeNumber(u32, s32, s32)
-        {0x4bc9bde0, "scePsmfSpecifyStream", 40, 5}, // s32 scePsmfSpecifyStream(u32, s32)
-        {0x76d3aeba, "scePsmfGetPresentationStartTime", 40, 6}, // u32 scePsmfGetPresentationStartTime(u32, u32)
-        {0xbd8ae0d8, "scePsmfGetPresentationEndTime", 40, 7}, // u32 scePsmfGetPresentationEndTime(u32, u32)
-        {0xeaed89cd, "scePsmfGetNumberOfStreams", 40, 8}, // s32 scePsmfGetNumberOfStreams(u32)
-        {0x7491c438, "scePsmfGetNumberOfEPentries", 40, 9}, // u32 scePsmfGetNumberOfEPentries(u32)
-        {0x0ba514e5, "scePsmfGetVideoInfo", 40, 10}, // s32 scePsmfGetVideoInfo(u32, u32 *)
-        {0xa83f7113, "scePsmfGetAudioInfo", 40, 11}, // s32 scePsmfGetAudioInfo(u32, u32 *)
-        {0x971a3a90, "scePsmfCheckEPmap", 40, 12}, // u32 scePsmfCheckEPmap(u32)
-        {0x68d42328, "scePsmfGetNumberOfSpecificStreams", 40, 13}, // s32 scePsmfGetNumberOfSpecificStreams(u32, s32)
-        {0x5b70fcc1, "scePsmfQueryStreamOffset", 40, 14}, // u32 scePsmfQueryStreamOffset(u32, u32)
-        {0x9553cc91, "scePsmfQueryStreamSize", 40, 15}, // u32 scePsmfQueryStreamSize(u32, u32)
-        {0xb78eb9e9, "scePsmfGetHeaderSize", 40, 16}, // u32 scePsmfGetHeaderSize(u32, u32)
-        {0xa5ebfe81, "scePsmfGetStreamSize", 40, 17}, // u32 scePsmfGetStreamSize(u32, u32)
-        {0xe1283895, "scePsmfGetPsmfVersion", 40, 18}, // u32 scePsmfGetPsmfVersion(u32)
-        {0x2673646b, "scePsmfVerifyPsmf", 40, 19}, // u32 scePsmfVerifyPsmf(u32)
-        {0x4e624a34, "scePsmfGetEPWithId", 40, 20}, // u32 scePsmfGetEPWithId(u32, s32, u32)
-        {0x7c0e7ac3, "scePsmfGetEPWithTimestamp", 40, 21}, // u32 scePsmfGetEPWithTimestamp(u32, u32, u32)
-        {0x5f457515, "scePsmfGetEPidWithTimestamp", 40, 22}, // u32 scePsmfGetEPidWithTimestamp(u32, u32)
-        {0x43ac7dbb, "scePsmfGetPsmfMark", 40, 23}, //  scePsmfGetPsmfMark()
-        {0xde78e9fc, "scePsmfGetNumberOfPsmfMarks", 40, 24}, //  scePsmfGetNumberOfPsmfMarks()
-    }},
-    psp_module{"scePsmfPlayer", {
-        {0x235d8787, "scePsmfPlayerCreate", 41, 0}, // s32 scePsmfPlayerCreate(u32, u32)
-        {0x1078c008, "scePsmfPlayerStop", 41, 1}, // s32 scePsmfPlayerStop(u32)
-        {0x1e57a8e7, "scePsmfPlayerConfigPlayer", 41, 2}, // u32 scePsmfPlayerConfigPlayer(u32, s32, s32)
-        {0x2beb1569, "scePsmfPlayerBreak", 41, 3}, // s32 scePsmfPlayerBreak(u32)
-        {0x3d6d25a9, "scePsmfPlayerSetPsmf", 41, 4}, // s32 scePsmfPlayerSetPsmf(u32, const char *)
-        {0x58b83577, "scePsmfPlayerSetPsmfCB", 41, 5}, // s32 scePsmfPlayerSetPsmfCB(u32, const char *)
-        {0x3ea82a4b, "scePsmfPlayerGetAudioOutSize", 41, 6}, // s32 scePsmfPlayerGetAudioOutSize(u32)
-        {0x3ed62233, "scePsmfPlayerGetCurrentPts", 41, 7}, // u32 scePsmfPlayerGetCurrentPts(u32, u32)
-        {0x46f61f8b, "scePsmfPlayerGetVideoData", 41, 8}, // s32 scePsmfPlayerGetVideoData(u32, u32)
-        {0x68f07175, "scePsmfPlayerGetCurrentAudioStream", 41, 9}, // u32 scePsmfPlayerGetCurrentAudioStream(u32, u32, u32)
-        {0x75f03fa2, "scePsmfPlayerSelectSpecificVideo", 41, 10}, // u32 scePsmfPlayerSelectSpecificVideo(u32, s32, s32)
-        {0x85461eff, "scePsmfPlayerSelectSpecificAudio", 41, 11}, // u32 scePsmfPlayerSelectSpecificAudio(u32, s32, s32)
-        {0x8a9ebdcd, "scePsmfPlayerSelectVideo", 41, 12}, // u32 scePsmfPlayerSelectVideo(u32)
-        {0x95a84ee5, "scePsmfPlayerStart", 41, 13}, // s32 scePsmfPlayerStart(u32, u32, s32)
-        {0x9b71a274, "scePsmfPlayerDelete", 41, 14}, // s32 scePsmfPlayerDelete(u32)
-        {0x9ff2b2e7, "scePsmfPlayerGetCurrentVideoStream", 41, 15}, // u32 scePsmfPlayerGetCurrentVideoStream(u32, u32, u32)
-        {0xa0b8ca55, "scePsmfPlayerUpdate", 41, 16}, // s32 scePsmfPlayerUpdate(u32)
-        {0xa3d81169, "scePsmfPlayerChangePlayMode", 41, 17}, // u32 scePsmfPlayerChangePlayMode(u32, s32, s32)
-        {0xb8d10c56, "scePsmfPlayerSelectAudio", 41, 18}, // u32 scePsmfPlayerSelectAudio(u32)
-        {0xb9848a74, "scePsmfPlayerGetAudioData", 41, 19}, // s32 scePsmfPlayerGetAudioData(u32, u32)
-        {0xdf089680, "scePsmfPlayerGetPsmfInfo", 41, 20}, // u32 scePsmfPlayerGetPsmfInfo(u32, u32, u32, u32)
-        {0xe792cd94, "scePsmfPlayerReleasePsmf", 41, 21}, // s32 scePsmfPlayerReleasePsmf(u32)
-        {0xf3efaa91, "scePsmfPlayerGetCurrentPlayMode", 41, 22}, // u32 scePsmfPlayerGetCurrentPlayMode(u32, u32, u32)
-        {0xf8ef08a6, "scePsmfPlayerGetCurrentStatus", 41, 23}, // s32 scePsmfPlayerGetCurrentStatus(u32)
-        {0x2d0e4e0a, "scePsmfPlayerSetTempBuf", 41, 24}, // s32 scePsmfPlayerSetTempBuf(u32, u32, u32)
-        {0x76c0f4ae, "scePsmfPlayerSetPsmfOffset", 41, 25}, // s32 scePsmfPlayerSetPsmfOffset(u32, const char *, s32)
-        {0xa72db4f9, "scePsmfPlayerSetPsmfOffsetCB", 41, 26}, // s32 scePsmfPlayerSetPsmfOffsetCB(u32, const char *, s32)
-        {0x340c12cb, "scePsmfPlayer_340C12CB", 41, 27}, //  scePsmfPlayer_340C12CB()
-        {0x05b193b7, "__PsmfPlayerFinish", 41, 28}, // s32 __PsmfPlayerFinish(u32)
-    }},
-    psp_module{"sceOpenPSID", {
-        {0xc69bebce, "sceOpenPSIDGetOpenPSID", 42, 0}, // s32 sceOpenPSIDGetOpenPSID(u32)
-    }},
-    psp_module{"sceParseUri", {
-        {0x49e950ec, "sceUriEscape", 43, 0}, //  sceUriEscape()
-        {0x062bb07e, "sceUriUnescape", 43, 1}, //  sceUriUnescape()
-        {0x568518c9, "sceUriParse", 43, 2}, //  sceUriParse()
-        {0x7ee318af, "sceUriBuild", 43, 3}, //  sceUriBuild()
-    }},
-    psp_module{"sceSsl", {
-        {0x957ecbe2, "sceSslInit", 44, 0}, // s32 sceSslInit(s32)
-        {0x191cdeff, "sceSslEnd", 44, 1}, // s32 sceSslEnd()
-        {0x5bfb6b61, "sceSslGetNotAfter", 44, 2}, //  sceSslGetNotAfter()
-        {0x17a10dcc, "sceSslGetNotBefore", 44, 3}, //  sceSslGetNotBefore()
-        {0x3dd5e023, "sceSslGetSubjectName", 44, 4}, //  sceSslGetSubjectName()
-        {0x1b7c8191, "sceSslGetIssuerName", 44, 5}, //  sceSslGetIssuerName()
-        {0xcc0919b0, "sceSslGetSerialNumber", 44, 6}, //  sceSslGetSerialNumber()
-        {0x058d21c0, "sceSslGetNameEntryCount", 44, 7}, //  sceSslGetNameEntryCount()
-        {0xd6d097b4, "sceSslGetNameEntryInfo", 44, 8}, //  sceSslGetNameEntryInfo()
-        {0xb99ede6a, "sceSslGetUsedMemoryMax", 44, 9}, // s32 sceSslGetUsedMemoryMax(u32)
-        {0x0eb43b06, "sceSslGetUsedMemoryCurrent", 44, 10}, // s32 sceSslGetUsedMemoryCurrent(u32)
-        {0xf57765d3, "sceSslGetKeyUsage", 44, 11}, //  sceSslGetKeyUsage()
-    }},
-    psp_module{"sceParseHttp", {
-        {0x8077a433, "sceParseHttpStatusLine", 45, 0}, //  sceParseHttpStatusLine()
-        {0xad7bfdef, "sceParseHttpResponseHeader", 45, 1}, //  sceParseHttpResponseHeader()
-    }},
-    psp_module{"sceVaudio", {
-        {0x8986295e, "sceVaudioOutputBlocking", 46, 0}, // u32 sceVaudioOutputBlocking(s32, u32)
-        {0x03b6807d, "sceVaudioChReserve", 46, 1}, // u32 sceVaudioChReserve(s32, s32, s32)
-        {0x67585dfd, "sceVaudioChRelease", 46, 2}, // u32 sceVaudioChRelease()
-        {0x346fbe94, "sceVaudioSetEffectType", 46, 3}, // u32 sceVaudioSetEffectType(s32, s32)
-        {0xcbd4ac51, "sceVaudioSetAlcMode", 46, 4}, // u32 sceVaudioSetAlcMode(s32)
-        {0x504e4745, "sceVaudio_504E4745", 46, 5}, //  sceVaudio_504E4745()
-        {0x27acc20b, "sceVaudioChReserveBuffering", 46, 6}, //  sceVaudioChReserveBuffering()
-        {0xe8e78dc8, "sceVaudio_E8E78DC8", 46, 7}, //  sceVaudio_E8E78DC8()
-    }},
-    psp_module{"sceUsbstor", {
-        {0x60066cfe, "sceUsbstorGetStatus", 47, 0}, //  sceUsbstorGetStatus()
-    }},
-    psp_module{"sceUsbstorBoot", {
-        {0xe58818a8, "sceUsbstorBootSetCapacity", 48, 0}, // s32 sceUsbstorBootSetCapacity(u32)
-        {0x594bbf95, "sceUsbstorBootSetLoadAddr", 48, 1}, //  sceUsbstorBootSetLoadAddr()
-        {0x6d865ecd, "sceUsbstorBootGetDataSize", 48, 2}, //  sceUsbstorBootGetDataSize()
-        {0xa1119f0d, "sceUsbstorBootSetStatus", 48, 3}, //  sceUsbstorBootSetStatus()
-        {0x1f080078, "sceUsbstorBootRegisterNotify", 48, 4}, //  sceUsbstorBootRegisterNotify()
-        {0xa55c9e16, "sceUsbstorBootUnregisterNotify", 48, 5}, //  sceUsbstorBootUnregisterNotify()
-    }},
-    psp_module{"sceUsb", {
-        {0xae5de6af, "sceUsbStart", 49, 0}, // s32 sceUsbStart(const char *, u32, u32)
-        {0xc2464fa0, "sceUsbStop", 49, 1}, // s32 sceUsbStop(const char *, u32, u32)
-        {0xc21645a4, "sceUsbGetState", 49, 2}, // s32 sceUsbGetState()
-        {0x4e537366, "sceUsbGetDrvList", 49, 3}, //  sceUsbGetDrvList()
-        {0x112cc951, "sceUsbGetDrvState", 49, 4}, //  sceUsbGetDrvState()
-        {0x586db82c, "sceUsbActivate", 49, 5}, // s32 sceUsbActivate(u32)
-        {0xc572a9c8, "sceUsbDeactivate", 49, 6}, // s32 sceUsbDeactivate(u32)
-        {0x5be0e002, "sceUsbWaitState", 49, 7}, // u32 sceUsbWaitState(u32, s32, u32 *)
-        {0x616f2b61, "sceUsbWaitStateCB", 49, 8}, // u32 sceUsbWaitStateCB(u32, s32, u32 *)
-        {0x1c360735, "sceUsbWaitCancel", 49, 9}, //  sceUsbWaitCancel()
-    }},
-    psp_module{"sceChnnlsv", {
-        {0xe7833020, "sceSdSetIndex", 50, 0}, // s32 sceSdSetIndex(u32, s32)
-        {0xf21a1fca, "sceSdRemoveValue", 50, 1}, // s32 sceSdRemoveValue(u32, u32, s32)
-        {0xc4c494f8, "sceSdGetLastIndex", 50, 2}, // s32 sceSdGetLastIndex(u32, u32, u32)
-        {0xabfdfc8b, "sceSdCreateList", 50, 3}, // s32 sceSdCreateList(u32, s32, s32, u32, u32)
-        {0x850a7fa1, "sceSdSetMember", 50, 4}, // s32 sceSdSetMember(u32, u32, s32)
-        {0x21be78b4, "sceChnnlsv_21BE78B4", 50, 5}, // s32 sceChnnlsv_21BE78B4(u32)
-    }},
-    psp_module{"sceNpDrm", {
-        {0xa1336091, "sceNpDrmSetLicenseeKey", 51, 0}, // s32 sceNpDrmSetLicenseeKey(u32)
-        {0x9b745542, "sceNpDrmClearLicenseeKey", 51, 1}, // s32 sceNpDrmClearLicenseeKey()
-        {0x275987d1, "sceNpDrmRenameCheck", 51, 2}, // s32 sceNpDrmRenameCheck(const char *)
-        {0x08d98894, "sceNpDrmEdataSetupKey", 51, 3}, // s32 sceNpDrmEdataSetupKey(u32)
-        {0x219ef5cc, "sceNpDrmEdataGetDataSize", 51, 4}, // s32 sceNpDrmEdataGetDataSize(u32)
-        {0x2baa4294, "sceNpDrmOpen", 51, 5}, // s32 sceNpDrmOpen()
-    }},
-    psp_module{"scePspNpDrm_user", {
-        {0xa1336091, "sceNpDrmSetLicenseeKey", 52, 0}, // s32 sceNpDrmSetLicenseeKey(u32)
-        {0x9b745542, "sceNpDrmClearLicenseeKey", 52, 1}, // s32 sceNpDrmClearLicenseeKey()
-        {0x275987d1, "sceNpDrmRenameCheck", 52, 2}, // s32 sceNpDrmRenameCheck(const char *)
-        {0x08d98894, "sceNpDrmEdataSetupKey", 52, 3}, // s32 sceNpDrmEdataSetupKey(u32)
-        {0x219ef5cc, "sceNpDrmEdataGetDataSize", 52, 4}, // s32 sceNpDrmEdataGetDataSize(u32)
-        {0x2baa4294, "sceNpDrmOpen", 52, 5}, // s32 sceNpDrmOpen()
-    }},
-    psp_module{"sceP3da", {
-        {0x374500a5, "sceP3daBridgeInit", 53, 0}, // u32 sceP3daBridgeInit(u32, u32)
-        {0x43f756a2, "sceP3daBridgeExit", 53, 1}, // u32 sceP3daBridgeExit()
-        {0x013016f3, "sceP3daBridgeCore", 53, 2}, // u32 sceP3daBridgeCore(u32, u32, u32, u32, u32)
-    }},
-    psp_module{"sceGameUpdate", {
-        {0xcbe69fb3, "sceGameUpdateInit", 54, 0}, // u32 sceGameUpdateInit()
-        {0xbb4b68de, "sceGameUpdateTerm", 54, 1}, // u32 sceGameUpdateTerm()
-        {0x596ad78c, "sceGameUpdateRun", 54, 2}, // u32 sceGameUpdateRun()
-        {0x5f5d98a6, "sceGameUpdateAbort", 54, 3}, // u32 sceGameUpdateAbort()
-    }},
-    psp_module{"sceDeflt", {
-        {0x0ba3b9cc, "sceGzipGetCompressedData", 55, 0}, //  sceGzipGetCompressedData()
-        {0x106a3552, "sceGzipGetName", 55, 1}, //  sceGzipGetName()
-        {0x1b5b82bc, "sceGzipIsValid", 55, 2}, //  sceGzipIsValid()
-        {0x2ee39a64, "sceZlibAdler32", 55, 3}, //  sceZlibAdler32()
-        {0x44054e03, "sceDeflateDecompress", 55, 4}, // s32 sceDeflateDecompress(u32, s32, u32, u32 *)
-        {0x6a548477, "sceZlibGetCompressedData", 55, 5}, //  sceZlibGetCompressedData()
-        {0x6dbcf897, "sceGzipDecompress", 55, 6}, // s32 sceGzipDecompress(u32, s32, u32, u32 *)
-        {0x8aa82c92, "sceGzipGetInfo", 55, 7}, //  sceGzipGetInfo()
-        {0xa9e4fb28, "sceZlibDecompress", 55, 8}, // s32 sceZlibDecompress(u32, s32, u32, u32 *)
-        {0xafe01fd3, "sceZlibGetInfo", 55, 9}, //  sceZlibGetInfo()
-        {0xb767f9a0, "sceGzipGetComment", 55, 10}, //  sceGzipGetComment()
-        {0xe46eb986, "sceZlibIsValid", 55, 11}, //  sceZlibIsValid()
-    }},
-    psp_module{"sceMp4", {
-        {0x68651cbc, "sceMp4Init", 56, 0}, // u32 sceMp4Init()
-        {0x9042b257, "sceMp4Finish", 56, 1}, // u32 sceMp4Finish()
-        {0xb1221ee7, "sceMp4Create", 56, 2}, // u32 sceMp4Create(u32, u32, u32, u32)
-        {0x538c2057, "sceMp4Delete", 56, 3}, // u32 sceMp4Delete(u32)
-        {0x113e9e7b, "sceMp4GetNumberOfMetaData", 56, 4}, // u32 sceMp4GetNumberOfMetaData()
-        {0x7443af1d, "sceMp4GetMovieInfo", 56, 5}, // u32 sceMp4GetMovieInfo(u32, u32)
-        {0x5eb65f26, "sceMp4GetNumberOfSpecificTrack", 56, 6}, // u32 sceMp4GetNumberOfSpecificTrack()
-        {0x7adfd01c, "sceMp4RegistTrack", 56, 7}, // u32 sceMp4RegistTrack(u32, u32, u32, u32, u32)
-        {0xbca9389c, "sceMp4TrackSampleBufQueryMemSize", 56, 8}, // u32 sceMp4TrackSampleBufQueryMemSize(u32, u32, u32, u32, u32)
-        {0x9c8f4fc1, "sceMp4TrackSampleBufConstruct", 56, 9}, // u32 sceMp4TrackSampleBufConstruct(u32, u32, u32, u32, u32, u32, u32)
-        {0x0f0187d2, "sceMp4GetAvcTrackInfoData", 56, 10}, // u32 sceMp4GetAvcTrackInfoData()
-        {0x9ce6f5cf, "sceMp4GetAacTrackInfoData", 56, 11}, // u32 sceMp4GetAacTrackInfoData()
-        {0x4ed4ab1e, "sceMp4AacDecodeInitResource", 56, 12}, // u32 sceMp4AacDecodeInitResource(s32)
-        {0x10ee0d2c, "sceMp4AacDecodeInit", 56, 13}, // u32 sceMp4AacDecodeInit(s32)
-        {0x496e8a65, "sceMp4TrackSampleBufFlush", 56, 14}, // u32 sceMp4TrackSampleBufFlush()
-        {0xb4b400d1, "sceMp4GetSampleNumWithTimeStamp", 56, 15}, // u32 sceMp4GetSampleNumWithTimeStamp()
-        {0xf7c51ec1, "sceMp4GetSampleInfo", 56, 16}, // u32 sceMp4GetSampleInfo()
-        {0x74a1ca3e, "sceMp4SearchSyncSampleNum", 56, 17}, // u32 sceMp4SearchSyncSampleNum()
-        {0xd8250b75, "sceMp4PutSampleNum", 56, 18}, //  sceMp4PutSampleNum()
-        {0x8754ecb8, "sceMp4TrackSampleBufAvailableSize", 56, 19}, // u32 sceMp4TrackSampleBufAvailableSize(u32, u32 *, u32 *, u32 *)
-        {0x31bcd7e0, "sceMp4TrackSampleBufPut", 56, 20}, //  sceMp4TrackSampleBufPut()
-        {0x5601a6f0, "sceMp4GetAacAu", 56, 21}, // u32 sceMp4GetAacAu(u32, u32, u32, u32)
-        {0x7663cb5c, "sceMp4AacDecode", 56, 22}, // u32 sceMp4AacDecode(u32, u32, u32, u32, u32)
-        {0x503a3cba, "sceMp4GetAvcAu", 56, 23}, // u32 sceMp4GetAvcAu(u32, u32, u32, u32)
-        {0x01c76489, "sceMp4TrackSampleBufDestruct", 56, 24}, //  sceMp4TrackSampleBufDestruct()
-        {0x6710fe77, "sceMp4UnregistTrack", 56, 25}, //  sceMp4UnregistTrack()
-        {0x5d72b333, "sceMp4AacDecodeExit", 56, 26}, //  sceMp4AacDecodeExit()
-        {0x7d332394, "sceMp4AacDecodeTermResource", 56, 27}, //  sceMp4AacDecodeTermResource()
-        {0x131bde57, "sceMp4InitAu", 56, 28}, // u32 sceMp4InitAu(u32, u32, u32)
-        {0x17eaa97d, "sceMp4GetAvcAuWithoutSampleBuf", 56, 29}, //  sceMp4GetAvcAuWithoutSampleBuf()
-        {0x28ccb940, "sceMp4GetTrackEditList", 56, 30}, //  sceMp4GetTrackEditList()
-        {0x3069c2b5, "sceMp4GetAvcParamSet", 56, 31}, //  sceMp4GetAvcParamSet()
-        {0xd2ac9a7e, "sceMp4GetMetaData", 56, 32}, //  sceMp4GetMetaData()
-        {0x4fb5b756, "sceMp4GetMetaDataInfo", 56, 33}, //  sceMp4GetMetaDataInfo()
-        {0x427bef7f, "sceMp4GetTrackNumOfEditList", 56, 34}, //  sceMp4GetTrackNumOfEditList()
-        {0x532029b8, "sceMp4GetAacAuWithoutSampleBuf", 56, 35}, //  sceMp4GetAacAuWithoutSampleBuf()
-        {0xa6c724dc, "sceMp4GetSampleNum", 56, 36}, //  sceMp4GetSampleNum()
-        {0x3c2183c7, "mp4msv_3C2183C7", 56, 37}, //  mp4msv_3C2183C7()
-        {0x9ca13d1a, "mp4msv_9CA13D1A", 56, 38}, //  mp4msv_9CA13D1A()
-    }},
-    psp_module{"sceAac", {
-        {0xe0c89aca, "sceAacInit", 57, 0}, // u32 sceAacInit(u32)
-        {0x33b8c009, "sceAacExit", 57, 1}, // u32 sceAacExit(u32)
-        {0x5cffc57c, "sceAacInitResource", 57, 2}, // u32 sceAacInitResource(u32)
-        {0x23d35cae, "sceAacTermResource", 57, 3}, // u32 sceAacTermResource()
-        {0x7e4cfee4, "sceAacDecode", 57, 4}, // u32 sceAacDecode(u32, u32)
-        {0x523347d9, "sceAacGetLoopNum", 57, 5}, // u32 sceAacGetLoopNum(u32)
-        {0xbbdd6403, "sceAacSetLoopNum", 57, 6}, // u32 sceAacSetLoopNum(u32, s32)
-        {0xd7c51541, "sceAacCheckStreamDataNeeded", 57, 7}, // s32 sceAacCheckStreamDataNeeded(u32)
-        {0xac6dcbe3, "sceAacNotifyAddStreamData", 57, 8}, // u32 sceAacNotifyAddStreamData(u32, s32)
-        {0x02098c69, "sceAacGetInfoToAddStreamData", 57, 9}, // u32 sceAacGetInfoToAddStreamData(u32, u32, u32, u32)
-        {0x6dc7758a, "sceAacGetMaxOutputSample", 57, 10}, // u32 sceAacGetMaxOutputSample(u32)
-        {0x506bf66c, "sceAacGetSumDecodedSample", 57, 11}, // u32 sceAacGetSumDecodedSample(u32)
-        {0xd2da2bba, "sceAacResetPlayPosition", 57, 12}, // u32 sceAacResetPlayPosition(u32)
-    }},
-    psp_module{"scePauth", {
-        {0xf7aa47f6, "scePauth_F7AA47F6", 58, 0}, // s32 scePauth_F7AA47F6(u32, s32, u32, u32)
-        {0x98b83b5d, "scePauth_98B83B5D", 58, 1}, // s32 scePauth_98B83B5D(u32, s32, u32, u32)
-    }},
-    psp_module{"sceNp", {
-        {0x857b47d3, "sceNpInit", 59, 0}, // s32 sceNpInit()
-        {0x37e1e274, "sceNpTerm", 59, 1}, // s32 sceNpTerm()
-        {0xbb069a87, "sceNpGetContentRatingFlag", 59, 2}, // s32 sceNpGetContentRatingFlag(u32, u32)
-        {0x1d60ae4b, "sceNpGetChatRestrictionFlag", 59, 3}, // s32 sceNpGetChatRestrictionFlag(u32)
-    }},
-    psp_module{"sceNpCommerce2", {
-        {0x005b5f20, "sceNpCommerce2GetProductInfoStart", 60, 0}, //  sceNpCommerce2GetProductInfoStart()
-        {0x0e9956e3, "sceNpCommerce2Init", 60, 1}, //  sceNpCommerce2Init()
-        {0x1888a9fe, "sceNpCommerce2DestroyReq", 60, 2}, //  sceNpCommerce2DestroyReq()
-        {0x1c952dcb, "sceNpCommerce2GetGameProductInfo", 60, 3}, //  sceNpCommerce2GetGameProductInfo()
-        {0x2b25f6e9, "sceNpCommerce2CreateSessionStart", 60, 4}, //  sceNpCommerce2CreateSessionStart()
-        {0x3371d5f1, "sceNpCommerce2GetProductInfoCreateReq", 60, 5}, //  sceNpCommerce2GetProductInfoCreateReq()
-        {0x4ecd4503, "sceNpCommerce2CreateSessionCreateReq", 60, 6}, //  sceNpCommerce2CreateSessionCreateReq()
-        {0x590a3229, "sceNpCommerce2GetSessionInfo", 60, 7}, //  sceNpCommerce2GetSessionInfo()
-        {0x6f1fe37f, "sceNpCommerce2CreateCtx", 60, 8}, //  sceNpCommerce2CreateCtx()
-        {0xa5a34ea4, "sceNpCommerce2Term", 60, 9}, //  sceNpCommerce2Term()
-        {0xaa4a1e3d, "sceNpCommerce2GetProductInfoGetResult", 60, 10}, //  sceNpCommerce2GetProductInfoGetResult()
-        {0xbc61ffc8, "sceNpCommerce2CreateSessionGetResult", 60, 11}, //  sceNpCommerce2CreateSessionGetResult()
-        {0xc7f32242, "sceNpCommerce2AbortReq", 60, 12}, //  sceNpCommerce2AbortReq()
-        {0xf2278b90, "sceNpCommerce2GetGameSkuInfoFromGameProductInfo", 60, 13}, //  sceNpCommerce2GetGameSkuInfoFromGameProductInfo()
-        {0xf297ab9c, "sceNpCommerce2DestroyCtx", 60, 14}, //  sceNpCommerce2DestroyCtx()
-        {0xfc30c19e, "sceNpCommerce2InitGetProductInfoResult", 60, 15}, //  sceNpCommerce2InitGetProductInfoResult()
-    }},
-    psp_module{"sceNpService", {
-        {0x00acfac3, "sceNpServiceTerm", 61, 0}, // s32 sceNpServiceTerm()
-        {0x0f8f5821, "sceNpServiceInit", 61, 1}, // s32 sceNpServiceInit(u32, u32, u32)
-        {0x5494274b, "sceNpLookupCreateTransactionCtx", 61, 2}, // s32 sceNpLookupCreateTransactionCtx(u32)
-        {0xa670d3a3, "sceNpLookupDestroyTransactionCtx", 61, 3}, // s32 sceNpLookupDestroyTransactionCtx(u32)
-        {0xc76f55ed, "sceNpLookupTitleSmallStorage", 61, 4}, // s32 sceNpLookupTitleSmallStorage(u32, u32, u32, u32, u32)
-    }},
-    psp_module{"sceNpAuth", {
-        {0x4ec1f667, "sceNpAuthTerm", 62, 0}, // s32 sceNpAuthTerm()
-        {0xa1de86f8, "sceNpAuthInit", 62, 1}, // s32 sceNpAuthInit(u32, u32, u32)
-        {0xf4531adc, "sceNpAuthGetMemoryStat", 62, 2}, // s32 sceNpAuthGetMemoryStat(u32)
-        {0xcd86a656, "sceNpAuthCreateStartRequest", 62, 3}, // s32 sceNpAuthCreateStartRequest(u32)
-        {0x3f1c1f70, "sceNpAuthGetTicket", 62, 4}, // s32 sceNpAuthGetTicket(u32, u32, u32)
-        {0x6900f084, "sceNpAuthGetEntitlementById", 62, 5}, // s32 sceNpAuthGetEntitlementById(u32, u32, u32, u32)
-        {0xd99455dd, "sceNpAuthAbortRequest", 62, 6}, // s32 sceNpAuthAbortRequest(s32)
-        {0x72bb0467, "sceNpAuthDestroyRequest", 62, 7}, // s32 sceNpAuthDestroyRequest(s32)
-    }},
-    psp_module{"sceMd5", {
-        {0x19884a15, "sceMd5BlockInit", 63, 0}, // s32 sceMd5BlockInit(u32)
-        {0xa30206c2, "sceMd5BlockUpdate", 63, 1}, // s32 sceMd5BlockUpdate(u32, u32, u32)
-        {0x4876afff, "sceMd5BlockResult", 63, 2}, // s32 sceMd5BlockResult(u32, u32)
-        {0x98e31a9e, "sceMd5Digest", 63, 3}, // s32 sceMd5Digest(u32, u32, u32)
-    }},
-    psp_module{"sceJpeg", {
-        {0x0425b986, "sceJpegDecompressAllImage", 64, 0}, // s32 sceJpegDecompressAllImage()
-        {0x04b5ae02, "sceJpegMJpegCsc", 64, 1}, // s32 sceJpegMJpegCsc(u32, u32, s32, s32)
-        {0x04b93cef, "sceJpegDecodeMJpeg", 64, 2}, // s32 sceJpegDecodeMJpeg(u32, s32, u32, s32)
-        {0x227662d7, "sceJpegDecodeMJpegYCbCrSuccessively", 64, 3}, // s32 sceJpegDecodeMJpegYCbCrSuccessively(u32, s32, u32, s32, s32)
-        {0x48b602b7, "sceJpegDeleteMJpeg", 64, 4}, // s32 sceJpegDeleteMJpeg()
-        {0x64b6f978, "sceJpegDecodeMJpegSuccessively", 64, 5}, // s32 sceJpegDecodeMJpegSuccessively(u32, s32, u32, s32)
-        {0x67f0ed84, "sceJpegCsc", 64, 6}, // s32 sceJpegCsc(u32, u32, s32, s32, s32)
-        {0x7d2f3d7f, "sceJpegFinishMJpeg", 64, 7}, // s32 sceJpegFinishMJpeg()
-        {0x8f2bb012, "sceJpegGetOutputInfo", 64, 8}, // s32 sceJpegGetOutputInfo(u32, s32, u32, s32)
-        {0x91eed83c, "sceJpegDecodeMJpegYCbCr", 64, 9}, // s32 sceJpegDecodeMJpegYCbCr(u32, s32, u32, s32, s32)
-        {0x9b36444c, "sceJpeg_9B36444C", 64, 10}, // s32 sceJpeg_9B36444C()
-        {0x9d47469c, "sceJpegCreateMJpeg", 64, 11}, // s32 sceJpegCreateMJpeg(s32, s32)
-        {0xac9e70e6, "sceJpegInitMJpeg", 64, 12}, // s32 sceJpegInitMJpeg()
-        {0xa06a75c4, "sceJpegMJpegCscWithColorOption", 64, 13}, // s32 sceJpegMJpegCscWithColorOption()
-    }},
-    psp_module{"sceAudiocodec", {
-        {0x70a703f8, "sceAudiocodecDecode", 65, 0}, // s32 sceAudiocodecDecode(u32, s32)
-        {0x5b37eb1d, "sceAudiocodecInit", 65, 1}, // s32 sceAudiocodecInit(u32, s32)
-        {0x8aca11d5, "sceAudiocodecGetInfo", 65, 2}, // s32 sceAudiocodecGetInfo(u32, s32)
-        {0x3a20a200, "sceAudiocodecGetEDRAM", 65, 3}, // s32 sceAudiocodecGetEDRAM(u32, s32)
-        {0x29681260, "sceAudiocodecReleaseEDRAM", 65, 4}, // s32 sceAudiocodecReleaseEDRAM(u32, s32)
-        {0x9d3f790c, "sceAudiocodecCheckNeedMem", 65, 5}, // s32 sceAudiocodecCheckNeedMem(u32, s32)
-        {0x59176a0f, "sceAudiocodecAlcExtendParameter", 65, 6}, //  sceAudiocodecAlcExtendParameter()
-    }},
-    psp_module{"sceHeap", {
-        {0x0e875980, "sceHeapReallocHeapMemory", 66, 0}, // s32 sceHeapReallocHeapMemory(u32, u32, s32)
-        {0x1c84b58d, "sceHeapReallocHeapMemoryWithOption", 66, 1}, // s32 sceHeapReallocHeapMemoryWithOption(u32, u32, s32, u32)
-        {0x2abadc63, "sceHeapFreeHeapMemory", 66, 2}, // s32 sceHeapFreeHeapMemory(u32, u32)
-        {0x2a0c2009, "sceHeapGetMallinfo", 66, 3}, // s32 sceHeapGetMallinfo(u32, u32)
-        {0x2b7299d8, "sceHeapAllocHeapMemoryWithOption", 66, 4}, // u32 sceHeapAllocHeapMemoryWithOption(u32, u32, u32)
-        {0x4929b40d, "sceHeapGetTotalFreeSize", 66, 5}, // s32 sceHeapGetTotalFreeSize(u32)
-        {0x7012bbdd, "sceHeapIsAllocatedHeapMemory", 66, 6}, // s32 sceHeapIsAllocatedHeapMemory(u32, u32)
-        {0x70210b73, "sceHeapDeleteHeap", 66, 7}, // s32 sceHeapDeleteHeap(u32)
-        {0x7de281c2, "sceHeapCreateHeap", 66, 8}, // s32 sceHeapCreateHeap(const char *, u32, s32, u32)
-        {0xa8e102a0, "sceHeapAllocHeapMemory", 66, 9}, // u32 sceHeapAllocHeapMemory(u32, u32)
-    }},
-    psp_module{"FakeSysCalls", {
-        {0xc0debabe, "__KernelReturnFromThread", 67, 0}, // u32 __KernelReturnFromThread()
-        {0xbadc0fee, "__KernelReturnFromMipsCall", 67, 1}, // u32 __KernelReturnFromMipsCall()
-        {0xbadd00d5, "__KernelReturnFromInterrupt", 67, 2}, // u32 __KernelReturnFromInterrupt()
-        {0xbad0b0c9, "__KernelReturnFromExtendStack", 67, 3}, // u32 __KernelReturnFromExtendStack()
-        {0xbad0d318, "__KernelReturnFromModuleFunc", 67, 4}, // u32 __KernelReturnFromModuleFunc()
-        {0x1d7e1d7e, "_sceKernelIdle", 67, 5}, // u32 _sceKernelIdle()
-        {0x9e45bd95, "__KernelGPUReplay", 67, 6}, // u32 __KernelGPUReplay()
-        {0xbad0259b, "HLEReturnFromMipsCall", 67, 7}, // u32 HLEReturnFromMipsCall()
-    }},
-    psp_module{"UtilsForUser", {
-        {0x91e4f6a7, "sceKernelLibcClock", 68, 0}, // u32 sceKernelLibcClock()
-        {0x27cc57f0, "sceKernelLibcTime", 68, 1}, // u32 sceKernelLibcTime(u32)
-        {0x71ec4271, "sceKernelLibcGettimeofday", 68, 2}, // u32 sceKernelLibcGettimeofday(u32, u32)
-        {0xbfa98062, "sceKernelDcacheInvalidateRange", 68, 3}, // s32 sceKernelDcacheInvalidateRange(u32, s32)
-        {0xc8186a58, "sceKernelUtilsMd5Digest", 68, 4}, // s32 sceKernelUtilsMd5Digest(u32, s32, u32)
-        {0x9e5c5086, "sceKernelUtilsMd5BlockInit", 68, 5}, // s32 sceKernelUtilsMd5BlockInit(u32)
-        {0x61e1e525, "sceKernelUtilsMd5BlockUpdate", 68, 6}, // s32 sceKernelUtilsMd5BlockUpdate(u32, u32, s32)
-        {0xb8d24e78, "sceKernelUtilsMd5BlockResult", 68, 7}, // s32 sceKernelUtilsMd5BlockResult(u32, u32)
-        {0x840259f1, "sceKernelUtilsSha1Digest", 68, 8}, // s32 sceKernelUtilsSha1Digest(u32, s32, u32)
-        {0xf8fcd5ba, "sceKernelUtilsSha1BlockInit", 68, 9}, // s32 sceKernelUtilsSha1BlockInit(u32)
-        {0x346f6da8, "sceKernelUtilsSha1BlockUpdate", 68, 10}, // s32 sceKernelUtilsSha1BlockUpdate(u32, u32, s32)
-        {0x585f1c09, "sceKernelUtilsSha1BlockResult", 68, 11}, // s32 sceKernelUtilsSha1BlockResult(u32, u32)
-        {0xe860e75e, "sceKernelUtilsMt19937Init", 68, 12}, // u32 sceKernelUtilsMt19937Init(u32, u32)
-        {0x06fb8a63, "sceKernelUtilsMt19937UInt", 68, 13}, // u32 sceKernelUtilsMt19937UInt(u32)
-        {0x37fb5c42, "sceKernelGetGPI", 68, 14}, // u32 sceKernelGetGPI()
-        {0x6ad345d7, "sceKernelSetGPO", 68, 15}, // void sceKernelSetGPO(u32)
-        {0x79d1c3fa, "sceKernelDcacheWritebackAll", 68, 16}, // s32 sceKernelDcacheWritebackAll()
-        {0xb435dec5, "sceKernelDcacheWritebackInvalidateAll", 68, 17}, // s32 sceKernelDcacheWritebackInvalidateAll()
-        {0x3ee30821, "sceKernelDcacheWritebackRange", 68, 18}, // s32 sceKernelDcacheWritebackRange(u32, s32)
-        {0x34b9fa9e, "sceKernelDcacheWritebackInvalidateRange", 68, 19}, // s32 sceKernelDcacheWritebackInvalidateRange(u32, s32)
-        {0xc2df770e, "sceKernelIcacheInvalidateRange", 68, 20}, // s32 sceKernelIcacheInvalidateRange(u32, s32)
-        {0x80001c4c, "sceKernelDcacheProbe", 68, 21}, //  sceKernelDcacheProbe()
-        {0x16641d70, "sceKernelDcacheReadTag", 68, 22}, //  sceKernelDcacheReadTag()
-        {0x4fd31c9d, "sceKernelIcacheProbe", 68, 23}, //  sceKernelIcacheProbe()
-        {0xfb05fad0, "sceKernelIcacheReadTag", 68, 24}, //  sceKernelIcacheReadTag()
-        {0x920f104a, "sceKernelIcacheInvalidateAll", 68, 25}, // u32 sceKernelIcacheInvalidateAll()
-    }},
-    psp_module{"KDebugForKernel", {
-        {0xe7a3874d, "sceKernelRegisterAssertHandler", 69, 0}, //  sceKernelRegisterAssertHandler()
-        {0x2ff4e9f9, "sceKernelAssert", 69, 1}, //  sceKernelAssert()
-        {0x9b868276, "sceKernelGetDebugPutchar", 69, 2}, //  sceKernelGetDebugPutchar()
-        {0xe146606d, "sceKernelRegisterDebugPutchar", 69, 3}, //  sceKernelRegisterDebugPutchar()
-        {0x7ceb2c09, "sceKernelRegisterKprintfHandler", 69, 4}, // u32 sceKernelRegisterKprintfHandler()
-        {0x84f370bc, "Kprintf", 69, 5}, //  Kprintf()
-        {0x5ce9838b, "sceKernelDebugWrite", 69, 6}, //  sceKernelDebugWrite()
-        {0x66253c4e, "sceKernelRegisterDebugWrite", 69, 7}, //  sceKernelRegisterDebugWrite()
-        {0xdbb5597f, "sceKernelDebugRead", 69, 8}, //  sceKernelDebugRead()
-        {0xe6554fda, "sceKernelRegisterDebugRead", 69, 9}, //  sceKernelRegisterDebugRead()
-        {0xb9c643c9, "sceKernelDebugEcho", 69, 10}, //  sceKernelDebugEcho()
-        {0x7d1c74f0, "sceKernelDebugEchoSet", 69, 11}, //  sceKernelDebugEchoSet()
-        {0x24c32559, "sceKernelDipsw", 69, 12}, //  sceKernelDipsw()
-        {0xd636b827, "sceKernelRemoveByDebugSection", 69, 13}, //  sceKernelRemoveByDebugSection()
-        {0x5282dd5e, "sceKernelDipswSet", 69, 14}, //  sceKernelDipswSet()
-        {0x9f8703e4, "KDebugForKernel_9F8703E4", 69, 15}, //  KDebugForKernel_9F8703E4()
-        {0x333dcec7, "KDebugForKernel_333DCEC7", 69, 16}, //  KDebugForKernel_333DCEC7()
-        {0xe892d9a1, "KDebugForKernel_E892D9A1", 69, 17}, //  KDebugForKernel_E892D9A1()
-        {0xa126f497, "KDebugForKernel_A126F497", 69, 18}, //  KDebugForKernel_A126F497()
-        {0xb7251823, "sceKernelAcceptMbogoSig", 69, 19}, //  sceKernelAcceptMbogoSig()
-    }},
-    psp_module{"sceSAScore", {
-    }},
-    psp_module{"SceBase64_Library", {
-    }},
-    psp_module{"sceCert_Loader", {
-    }},
-    psp_module{"SceFont_Library", {
-    }},
-    psp_module{"sceNetApctl", {
-    }},
-    psp_module{"sceSIRCS_IrDA_Driver", {
-    }},
-    psp_module{"Pspnet_Scan", {
-    }},
-    psp_module{"Pspnet_Show_MacAddr", {
-    }},
-    psp_module{"pspeDebug", {
-        {0xdeadbeaf, "pspeDebugWrite", 78, 0}, //  pspeDebugWrite()
-    }},
-    psp_module{"StdioForKernel", {
-        {0x98220f3e, "sceKernelStdoutReopen", 79, 0}, //  sceKernelStdoutReopen()
-        {0xfb5380c5, "sceKernelStderrReopen", 79, 1}, //  sceKernelStderrReopen()
-        {0xcab439df, "printf", 79, 2}, //  printf()
-        {0x2ccf071a, "fdprintf", 79, 3}, //  fdprintf()
-        {0xd97c8cb9, "puts", 79, 4}, //  puts()
-        {0x172d316e, "sceKernelStdin", 79, 5}, //  sceKernelStdin()
-        {0xa6bab2e9, "sceKernelStdout", 79, 6}, // s32 sceKernelStdout()
-        {0xf78ba90a, "sceKernelStderr", 79, 7}, //  sceKernelStderr()
-    }},
-    psp_module{"LoadCoreForKernel", {
-        {0xace23476, "sceKernelCheckPspConfig", 80, 0}, //  sceKernelCheckPspConfig()
-        {0x7be1421c, "sceKernelCheckExecFile", 80, 1}, //  sceKernelCheckExecFile()
-        {0xbf983ef2, "sceKernelProbeExecutableObject", 80, 2}, //  sceKernelProbeExecutableObject()
-        {0x7068e6ba, "sceKernelLoadExecutableObject", 80, 3}, //  sceKernelLoadExecutableObject()
-        {0xb4d6fecc, "sceKernelApplyElfRelSection", 80, 4}, //  sceKernelApplyElfRelSection()
-        {0x54ab2675, "sceKernelApplyPspRelSection", 80, 5}, //  sceKernelApplyPspRelSection()
-        {0x2952f5ac, "sceKernelDcacheWBinvAll", 80, 6}, //  sceKernelDcacheWBinvAll()
-        {0xd8779ac6, "sceKernelIcacheClearAll", 80, 7}, // u32 sceKernelIcacheClearAll()
-        {0x99a695f0, "sceKernelRegisterLibrary", 80, 8}, //  sceKernelRegisterLibrary()
-        {0x5873a31f, "sceKernelRegisterLibraryForUser", 80, 9}, //  sceKernelRegisterLibraryForUser()
-        {0x0b464512, "sceKernelReleaseLibrary", 80, 10}, //  sceKernelReleaseLibrary()
-        {0x9baf90f6, "sceKernelCanReleaseLibrary", 80, 11}, //  sceKernelCanReleaseLibrary()
-        {0x0e760dba, "sceKernelLinkLibraryEntries", 80, 12}, //  sceKernelLinkLibraryEntries()
-        {0x0de1f600, "sceKernelLinkLibraryEntriesForUser", 80, 13}, //  sceKernelLinkLibraryEntriesForUser()
-        {0xda1b09aa, "sceKernelUnLinkLibraryEntries", 80, 14}, //  sceKernelUnLinkLibraryEntries()
-        {0xc99dd47a, "sceKernelQueryLoadCoreCB", 80, 15}, //  sceKernelQueryLoadCoreCB()
-        {0x616fcccd, "sceKernelSetBootCallbackLevel", 80, 16}, //  sceKernelSetBootCallbackLevel()
-        {0xf32a2940, "sceKernelModuleFromUID", 80, 17}, //  sceKernelModuleFromUID()
-        {0xcd0f3bac, "sceKernelCreateModule", 80, 18}, //  sceKernelCreateModule()
-        {0x6b2371c2, "sceKernelDeleteModule", 80, 19}, //  sceKernelDeleteModule()
-        {0x7320d964, "sceKernelModuleAssign", 80, 20}, //  sceKernelModuleAssign()
-        {0x44b292ab, "sceKernelAllocModule", 80, 21}, //  sceKernelAllocModule()
-        {0xbd61d4d5, "sceKernelFreeModule", 80, 22}, //  sceKernelFreeModule()
-        {0xae7c6e76, "sceKernelRegisterModule", 80, 23}, //  sceKernelRegisterModule()
-        {0x74cf001a, "sceKernelReleaseModule", 80, 24}, //  sceKernelReleaseModule()
-        {0xfb8ae27d, "sceKernelFindModuleByAddress", 80, 25}, //  sceKernelFindModuleByAddress()
-        {0xcce4a157, "sceKernelFindModuleByUID", 80, 26}, // u32 sceKernelFindModuleByUID(u32)
-        {0x82ce54ed, "sceKernelModuleCount", 80, 27}, //  sceKernelModuleCount()
-        {0xc0584f0c, "sceKernelGetModuleList", 80, 28}, //  sceKernelGetModuleList()
-        {0xcf8a41b1, "sceKernelFindModuleByName", 80, 29}, // u32 sceKernelFindModuleByName(const char *)
-        {0xb95fa50d, "LoadCoreForKernel_B95FA50D", 80, 30}, //  LoadCoreForKernel_B95FA50D()
-    }},
-    psp_module{"IoFileMgrForKernel", {
-        {0xa905b705, "sceIoCloseAll", 81, 0}, //  sceIoCloseAll()
-        {0x411106ba, "sceIoGetThreadCwd", 81, 1}, //  sceIoGetThreadCwd()
-        {0xcb0a151f, "sceIoChangeThreadCwd", 81, 2}, //  sceIoChangeThreadCwd()
-        {0x8e982a74, "sceIoAddDrv", 81, 3}, //  sceIoAddDrv()
-        {0xc7f35804, "sceIoDelDrv", 81, 4}, //  sceIoDelDrv()
-        {0x3c54e908, "sceIoReopen", 81, 5}, //  sceIoReopen()
-        {0xb29ddf9c, "sceIoDopen", 81, 6}, // s32 sceIoDopen(const char *)
-        {0xe3eb004c, "sceIoDread", 81, 7}, // s32 sceIoDread(s32, u32)
-        {0xeb092469, "sceIoDclose", 81, 8}, // s32 sceIoDclose(s32)
-        {0x109f50bc, "sceIoOpen", 81, 9}, // s32 sceIoOpen(const char *, s32, s32)
-        {0x6a638d83, "sceIoRead", 81, 10}, // s32 sceIoRead(s32, u32, s32)
-        {0x42ec03ac, "sceIoWrite", 81, 11}, // s32 sceIoWrite(s32, u32, s32)
-        {0x68963324, "sceIoLseek32", 81, 12}, // s32 sceIoLseek32(s32, s32, s32)
-        {0x27eb27b8, "sceIoLseek", 81, 13}, // s64 sceIoLseek(s32, s64, s32)
-        {0x810c4bc3, "sceIoClose", 81, 14}, // s32 sceIoClose(s32)
-        {0x779103a0, "sceIoRename", 81, 15}, // s32 sceIoRename(const char *, const char *)
-        {0xf27a9c51, "sceIoRemove", 81, 16}, // s32 sceIoRemove(const char *)
-        {0x55f4717d, "sceIoChdir", 81, 17}, // s32 sceIoChdir(const char *)
-        {0x06a70004, "sceIoMkdir", 81, 18}, // s32 sceIoMkdir(const char *, s32)
-        {0x1117c65f, "sceIoRmdir", 81, 19}, // s32 sceIoRmdir(const char *)
-        {0x54f5fb11, "sceIoDevctl", 81, 20}, // s32 sceIoDevctl(const char *, u32, u32 *, s32, u32 *, s32)
-        {0x63632449, "sceIoIoctl", 81, 21}, // s32 sceIoIoctl(s32, u32, u32 *, s32, u32 *, s32)
-        {0xab96437f, "sceIoSync", 81, 22}, // s32 sceIoSync(const char *, s32)
-        {0xb2a628c1, "sceIoAssign", 81, 23}, // s32 sceIoAssign(const char *, const char *, const char *, s32, u32, s32)
-        {0x6d08a871, "sceIoUnassign", 81, 24}, // s32 sceIoUnassign(const char *)
-        {0xace946e8, "sceIoGetstat", 81, 25}, // s32 sceIoGetstat(const char *, u32)
-        {0xb8a740f4, "sceIoChstat", 81, 26}, // s32 sceIoChstat(const char *, u32, u32)
-        {0xa0b5a7c2, "sceIoReadAsync", 81, 27}, // s32 sceIoReadAsync(s32, u32, s32)
-        {0x3251ea56, "sceIoPollAsync", 81, 28}, // s32 sceIoPollAsync(s32, )
-        {0xe23eec33, "sceIoWaitAsync", 81, 29}, // s32 sceIoWaitAsync(s32, )
-        {0x35dbd746, "sceIoWaitAsyncCB", 81, 30}, // s32 sceIoWaitAsyncCB(s32, )
-        {0xbd17474f, "IoFileMgrForKernel_BD17474F", 81, 31}, //  IoFileMgrForKernel_BD17474F()
-        {0x76da16e3, "IoFileMgrForKernel_76DA16E3", 81, 32}, //  IoFileMgrForKernel_76DA16E3()
-    }},
-    psp_module{"LoadExecForKernel", {
-        {0x4ac57943, "sceKernelRegisterExitCallback", 82, 0}, // s32 sceKernelRegisterExitCallback(s32)
-        {0xa3d5e142, "sceKernelExitVSHVSH", 82, 1}, //  sceKernelExitVSHVSH()
-        {0x28d0d249, "sceKernelLoadExecVSHMs2", 82, 2}, // s32 sceKernelLoadExecVSHMs2(const char *, u32)
-        {0x6d302d3d, "sceKernelExitVSHKernel", 82, 3}, // void sceKernelExitVSHKernel(u32)
-    }},
-    psp_module{"SysMemForKernel", {
-        {0x636c953b, "sceKernelAllocHeapMemory", 83, 0}, // u32 sceKernelAllocHeapMemory(s32, s32)
-        {0xc9805775, "sceKernelDeleteHeap", 83, 1}, // s32 sceKernelDeleteHeap(s32)
-        {0x1c1fbfe7, "sceKernelCreateHeap", 83, 2}, // s32 sceKernelCreateHeap(s32, s32, u32, const char *)
-        {0x237dbd4f, "sceKernelAllocPartitionMemory", 83, 3}, // s32 sceKernelAllocPartitionMemory(s32, const char *, s32, u32, u32)
-        {0xb6d61d02, "sceKernelFreePartitionMemory", 83, 4}, // s32 sceKernelFreePartitionMemory(s32)
-        {0x9d9a5ba1, "sceKernelGetBlockHeadAddr", 83, 5}, // u32 sceKernelGetBlockHeadAddr(s32)
-        {0x9697cd32, "sceKernelPartitionTotalFreeMemSize", 83, 6}, // u32 sceKernelPartitionTotalFreeMemSize(s32)
-        {0xe6581468, "sceKernelPartitionMaxFreeMemSize", 83, 7}, // u32 sceKernelPartitionMaxFreeMemSize(s32)
-        {0x3fc9ae6a, "sceKernelDevkitVersion", 83, 8}, // u32 sceKernelDevkitVersion()
-        {0x536ad5e1, "SysMemForKernel_536AD5E1", 83, 9}, // s32 SysMemForKernel_536AD5E1(s32)
-    }},
-    psp_module{"sceMt19937", {
-        {0xecf5d379, "sceMt19937Init", 84, 0}, // u32 sceMt19937Init(u32, u32)
-        {0xf40c98e6, "sceMt19937UInt", 84, 1}, // u32 sceMt19937UInt(u32)
-    }},
-    psp_module{"SysclibForKernel", {
-        {0xab7592ff, "memcpy", 85, 0}, // u32 memcpy(u32, u32, u32)
-        {0x476fd94a, "strcat", 85, 1}, // u32 strcat(u32, u32)
-        {0xc0ab8932, "strcmp", 85, 2}, // s32 strcmp(u32, u32)
-        {0xec6f1cf2, "strcpy", 85, 3}, // u32 strcpy(u32, u32)
-        {0x52df196c, "strlen", 85, 4}, // u32 strlen(u32)
-        {0x81d0d1f7, "memcmp", 85, 5}, // s32 memcmp(u32, u32, u32)
-        {0x7661e728, "sprintf", 85, 6}, // s32 sprintf(u32, u32)
-        {0x10f3bb61, "memset", 85, 7}, // u32 memset(u32, s32, s32)
-        {0x0d188658, "strstr", 85, 8}, // s32 strstr(u32, u32)
-        {0x7ab35214, "strncmp", 85, 9}, // s32 strncmp(u32, u32, u32)
-        {0xa48d2592, "memmove", 85, 10}, // u32 memmove(u32, u32, u32)
-        {0xb49a7697, "strncpy", 85, 11}, // u32 strncpy(u32, u32, s32)
-    }},
-    psp_module{"sceCtrl_driver", {
-        {0x3e65a0ea, "sceCtrlInit", 86, 0}, //  sceCtrlInit()
-        {0x1f4011e6, "sceCtrlSetSamplingMode", 86, 1}, // u32 sceCtrlSetSamplingMode(u32)
-        {0x6a2774f3, "sceCtrlSetSamplingCycle", 86, 2}, // u32 sceCtrlSetSamplingCycle(u32)
-        {0x02baad91, "sceCtrlGetSamplingCycle", 86, 3}, // s32 sceCtrlGetSamplingCycle(u32)
-        {0xda6b76a1, "sceCtrlGetSamplingMode", 86, 4}, // s32 sceCtrlGetSamplingMode(u32)
-        {0x1f803938, "sceCtrlReadBufferPositive", 86, 5}, // s32 sceCtrlReadBufferPositive(u32, u32)
-        {0x3a622550, "sceCtrlPeekBufferPositive", 86, 6}, // s32 sceCtrlPeekBufferPositive(u32, u32)
-        {0xc152080a, "sceCtrlPeekBufferNegative", 86, 7}, // s32 sceCtrlPeekBufferNegative(u32, u32)
-        {0x60b81f86, "sceCtrlReadBufferNegative", 86, 8}, // s32 sceCtrlReadBufferNegative(u32, u32)
-        {0xb1d0e5cd, "sceCtrlPeekLatch", 86, 9}, // s32 sceCtrlPeekLatch(u32)
-        {0x0b588501, "sceCtrlReadLatch", 86, 10}, // s32 sceCtrlReadLatch(u32)
-        {0x348d99d4, "sceCtrlSetSuspendingExtraSamples", 86, 11}, //  sceCtrlSetSuspendingExtraSamples()
-        {0xaf5960f3, "sceCtrlGetSuspendingExtraSamples", 86, 12}, //  sceCtrlGetSuspendingExtraSamples()
-        {0xa68fd260, "sceCtrlClearRapidFire", 86, 13}, //  sceCtrlClearRapidFire()
-        {0x6841be1a, "sceCtrlSetRapidFire", 86, 14}, //  sceCtrlSetRapidFire()
-        {0xa7144800, "sceCtrlSetIdleCancelThreshold", 86, 15}, // s32 sceCtrlSetIdleCancelThreshold(s32, s32)
-        {0x687660fa, "sceCtrlGetIdleCancelThreshold", 86, 16}, // s32 sceCtrlGetIdleCancelThreshold(u32, u32)
-    }},
-    psp_module{"sceDisplay_driver", {
-        {0x0e20f177, "sceDisplaySetMode", 87, 0}, // u32 sceDisplaySetMode(s32, s32, s32)
-        {0x289d82fe, "sceDisplaySetFrameBuf", 87, 1}, // u32 sceDisplaySetFrameBuf(u32, s32, s32, s32)
-        {0xeeda2e54, "sceDisplayGetFrameBuf", 87, 2}, // u32 sceDisplayGetFrameBuf(u32 *, u32 *, u32 *, s32)
-        {0x36cdfade, "sceDisplayWaitVblank", 87, 3}, // u32 sceDisplayWaitVblank()
-        {0x984c27e7, "sceDisplayWaitVblankStart", 87, 4}, // u32 sceDisplayWaitVblankStart()
-        {0x40f1469c, "sceDisplayWaitVblankStartMulti", 87, 5}, // u32 sceDisplayWaitVblankStartMulti(s32)
-        {0x8eb9ec49, "sceDisplayWaitVblankCB", 87, 6}, // u32 sceDisplayWaitVblankCB()
-        {0x46f186c3, "sceDisplayWaitVblankStartCB", 87, 7}, // u32 sceDisplayWaitVblankStartCB()
-        {0x77ed8b3a, "sceDisplayWaitVblankStartMultiCB", 87, 8}, // u32 sceDisplayWaitVblankStartMultiCB(s32)
-        {0xdba6c4c4, "sceDisplayGetFramePerSec", 87, 9}, // float sceDisplayGetFramePerSec()
-        {0x773dd3a3, "sceDisplayGetCurrentHcount", 87, 10}, // u32 sceDisplayGetCurrentHcount()
-        {0x210eab3a, "sceDisplayGetAccumulatedHcount", 87, 11}, // s32 sceDisplayGetAccumulatedHcount()
-        {0xa83ef139, "sceDisplayAdjustAccumulatedHcount", 87, 12}, // s32 sceDisplayAdjustAccumulatedHcount(s32)
-        {0x9c6eaad7, "sceDisplayGetVcount", 87, 13}, // u32 sceDisplayGetVcount()
-        {0xdea197d4, "sceDisplayGetMode", 87, 14}, // u32 sceDisplayGetMode(u32 *, u32 *, u32 *)
-        {0x7ed59bc4, "sceDisplaySetHoldMode", 87, 15}, // u32 sceDisplaySetHoldMode(u32)
-        {0xa544c486, "sceDisplaySetResumeMode", 87, 16}, // u32 sceDisplaySetResumeMode(u32)
-        {0xbf79f646, "sceDisplayGetResumeMode", 87, 17}, // u32 sceDisplayGetResumeMode(u32 *)
-        {0xb4f378fa, "sceDisplayIsForeground", 87, 18}, // u32 sceDisplayIsForeground()
-        {0x31c4baa8, "sceDisplayGetBrightness", 87, 19}, // u32 sceDisplayGetBrightness(u32 *, u32 *)
-        {0x9e3c6dc6, "sceDisplaySetBrightness", 87, 20}, // u32 sceDisplaySetBrightness(s32, s32)
-        {0x4d4e10ec, "sceDisplayIsVblank", 87, 21}, // u32 sceDisplayIsVblank()
-        {0x21038913, "sceDisplayIsVsync", 87, 22}, // u32 sceDisplayIsVsync()
-    }},
-    psp_module{"sceMpegbase", {
-        {0xbea18f91, "sceMpegBasePESpacketCopy", 88, 0}, // u32 sceMpegBasePESpacketCopy(u32)
-        {0x492b5e4b, "sceMpegBaseCscInit", 88, 1}, //  sceMpegBaseCscInit()
-        {0x0530be4e, "sceMpegbase_0530BE4E", 88, 2}, //  sceMpegbase_0530BE4E()
-        {0x91929a21, "sceMpegBaseCscAvc", 88, 3}, //  sceMpegBaseCscAvc()
-        {0x304882e1, "sceMpegBaseCscAvcRange", 88, 4}, //  sceMpegBaseCscAvcRange()
-        {0x7ac0321a, "sceMpegBaseYCrCbCopy", 88, 5}, //  sceMpegBaseYCrCbCopy()
-    }},
-    psp_module{"sceUsbGps", {
-        {0x268f95ca, "sceUsbGpsSetInitDataLocation", 89, 0}, //  sceUsbGpsSetInitDataLocation()
-        {0x31f95cde, "sceUsbGpsGetPowerSaveMode", 89, 1}, //  sceUsbGpsGetPowerSaveMode()
-        {0x54d26aa4, "sceUsbGpsGetInitDataLocation", 89, 2}, // s32 sceUsbGpsGetInitDataLocation(u32)
-        {0x5881c826, "sceUsbGpsGetStaticNavMode", 89, 3}, //  sceUsbGpsGetStaticNavMode()
-        {0x63d1f89d, "sceUsbGpsResetInitialPosition", 89, 4}, //  sceUsbGpsResetInitialPosition()
-        {0x69e4aaa8, "sceUsbGpsSaveInitData", 89, 5}, //  sceUsbGpsSaveInitData()
-        {0x6eed4811, "sceUsbGpsClose", 89, 6}, // s32 sceUsbGpsClose()
-        {0x7c16ac3a, "sceUsbGpsGetState", 89, 7}, // s32 sceUsbGpsGetState(u32)
-        {0x934ec2b2, "sceUsbGpsGetData", 89, 8}, // s32 sceUsbGpsGetData(u32, u32)
-        {0x9d8f99e8, "sceUsbGpsSetPowerSaveMode", 89, 9}, //  sceUsbGpsSetPowerSaveMode()
-        {0x9f267d34, "sceUsbGpsOpen", 89, 10}, // s32 sceUsbGpsOpen()
-        {0xa259cd67, "sceUsbGpsReset", 89, 11}, //  sceUsbGpsReset()
-        {0xa8ed0bc2, "sceUsbGpsSetStaticNavMode", 89, 12}, //  sceUsbGpsSetStaticNavMode()
-    }},
-    psp_module{"sceLibFttt", {
-        {0x67f17ed7, "sceFontNewLib", 90, 0}, // u32 sceFontNewLib(u32, u32)
-        {0x574b6fbc, "sceFontDoneLib", 90, 1}, // s32 sceFontDoneLib(u32)
-        {0x48293280, "sceFontSetResolution", 90, 2}, // s32 sceFontSetResolution(u32, float, float)
-        {0x27f6e642, "sceFontGetNumFontList", 90, 3}, // s32 sceFontGetNumFontList(u32, u32)
-        {0xbc75d85b, "sceFontGetFontList", 90, 4}, // s32 sceFontGetFontList(u32, u32, s32)
-        {0x099ef33c, "sceFontFindOptimumFont", 90, 5}, // s32 sceFontFindOptimumFont(u32, u32, u32)
-        {0x681e61a7, "sceFontFindFont", 90, 6}, // s32 sceFontFindFont(u32, u32, u32)
-        {0x2f67356a, "sceFontCalcMemorySize", 90, 7}, // s32 sceFontCalcMemorySize()
-        {0x5333322d, "sceFontGetFontInfoByIndexNumber", 90, 8}, // s32 sceFontGetFontInfoByIndexNumber(u32, u32, u32)
-        {0xa834319d, "sceFontOpen", 90, 9}, // u32 sceFontOpen(u32, u32, u32, u32 *)
-        {0x57fcb733, "sceFontOpenUserFile", 90, 10}, // u32 sceFontOpenUserFile(u32, const char *, u32, u32 *)
-        {0xbb8e7fe6, "sceFontOpenUserMemory", 90, 11}, // u32 sceFontOpenUserMemory(u32, u32, u32, u32 *)
-        {0x3aea8cb6, "sceFontClose", 90, 12}, // s32 sceFontClose(u32)
-        {0x0da7535e, "sceFontGetFontInfo", 90, 13}, // s32 sceFontGetFontInfo(u32, u32)
-        {0xdcc80c2f, "sceFontGetCharInfo", 90, 14}, // s32 sceFontGetCharInfo(u32, u32, u32)
-        {0xaa3de7b5, "sceFontGetShadowInfo", 90, 15}, // s32 sceFontGetShadowInfo(u32, u32, u32)
-        {0x5c3e4a9e, "sceFontGetCharImageRect", 90, 16}, // s32 sceFontGetCharImageRect(u32, u32, u32)
-        {0x48b06520, "sceFontGetShadowImageRect", 90, 17}, // s32 sceFontGetShadowImageRect(u32, u32, u32)
-        {0x980f4895, "sceFontGetCharGlyphImage", 90, 18}, // s32 sceFontGetCharGlyphImage(u32, u32, u32)
-        {0xca1e6945, "sceFontGetCharGlyphImage_Clip", 90, 19}, // s32 sceFontGetCharGlyphImage_Clip(u32, u32, u32, s32, s32, s32, s32)
-        {0x74b21701, "sceFontPixelToPointH", 90, 20}, // float sceFontPixelToPointH(s32, float, u32)
-        {0xf8f0752e, "sceFontPixelToPointV", 90, 21}, // float sceFontPixelToPointV(s32, float, u32)
-        {0x472694cd, "sceFontPointToPixelH", 90, 22}, // float sceFontPointToPixelH(s32, float, u32)
-        {0x3c4b7e82, "sceFontPointToPixelV", 90, 23}, // float sceFontPointToPixelV(s32, float, u32)
-        {0xee232411, "sceFontSetAltCharacterCode", 90, 24}, // s32 sceFontSetAltCharacterCode(u32, u32)
-        {0x568be516, "sceFontGetShadowGlyphImage", 90, 25}, // s32 sceFontGetShadowGlyphImage(u32, u32, u32)
-        {0x5dcf6858, "sceFontGetShadowGlyphImage_Clip", 90, 26}, // s32 sceFontGetShadowGlyphImage_Clip(u32, u32, u32, s32, s32, s32, s32)
-        {0x02d7f94b, "sceFontFlush", 90, 27}, // s32 sceFontFlush(u32)
-    }},
-    psp_module{"sceSha256", {
-        {0x318a350c, "sceSha256Digest", 91, 0}, // s32 sceSha256Digest(u32, s32, u32)
-    }},
-    psp_module{"sceAdler", {
-        {0x9702ef11, "sceAdler32", 92, 0}, // u32 sceAdler32(u32, u32, u32)
-    }},
-    psp_module{"sceSfmt19937", {
-        {0x161aceb2, "sceSfmt19937InitGenRand", 93, 0}, // s32 sceSfmt19937InitGenRand(u32, u32)
-        {0xdd5a5d6c, "sceSfmt19937InitByArray", 93, 1}, // s32 sceSfmt19937InitByArray(u32, u32, s32)
-        {0xb33fe749, "sceSfmt19937GenRand32", 93, 2}, // u32 sceSfmt19937GenRand32(u32)
-        {0xd5ac9f99, "sceSfmt19937GenRand64", 93, 3}, // u64 sceSfmt19937GenRand64(u32)
-        {0xdb025bfa, "sceSfmt19937FillArray32", 93, 4}, // s32 sceSfmt19937FillArray32(u32, u32, s32)
-        {0xee2938c4, "sceSfmt19937FillArray64", 93, 5}, // s32 sceSfmt19937FillArray64(u32, u32, s32)
-    }},
-    psp_module{"sceAudioRouting", {
-        {0x39240e7d, "sceAudioRoutingGetMode", 94, 0}, // s32 sceAudioRoutingGetMode()
-        {0x28235c56, "sceAudioRoutingGetVolumeMode", 94, 1}, // s32 sceAudioRoutingGetVolumeMode()
-        {0x36fd8aa9, "sceAudioRoutingSetMode", 94, 2}, // s32 sceAudioRoutingSetMode(s32)
-        {0xbb548475, "sceAudioRoutingSetVolumeMode", 94, 3}, // s32 sceAudioRoutingSetVolumeMode(s32)
-    }},
-    psp_module{"sceUsbCam", {
-        {0x03ed7a82, "sceUsbCamSetupMic", 95, 0}, // s32 sceUsbCamSetupMic(u32, u32, s32)
-        {0x2e930264, "sceUsbCamSetupMicEx", 95, 1}, //  sceUsbCamSetupMicEx()
-        {0x82a64030, "sceUsbCamStartMic", 95, 2}, // s32 sceUsbCamStartMic()
-        {0x5145868a, "sceUsbCamStopMic", 95, 3}, // s32 sceUsbCamStopMic()
-        {0x36636925, "sceUsbCamReadMicBlocking", 95, 4}, // s32 sceUsbCamReadMicBlocking(u32, u32)
-        {0x3dc0088e, "sceUsbCamReadMic", 95, 5}, // s32 sceUsbCamReadMic(u32, u32)
-        {0xb048a67d, "sceUsbCamWaitReadMicEnd", 95, 6}, //  sceUsbCamWaitReadMicEnd()
-        {0xf8847f60, "sceUsbCamPollReadMicEnd", 95, 7}, //  sceUsbCamPollReadMicEnd()
-        {0x5778b452, "sceUsbCamGetMicDataLength", 95, 8}, // s32 sceUsbCamGetMicDataLength()
-        {0x08aee98a, "sceUsbCamSetMicGain", 95, 9}, //  sceUsbCamSetMicGain()
-        {0x17f7b2fb, "sceUsbCamSetupVideo", 95, 10}, // s32 sceUsbCamSetupVideo(u32, u32, s32)
-        {0xcfe9e999, "sceUsbCamSetupVideoEx", 95, 11}, // s32 sceUsbCamSetupVideoEx(u32, u32, s32)
-        {0x574a8c3f, "sceUsbCamStartVideo", 95, 12}, // s32 sceUsbCamStartVideo()
-        {0x6cf32cb9, "sceUsbCamStopVideo", 95, 13}, // s32 sceUsbCamStopVideo()
-        {0x7dac0c71, "sceUsbCamReadVideoFrameBlocking", 95, 14}, // s32 sceUsbCamReadVideoFrameBlocking(u32, u32)
-        {0x99d86281, "sceUsbCamReadVideoFrame", 95, 15}, // s32 sceUsbCamReadVideoFrame(u32, u32)
-        {0xf90b2293, "sceUsbCamWaitReadVideoFrameEnd", 95, 16}, //  sceUsbCamWaitReadVideoFrameEnd()
-        {0x41e73e95, "sceUsbCamPollReadVideoFrameEnd", 95, 17}, // s32 sceUsbCamPollReadVideoFrameEnd()
-        {0xdf9d0c92, "sceUsbCamGetReadVideoFrameSize", 95, 18}, //  sceUsbCamGetReadVideoFrameSize()
-        {0x3f0cf289, "sceUsbCamSetupStill", 95, 19}, // s32 sceUsbCamSetupStill(u32)
-        {0x0a41a298, "sceUsbCamSetupStillEx", 95, 20}, // s32 sceUsbCamSetupStillEx(u32)
-        {0x61be5cac, "sceUsbCamStillInputBlocking", 95, 21}, //  sceUsbCamStillInputBlocking()
-        {0xfb0a6c5d, "sceUsbCamStillInput", 95, 22}, //  sceUsbCamStillInput()
-        {0x7563afa1, "sceUsbCamStillWaitInputEnd", 95, 23}, //  sceUsbCamStillWaitInputEnd()
-        {0x1a46cfe7, "sceUsbCamStillPollInputEnd", 95, 24}, //  sceUsbCamStillPollInputEnd()
-        {0xa720937c, "sceUsbCamStillCancelInput", 95, 25}, //  sceUsbCamStillCancelInput()
-        {0xe5959c36, "sceUsbCamStillGetInputLength", 95, 26}, //  sceUsbCamStillGetInputLength()
-        {0xf93c4669, "sceUsbCamAutoImageReverseSW", 95, 27}, // s32 sceUsbCamAutoImageReverseSW(s32)
-        {0x11a1f128, "sceUsbCamGetAutoImageReverseState", 95, 28}, //  sceUsbCamGetAutoImageReverseState()
-        {0x4c34f553, "sceUsbCamGetLensDirection", 95, 29}, // s32 sceUsbCamGetLensDirection()
-        {0x383e9fa8, "sceUsbCamGetSaturation", 95, 30}, //  sceUsbCamGetSaturation()
-        {0x6e205974, "sceUsbCamSetSaturation", 95, 31}, //  sceUsbCamSetSaturation()
-        {0x70f522c5, "sceUsbCamGetBrightness", 95, 32}, //  sceUsbCamGetBrightness()
-        {0x4f3d84d5, "sceUsbCamSetBrightness", 95, 33}, //  sceUsbCamSetBrightness()
-        {0xa063a957, "sceUsbCamGetContrast", 95, 34}, //  sceUsbCamGetContrast()
-        {0x09c26c7e, "sceUsbCamSetContrast", 95, 35}, //  sceUsbCamSetContrast()
-        {0xfdb68c23, "sceUsbCamGetSharpness", 95, 36}, //  sceUsbCamGetSharpness()
-        {0x622f83cc, "sceUsbCamSetSharpness", 95, 37}, //  sceUsbCamSetSharpness()
-        {0x994471e0, "sceUsbCamGetImageEffectMode", 95, 38}, //  sceUsbCamGetImageEffectMode()
-        {0xd4876173, "sceUsbCamSetImageEffectMode", 95, 39}, //  sceUsbCamSetImageEffectMode()
-        {0x2bcd50c0, "sceUsbCamGetEvLevel", 95, 40}, //  sceUsbCamGetEvLevel()
-        {0x1d686870, "sceUsbCamSetEvLevel", 95, 41}, //  sceUsbCamSetEvLevel()
-        {0xd5279339, "sceUsbCamGetReverseMode", 95, 42}, //  sceUsbCamGetReverseMode()
-        {0x951bedf5, "sceUsbCamSetReverseMode", 95, 43}, // s32 sceUsbCamSetReverseMode(s32)
-        {0x9e8aaf8d, "sceUsbCamGetZoom", 95, 44}, //  sceUsbCamGetZoom()
-        {0xc484901f, "sceUsbCamSetZoom", 95, 45}, //  sceUsbCamSetZoom()
-        {0xaa7d94ba, "sceUsbCamGetAntiFlicker", 95, 46}, //  sceUsbCamGetAntiFlicker()
-        {0x6784e6a8, "sceUsbCamSetAntiFlicker", 95, 47}, //  sceUsbCamSetAntiFlicker()
-        {0xd293a100, "sceUsbCamRegisterLensRotationCallback", 95, 48}, //  sceUsbCamRegisterLensRotationCallback()
-        {0x41ee8797, "sceUsbCamUnregisterLensRotationCallback", 95, 49}, //  sceUsbCamUnregisterLensRotationCallback()
-    }},
-    psp_module{"sceG729", {
-        {0x13f1028a, "sceG729DecodeExit", 96, 0}, //  sceG729DecodeExit()
-        {0x17c11696, "sceG729DecodeInitResource", 96, 1}, //  sceG729DecodeInitResource()
-        {0x3489d1f3, "sceG729DecodeCore", 96, 2}, //  sceG729DecodeCore()
-        {0x55e14f75, "sceG729DecodeInit", 96, 3}, //  sceG729DecodeInit()
-        {0x5a409d1b, "sceG729EncodeExit", 96, 4}, //  sceG729EncodeExit()
-        {0x74804d93, "sceG729DecodeReset", 96, 5}, //  sceG729DecodeReset()
-        {0x890b86ae, "sceG729DecodeTermResource", 96, 6}, //  sceG729DecodeTermResource()
-        {0x8c87a2ca, "sceG729EncodeReset", 96, 7}, //  sceG729EncodeReset()
-        {0x94714d50, "sceG729EncodeTermResource", 96, 8}, //  sceG729EncodeTermResource()
-        {0xaa1e5462, "sceG729EncodeInitResource", 96, 9}, //  sceG729EncodeInitResource()
-        {0xcfcd367c, "sceG729EncodeInit", 96, 10}, //  sceG729EncodeInit()
-        {0xdb7259d5, "sceG729EncodeCore", 96, 11}, //  sceG729EncodeCore()
-    }},
-    psp_module{"sceNetUpnp", {
-        {0x27045362, "sceNetUpnpGetNatInfo", 97, 0}, // s32 sceNetUpnpGetNatInfo()
-        {0x3432b2e5, "sceNetUpnpStart", 97, 1}, // s32 sceNetUpnpStart()
-        {0x3e32ed9e, "sceNetUpnpStop", 97, 2}, // s32 sceNetUpnpStop()
-        {0x540491ef, "sceNetUpnpTerm", 97, 3}, // s32 sceNetUpnpTerm()
-        {0xe24220b5, "sceNetUpnpInit", 97, 4}, // s32 sceNetUpnpInit(s32, s32)
-    }},
-    psp_module{"sceNetIfhandle", {
-        {0xc80181a2, "sceNetGetDropRate", 98, 0}, // s32 sceNetGetDropRate(u32 *, u32 *)
-        {0xfd8585e1, "sceNetSetDropRate", 98, 1}, // s32 sceNetSetDropRate(s32, s32)
-    }},
-    psp_module{"KUBridge", {
-        {0x4c25ea72, "kuKernelLoadModule", 99, 0}, // s32 kuKernelLoadModule(const char *, u32, u32)
-        {0x24331850, "kuKernelGetModel", 99, 1}, // s32 kuKernelGetModel()
-    }},
-    psp_module{"sceUsbAcc", {
-        {0x79a1c743, "sceUsbAccGetAuthStat", 100, 0}, // s32 sceUsbAccGetAuthStat()
-        {0x0cd7d4aa, "sceUsbAccGetInfo", 100, 1}, // s32 sceUsbAccGetInfo(u32)
-    }},
-    psp_module{"sceUsbMic", {
-        {0x06128e42, "sceUsbMicPollInputEnd", 101, 0}, // s32 sceUsbMicPollInputEnd()
-        {0x2e6dcdcd, "sceUsbMicInputBlocking", 101, 1}, // s32 sceUsbMicInputBlocking(u32, u32, u32)
-        {0x45310f07, "sceUsbMicInputInitEx", 101, 2}, // s32 sceUsbMicInputInitEx(u32)
-        {0x5f7f368d, "sceUsbMicInput", 101, 3}, // s32 sceUsbMicInput(u32, u32, u32)
-        {0x63400e20, "sceUsbMicGetInputLength", 101, 4}, // s32 sceUsbMicGetInputLength()
-        {0xb8e536eb, "sceUsbMicInputInit", 101, 5}, // s32 sceUsbMicInputInit(s32, s32, s32)
-        {0xf899001c, "sceUsbMicWaitInputEnd", 101, 6}, // s32 sceUsbMicWaitInputEnd()
-    }},
-    psp_module{"sceOpenPSID_driver", {
-        {0x19d579f0, "sceOpenPSIDGetPSID", 102, 0}, // s32 sceOpenPSIDGetPSID(u32, u32)
-        {0xc69bebce, "sceOpenPSIDGetOpenPSID", 102, 1}, // s32 sceOpenPSIDGetOpenPSID(u32)
-    }},
-    psp_module{"semaphore", {
-        {0x4c537c72, "sceUtilsBufferCopyWithRange", 103, 0}, // u32 sceUtilsBufferCopyWithRange(u32, s32, u32, s32, s32)
-        {0x77e97079, "sceUtilsBufferCopyByPollingWithRange", 103, 1}, // s32 sceUtilsBufferCopyByPollingWithRange(u32, s32, u32, s32, s32)
-    }},
-    psp_module{"sceDdrdb", {
-        {0xf013f8bf, "sceDdrdb_F013F8BF", 104, 0}, // s32 sceDdrdb_F013F8BF(u32, u32)
-    }},
+    psp_module{0, "Kernel_Library", {
+        { 0x092968f4, "sceKernelCpuSuspendIntr",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 0, 0 },
+        { 0x5f10d406, "sceKernelCpuResumeIntr",
+          RET(ARG_VOID), ARGS(ARG_U32), 
+          unknown_header, 0, 1 },
+        { 0x3b84732d, "sceKernelCpuResumeIntrWithSync",
+          RET(ARG_VOID), ARGS(ARG_U32), 
+          unknown_header, 0, 2 },
+        { 0x47a0b729, "sceKernelIsCpuIntrSuspended",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 0, 3 },
+        { 0xb55249d2, "sceKernelIsCpuIntrEnable",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 0, 4 },
+        { 0xa089eca4, "sceKernelMemset",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 0, 5 },
+        { 0xdc692ee3, "sceKernelTryLockLwMutex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 0, 6 },
+        { 0x37431849, "sceKernelTryLockLwMutex_600",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 0, 7 },
+        { 0xbea46419, "sceKernelLockLwMutex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 0, 8 },
+        { 0x1fc64e09, "sceKernelLockLwMutexCB",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 0, 9 },
+        { 0x15b6446b, "sceKernelUnlockLwMutex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 0, 10 },
+        { 0xc1734599, "sceKernelReferLwMutexStatus",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 0, 11 },
+        { 0x293b45b8, "sceKernelGetThreadId",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 0, 12 },
+        { 0xd13bde95, "sceKernelCheckThreadStack",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 0, 13 },
+        { 0x1839852a, "sceKernelMemcpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 0, 14 },
+        { 0xfa835cde, "sceKernelGetTlsAddr",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 0, 15 },
+        { 0x05572a5f, "sceKernelExitGame",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 0, 16 },
+        { 0x4ac57943, "sceKernelRegisterExitCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 0, 17 }
+    }},
+
+    psp_module{1, "ThreadManForUser", {
+        { 0x55c20a00, "sceKernelCreateEventFlag",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 0 },
+        { 0x812346e4, "sceKernelClearEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 1 },
+        { 0xef9e4c70, "sceKernelDeleteEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 1, 2 },
+        { 0x1fb15a32, "sceKernelSetEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 3 },
+        { 0x402fcf22, "sceKernelWaitEventFlag",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_PTR, ARG_PTR), 
+          unknown_header, 1, 4 },
+        { 0x328c546a, "sceKernelWaitEventFlagCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_PTR, ARG_PTR), 
+          unknown_header, 1, 5 },
+        { 0x30fd48f0, "sceKernelPollEventFlag",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 1, 6 },
+        { 0xcd203292, "sceKernelCancelEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_PTR), 
+          unknown_header, 1, 7 },
+        { 0xa66b0120, "sceKernelReferEventFlagStatus",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 8 },
+        { 0x8ffdf9a2, "sceKernelCancelSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 9 },
+        { 0xd6da4ba1, "sceKernelCreateSema",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 10 },
+        { 0x28b6489c, "sceKernelDeleteSema",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 11 },
+        { 0x58b1f937, "sceKernelPollSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 12 },
+        { 0xbc6febc5, "sceKernelReferSemaStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 13 },
+        { 0x3f53e640, "sceKernelSignalSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 14 },
+        { 0x4e3a1105, "sceKernelWaitSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 15 },
+        { 0x6d212bac, "sceKernelWaitSemaCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 16 },
+        { 0x60107536, "sceKernelDeleteLwMutex",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 17 },
+        { 0x19cff145, "sceKernelCreateLwMutex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 18 },
+        { 0x4c145944, "sceKernelReferLwMutexStatusByID",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 19 },
+        { 0xf8170fbe, "sceKernelDeleteMutex",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 20 },
+        { 0xb011b11f, "sceKernelLockMutex",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 21 },
+        { 0x5bf4dd27, "sceKernelLockMutexCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 22 },
+        { 0x6b30100f, "sceKernelUnlockMutex",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 23 },
+        { 0xb7d098c6, "sceKernelCreateMutex",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 24 },
+        { 0x0ddcd2c9, "sceKernelTryLockMutex",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 25 },
+        { 0xa9c2cb9a, "sceKernelReferMutexStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 26 },
+        { 0x87d9223c, "sceKernelCancelMutex",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 27 },
+        { 0xfccfad26, "sceKernelCancelWakeupThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 28 },
+        { 0x1af94d03, "sceKernelDonateWakeupThread",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 1, 29 },
+        { 0xea748e31, "sceKernelChangeCurrentThreadAttr",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 1, 30 },
+        { 0x71bc9871, "sceKernelChangeThreadPriority",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 31 },
+        { 0x446d8de6, "sceKernelCreateThread",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 32 },
+        { 0x9fa03cd3, "sceKernelDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 33 },
+        { 0xbd123d9e, "sceKernelDelaySysClockThread",
+          RET(ARG_S32), ARGS(ARG_UNKNOWN), 
+          unknown_header, 1, 34 },
+        { 0x1181e963, "sceKernelDelaySysClockThreadCB",
+          RET(ARG_S32), ARGS(ARG_UNKNOWN), 
+          unknown_header, 1, 35 },
+        { 0xceadeb47, "sceKernelDelayThread",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 36 },
+        { 0x68da9e36, "sceKernelDelayThreadCB",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 37 },
+        { 0xaa73c935, "sceKernelExitThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 38 },
+        { 0x809ce29b, "sceKernelExitDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 39 },
+        { 0x94aa61ee, "sceKernelGetThreadCurrentPriority",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 40 },
+        { 0x293b45b8, "sceKernelGetThreadId",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 41 },
+        { 0x3b183e26, "sceKernelGetThreadExitStatus",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 42 },
+        { 0x52089ca1, "sceKernelGetThreadStackFreeSize",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 43 },
+        { 0xffc36a14, "sceKernelReferThreadRunStatus",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 1, 44 },
+        { 0x17c1684e, "sceKernelReferThreadStatus",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 1, 45 },
+        { 0x2c34e053, "sceKernelReleaseWaitThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 46 },
+        { 0x75156e8f, "sceKernelResumeThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 47 },
+        { 0x3ad58b8c, "sceKernelSuspendDispatchThread",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 1, 48 },
+        { 0x27e22ec2, "sceKernelResumeDispatchThread",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 1, 49 },
+        { 0x912354a7, "sceKernelRotateThreadReadyQueue",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 50 },
+        { 0x9ace131e, "sceKernelSleepThread",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 51 },
+        { 0x82826f70, "sceKernelSleepThreadCB",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 52 },
+        { 0xf475845d, "sceKernelStartThread",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 1, 53 },
+        { 0x9944f31f, "sceKernelSuspendThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 54 },
+        { 0x616403ba, "sceKernelTerminateThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 55 },
+        { 0x383f7bcc, "sceKernelTerminateDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 56 },
+        { 0x840e8133, "sceKernelWaitThreadEndCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 57 },
+        { 0xd13bde95, "sceKernelCheckThreadStack",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 58 },
+        { 0x94416130, "sceKernelGetThreadmanIdList",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 59 },
+        { 0x57cf62dd, "sceKernelGetThreadmanIdType",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 1, 60 },
+        { 0xbc80ec7c, "sceKernelExtendThreadStack",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 61 },
+        { 0x82bc5777, "sceKernelGetSystemTimeWide",
+          RET(ARG_U64), ARGS(ARG_NONE),
+          unknown_header, 1, 62 },
+        { 0xdb738f35, "sceKernelGetSystemTime",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 63 },
+        { 0x369ed59d, "sceKernelGetSystemTimeLow",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 1, 64 },
+        { 0x8218b4dd, "sceKernelReferGlobalProfiler",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 65 },
+        { 0x627e6f3a, "sceKernelReferSystemStatus",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 1, 66 },
+        { 0x64d4540e, "sceKernelReferThreadProfiler",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 1, 67 },
+        { 0x6652b8ca, "sceKernelSetAlarm",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 68 },
+        { 0xb2c25152, "sceKernelSetSysClockAlarm",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 69 },
+        { 0x7e65b999, "sceKernelCancelAlarm",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 70 },
+        { 0xdaa3f564, "sceKernelReferAlarmStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 71 },
+        { 0xba6b92e2, "sceKernelSysClock2USec",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 72 },
+        { 0x110dec9a, "sceKernelUSec2SysClock",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 1, 73 },
+        { 0xc8cd158c, "sceKernelUSec2SysClockWide",
+          RET(ARG_U64), ARGS(ARG_U32), 
+          unknown_header, 1, 74 },
+        { 0xe1619d7c, "sceKernelSysClock2USecWide",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 75 },
+        { 0x278c0df5, "sceKernelWaitThreadEnd",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 76 },
+        { 0xd59ead2f, "sceKernelWakeupThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 77 },
+        { 0x0c106e53, "sceKernelRegisterThreadEventHandler",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 78 },
+        { 0x72f3c145, "sceKernelReleaseThreadEventHandler",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 79 },
+        { 0x369eeb6b, "sceKernelReferThreadEventHandlerStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 1, 80 },
+        { 0x349d6d6c, "sceKernelCheckCallback",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 81 },
+        { 0xe81caf8f, "sceKernelCreateCallback",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 1, 82 },
+        { 0xedba5844, "sceKernelDeleteCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 83 },
+        { 0xc11ba8c4, "sceKernelNotifyCallback",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 1, 84 },
+        { 0xba4051d6, "sceKernelCancelCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 85 },
+        { 0x2a3d44ff, "sceKernelGetCallbackCount",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 86 },
+        { 0x730ed8bc, "sceKernelReferCallbackStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 1, 87 },
+        { 0x8125221d, "sceKernelCreateMbx",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 1, 88 },
+        { 0x86255ada, "sceKernelDeleteMbx",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 89 },
+        { 0xe9b3061e, "sceKernelSendMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 90 },
+        { 0x18260574, "sceKernelReceiveMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 91 },
+        { 0xf3986382, "sceKernelReceiveMbxCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 92 },
+        { 0x0d81716a, "sceKernelPollMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 93 },
+        { 0x87d4dd36, "sceKernelCancelReceiveMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 94 },
+        { 0xa8e8c846, "sceKernelReferMbxStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 95 },
+        { 0x7c0dc2a0, "sceKernelCreateMsgPipe",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 96 },
+        { 0xf0b7da1c, "sceKernelDeleteMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 97 },
+        { 0x876dbfad, "sceKernelSendMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 98 },
+        { 0x7c41f2c2, "sceKernelSendMsgPipeCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 99 },
+        { 0x884c9f90, "sceKernelTrySendMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 100 },
+        { 0x74829b76, "sceKernelReceiveMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 101 },
+        { 0xfbfa697d, "sceKernelReceiveMsgPipeCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 102 },
+        { 0xdf52098f, "sceKernelTryReceiveMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 103 },
+        { 0x349b864d, "sceKernelCancelMsgPipe",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 104 },
+        { 0x33be4024, "sceKernelReferMsgPipeStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 105 },
+        { 0x56c039b5, "sceKernelCreateVpl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 106 },
+        { 0x89b3d48c, "sceKernelDeleteVpl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 107 },
+        { 0xbed27435, "sceKernelAllocateVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 108 },
+        { 0xec0a693f, "sceKernelAllocateVplCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 109 },
+        { 0xaf36d708, "sceKernelTryAllocateVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 110 },
+        { 0xb736e9ff, "sceKernelFreeVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 111 },
+        { 0x1d371b8a, "sceKernelCancelVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 112 },
+        { 0x39810265, "sceKernelReferVplStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 113 },
+        { 0xc07bb470, "sceKernelCreateFpl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 114 },
+        { 0xed1410e0, "sceKernelDeleteFpl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 115 },
+        { 0xd979e9bf, "sceKernelAllocateFpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 116 },
+        { 0xe7282cb6, "sceKernelAllocateFplCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 117 },
+        { 0x623ae665, "sceKernelTryAllocateFpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 118 },
+        { 0xf6414a71, "sceKernelFreeFpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 119 },
+        { 0xa8aa591f, "sceKernelCancelFpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 120 },
+        { 0xd8199e4c, "sceKernelReferFplStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 121 },
+        { 0x20fff560, "sceKernelCreateVTimer",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 1, 122 },
+        { 0x328f9e52, "sceKernelDeleteVTimer",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 1, 123 },
+        { 0xc68d9437, "sceKernelStartVTimer",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 1, 124 },
+        { 0xd0aeee87, "sceKernelStopVTimer",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 1, 125 },
+        { 0xd2d615ef, "sceKernelCancelVTimerHandler",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 1, 126 },
+        { 0xb3a59970, "sceKernelGetVTimerBase",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 127 },
+        { 0xb7c18b77, "sceKernelGetVTimerBaseWide",
+          RET(ARG_U64), ARGS(ARG_S32), 
+          unknown_header, 1, 128 },
+        { 0x034a921f, "sceKernelGetVTimerTime",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 129 },
+        { 0xc0b3ffd2, "sceKernelGetVTimerTimeWide",
+          RET(ARG_U64), ARGS(ARG_S32), 
+          unknown_header, 1, 130 },
+        { 0x5f32beaa, "sceKernelReferVTimerStatus",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 131 },
+        { 0x542ad630, "sceKernelSetVTimerTime",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 132 },
+        { 0xfb6425c3, "sceKernelSetVTimerTimeWide",
+          RET(ARG_U64), ARGS(ARG_S32, ARG_U64), 
+          unknown_header, 1, 133 },
+        { 0xd8b299ae, "sceKernelSetVTimerHandler",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 134 },
+        { 0x53b00e9a, "sceKernelSetVTimerHandlerWide",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U64, ARG_U32, ARG_U32), 
+          unknown_header, 1, 135 },
+        { 0x8daff657, "sceKernelCreateTlspl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 1, 136 },
+        { 0x32bf938e, "sceKernelDeleteTlspl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 137 },
+        { 0x721067f3, "sceKernelReferTlsplStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 1, 138 },
+        { 0x4a719fb2, "sceKernelFreeTlspl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 1, 139 },
+        { 0x0e927aed, "_sceKernelReturnFromTimerHandler",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 1, 140 },
+        { 0x532a522e, "_sceKernelExitThread",
+          RET(ARG_VOID), ARGS(ARG_S32), 
+          unknown_header, 1, 141 },
+        { 0x71ec4271, "sceKernelLibcGettimeofday",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 1, 142 },
+        { 0x79d1c3fa, "sceKernelDcacheWritebackAll",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 143 },
+        { 0x91e4f6a7, "sceKernelLibcClock",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 1, 144 },
+        { 0xb435dec5, "sceKernelDcacheWritebackInvalidateAll",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 1, 145 }
+    }},
+
+    psp_module{2, "ThreadManForKernel", {
+        { 0xceadeb47, "sceKernelDelayThread",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 2, 0 },
+        { 0x446d8de6, "sceKernelCreateThread",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 1 },
+        { 0xf475845d, "sceKernelStartThread",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 2, 2 },
+        { 0x9fa03cd3, "sceKernelDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 3 },
+        { 0xaa73c935, "sceKernelExitThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 4 },
+        { 0x809ce29b, "sceKernelExitDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 5 },
+        { 0x9944f31f, "sceKernelSuspendThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 6 },
+        { 0x75156e8f, "sceKernelResumeThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 7 },
+        { 0x94416130, "sceKernelGetThreadmanIdList",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 8 },
+        { 0x278c0df5, "sceKernelWaitThreadEnd",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 9 },
+        { 0xd6da4ba1, "sceKernelCreateSema",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 2, 10 },
+        { 0x28b6489c, "sceKernelDeleteSema",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 11 },
+        { 0x3f53e640, "sceKernelSignalSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 2, 12 },
+        { 0x4e3a1105, "sceKernelWaitSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 2, 13 },
+        { 0x58b1f937, "sceKernelPollSema",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 2, 14 },
+        { 0x55c20a00, "sceKernelCreateEventFlag",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 15 },
+        { 0xef9e4c70, "sceKernelDeleteEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 2, 16 },
+        { 0x1fb15a32, "sceKernelSetEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 17 },
+        { 0x812346e4, "sceKernelClearEventFlag",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 18 },
+        { 0x402fcf22, "sceKernelWaitEventFlag",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_PTR, ARG_PTR), 
+          unknown_header, 2, 19 },
+        { 0xc07bb470, "sceKernelCreateFpl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 20 },
+        { 0xed1410e0, "sceKernelDeleteFpl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 21 },
+        { 0x623ae665, "sceKernelTryAllocateFpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 22 },
+        { 0x616403ba, "sceKernelTerminateThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 23 },
+        { 0x383f7bcc, "sceKernelTerminateDeleteThread",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 24 },
+        { 0x57cf62dd, "sceKernelGetThreadmanIdType",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 2, 25 },
+        { 0x94aa61ee, "sceKernelGetThreadCurrentPriority",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 2, 26 },
+        { 0x293b45b8, "sceKernelGetThreadId",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 2, 27 },
+        { 0x3b183e26, "sceKernelGetThreadExitStatus",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 28 },
+        { 0x82bc5777, "sceKernelGetSystemTimeWide",
+          RET(ARG_U64), ARGS(ARG_NONE),
+          unknown_header, 2, 29 },
+        { 0xdb738f35, "sceKernelGetSystemTime",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 2, 30 },
+        { 0x369ed59d, "sceKernelGetSystemTimeLow",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 2, 31 },
+        { 0x6652b8ca, "sceKernelSetAlarm",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 32 },
+        { 0xb2c25152, "sceKernelSetSysClockAlarm",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 33 },
+        { 0x7e65b999, "sceKernelCancelAlarm",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 34 },
+        { 0xdaa3f564, "sceKernelReferAlarmStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 35 },
+        { 0x8125221d, "sceKernelCreateMbx",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 2, 36 },
+        { 0x86255ada, "sceKernelDeleteMbx",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 37 },
+        { 0xe9b3061e, "sceKernelSendMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 38 },
+        { 0x18260574, "sceKernelReceiveMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 39 },
+        { 0xf3986382, "sceKernelReceiveMbxCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 40 },
+        { 0x0d81716a, "sceKernelPollMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 41 },
+        { 0x87d4dd36, "sceKernelCancelReceiveMbx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 42 },
+        { 0xa8e8c846, "sceKernelReferMbxStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 43 },
+        { 0x56c039b5, "sceKernelCreateVpl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 44 },
+        { 0x89b3d48c, "sceKernelDeleteVpl",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 2, 45 },
+        { 0xbed27435, "sceKernelAllocateVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 46 },
+        { 0xec0a693f, "sceKernelAllocateVplCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 47 },
+        { 0xaf36d708, "sceKernelTryAllocateVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 2, 48 },
+        { 0xb736e9ff, "sceKernelFreeVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 49 },
+        { 0x1d371b8a, "sceKernelCancelVpl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 50 },
+        { 0x39810265, "sceKernelReferVplStatus",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 2, 51 }
+    }},
+
+    psp_module{3, "LoadExecForUser", {
+        { 0x05572a5f, "sceKernelExitGame",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 3, 0 },
+        { 0x4ac57943, "sceKernelRegisterExitCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 3, 1 },
+        { 0xbd2f1094, "sceKernelLoadExec",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 3, 2 },
+        { 0x2ac9954b, "sceKernelExitGameWithStatus",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 3, 3 },
+        { 0x362a956b, "LoadExecForUser_362A956B",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 3, 4 },
+        { 0x8ada38d3, "LoadExecForUser_8ADA38D3",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 3, 5 }
+    }},
+
+    psp_module{4, "UtilsForKernel", {
+        { 0xc2df770e, "sceKernelIcacheInvalidateRange",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 0 },
+        { 0x78934841, "sceKernelGzipDecompress",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 1 },
+        { 0xe8db3ce6, "sceKernelDeflateDecompress",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 2 },
+        { 0x840259f1, "sceKernelUtilsSha1Digest",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 3 },
+        { 0x9e5c5086, "sceKernelUtilsMd5BlockInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 4 },
+        { 0x61e1e525, "sceKernelUtilsMd5BlockUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 5 },
+        { 0xb8d24e78, "sceKernelUtilsMd5BlockResult",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 6 },
+        { 0xc8186a58, "sceKernelUtilsMd5Digest",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 7 },
+        { 0x6c6887ee, "UtilsForKernel_6C6887EE",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 8 },
+        { 0x91e4f6a7, "sceKernelLibcClock",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 9 },
+        { 0x27cc57f0, "sceKernelLibcTime",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 10 },
+        { 0x79d1c3fa, "sceKernelDcacheWritebackAll",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 11 },
+        { 0x3ee30821, "sceKernelDcacheWritebackRange",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 12 },
+        { 0x34b9fa9e, "sceKernelDcacheWritebackInvalidateRange",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 13 },
+        { 0xb435dec5, "sceKernelDcacheWritebackInvalidateAll",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 14 },
+        { 0xbfa98062, "sceKernelDcacheInvalidateRange",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 15 },
+        { 0x920f104a, "sceKernelIcacheInvalidateAll",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 16 },
+        { 0xe860e75e, "sceKernelUtilsMt19937Init",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 17 },
+        { 0x06fb8a63, "sceKernelUtilsMt19937UInt",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 4, 18 }
+    }},
+
+    psp_module{5, "SysMemUserForUser", {
+        { 0xa291f107, "sceKernelMaxFreeMemSize",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 0 },
+        { 0xf919f628, "sceKernelTotalFreeMemSize",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 1 },
+        { 0x3fc9ae6a, "sceKernelDevkitVersion",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 2 },
+        { 0x237dbd4f, "sceKernelAllocPartitionMemory",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 5, 3 },
+        { 0xb6d61d02, "sceKernelFreePartitionMemory",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 4 },
+        { 0x9d9a5ba1, "sceKernelGetBlockHeadAddr",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 5, 5 },
+        { 0x13a5abef, "sceKernelPrintf",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 5, 6 },
+        { 0x7591c7db, "sceKernelSetCompiledSdkVersion",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 7 },
+        { 0x342061e5, "sceKernelSetCompiledSdkVersion370",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 8 },
+        { 0x315ad3a0, "sceKernelSetCompiledSdkVersion380_390",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 9 },
+        { 0xebd5c3e6, "sceKernelSetCompiledSdkVersion395",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 10 },
+        { 0x057e7380, "sceKernelSetCompiledSdkVersion401_402",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 11 },
+        { 0xf77d77cb, "sceKernelSetCompilerVersion",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 12 },
+        { 0x91de343c, "sceKernelSetCompiledSdkVersion500_505",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 13 },
+        { 0x7893f79a, "sceKernelSetCompiledSdkVersion507",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 14 },
+        { 0x35669d4c, "sceKernelSetCompiledSdkVersion600_602",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 15 },
+        { 0x1b4217bc, "sceKernelSetCompiledSdkVersion603_605",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 16 },
+        { 0x358ca1bb, "sceKernelSetCompiledSdkVersion606",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 5, 17 },
+        { 0xfc114573, "sceKernelGetCompiledSdkVersion",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 5, 18 },
+        { 0x2a3e5280, "sceKernelQueryMemoryInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 5, 19 },
+        { 0xacbd88ca, "SysMemUserForUser_ACBD88CA",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 20 },
+        { 0x945e45da, "SysMemUserForUser_945E45DA",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 21 },
+        { 0xa6848df8, "sceKernelSetUsersystemLibWork",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 5, 22 },
+        { 0x6231a71d, "sceKernelSetPTRIG",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 5, 23 },
+        { 0x39f49610, "sceKernelGetPTRIG",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 5, 24 },
+        { 0xdb83a952, "SysMemUserForUser_DB83A952",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 5, 25 },
+        { 0x50f61d8a, "SysMemUserForUser_50F61D8A",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 5, 26 },
+        { 0xfe707fdf, "SysMemUserForUser_FE707FDF",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 5, 27 },
+        { 0xd8de5c1e, "SysMemUserForUser_D8DE5C1E",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 5, 28 }
+    }},
+
+    psp_module{6, "InterruptManager", {
+        { 0xca04a2b9, "sceKernelRegisterSubIntrHandler",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 6, 0 },
+        { 0xd61e6961, "sceKernelReleaseSubIntrHandler",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 6, 1 },
+        { 0xfb8e22ec, "sceKernelEnableSubIntr",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 6, 2 },
+        { 0x8a389411, "sceKernelDisableSubIntr",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 6, 3 },
+        { 0x5cb5a78b, "sceKernelSuspendSubIntr",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 6, 4 },
+        { 0x7860e0dc, "sceKernelResumeSubIntr",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 6, 5 },
+        { 0xfc4374b8, "sceKernelIsSubInterruptOccurred",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 6, 6 },
+        { 0xd2e8363f, "QueryIntrHandlerInfo",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 6, 7 },
+        { 0xeee43f47, "sceKernelRegisterUserSpaceIntrStack",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 6, 8 }
+    }},
+
+    psp_module{7, "IoFileMgrForUser", {
+        { 0xb29ddf9c, "sceIoDopen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 0 },
+        { 0xe3eb004c, "sceIoDread",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 7, 1 },
+        { 0xeb092469, "sceIoDclose",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 7, 2 },
+        { 0xe95a012b, "sceIoIoctlAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_S32, ARG_PTR, ARG_S32), 
+          unknown_header, 7, 3 },
+        { 0x63632449, "sceIoIoctl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_S32, ARG_PTR, ARG_S32), 
+          unknown_header, 7, 4 },
+        { 0xace946e8, "sceIoGetstat",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 7, 5 },
+        { 0xb8a740f4, "sceIoChstat",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 7, 6 },
+        { 0x55f4717d, "sceIoChdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 7 },
+        { 0x08bd7374, "sceIoGetDevType",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 7, 8 },
+        { 0xb2a628c1, "sceIoAssign",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 7, 9 },
+        { 0xe8bc6571, "sceIoCancel",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 7, 10 },
+        { 0xb293727f, "sceIoChangeAsyncPriority",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 7, 11 },
+        { 0x810c4bc3, "sceIoClose",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 7, 12 },
+        { 0xff5940b6, "sceIoCloseAsync",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 7, 13 },
+        { 0x54f5fb11, "sceIoDevctl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR, ARG_S32, ARG_PTR, ARG_S32), 
+          unknown_header, 7, 14 },
+        { 0xcb05f8d6, "sceIoGetAsyncStat",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 7, 15 },
+        { 0x27eb27b8, "sceIoLseek",
+          RET(ARG_S64), ARGS(ARG_S32, ARG_S64, ARG_S32), 
+          unknown_header, 7, 16 },
+        { 0x68963324, "sceIoLseek32",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 7, 17 },
+        { 0x1b385d8f, "sceIoLseek32Async",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 7, 18 },
+        { 0x71b19e77, "sceIoLseekAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S64, ARG_S32), 
+          unknown_header, 7, 19 },
+        { 0x109f50bc, "sceIoOpen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32), 
+          unknown_header, 7, 20 },
+        { 0x89aa9906, "sceIoOpenAsync",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32), 
+          unknown_header, 7, 21 },
+        { 0x06a70004, "sceIoMkdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 7, 22 },
+        { 0x3251ea56, "sceIoPollAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 7, 23 },
+        { 0x6a638d83, "sceIoRead",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 7, 24 },
+        { 0xa0b5a7c2, "sceIoReadAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 7, 25 },
+        { 0xf27a9c51, "sceIoRemove",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 26 },
+        { 0x779103a0, "sceIoRename",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 27 },
+        { 0x1117c65f, "sceIoRmdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 28 },
+        { 0xa12a0514, "sceIoSetAsyncCallback",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 7, 29 },
+        { 0xab96437f, "sceIoSync",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 7, 30 },
+        { 0x6d08a871, "sceIoUnassign",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 7, 31 },
+        { 0x42ec03ac, "sceIoWrite",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 7, 32 },
+        { 0x0facab19, "sceIoWriteAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 7, 33 },
+        { 0x35dbd746, "sceIoWaitAsyncCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 7, 34 },
+        { 0xe23eec33, "sceIoWaitAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 7, 35 },
+        { 0x5c2be2cc, "sceIoGetFdList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_PTR), 
+          unknown_header, 7, 36 },
+        { 0x13370001, "__IoAsyncFinish",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 7, 37 }
+    }},
+
+    psp_module{8, "ModuleMgrForUser", {
+        { 0x977de386, "sceKernelLoadModule",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 8, 0 },
+        { 0xb7f46618, "sceKernelLoadModuleByID",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 1 },
+        { 0x50f0c1ec, "sceKernelStartModule",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 2 },
+        { 0xd675ebb8, "sceKernelSelfStopUnloadModule",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 3 },
+        { 0xd1ff982a, "sceKernelStopModule",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 4 },
+        { 0x2e0911aa, "sceKernelUnloadModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 8, 5 },
+        { 0x710f61b5, "sceKernelLoadModuleMs",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 8, 6 },
+        { 0xf9275d98, "sceKernelLoadModuleBufferUsbWlan",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 7 },
+        { 0xcc1d3699, "sceKernelStopUnloadSelfModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 8, 8 },
+        { 0x748cbed9, "sceKernelQueryModuleInfo",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 8, 9 },
+        { 0xd8b73127, "sceKernelGetModuleIdByAddress",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 8, 10 },
+        { 0xf0a26395, "sceKernelGetModuleId",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 8, 11 },
+        { 0x8f2df740, "sceKernelStopUnloadSelfModuleWithStatus",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 12 },
+        { 0xfef27dc1, "sceKernelLoadModuleDNAS",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 8, 13 },
+        { 0x644395e2, "sceKernelGetModuleIdList",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 8, 14 },
+        { 0xf2d8d1b4, "sceKernelLoadModuleNpDrm",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 8, 15 },
+        { 0xe4c4211c, "ModuleMgrForUser_E4C4211C",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 8, 16 },
+        { 0xfbe27467, "ModuleMgrForUser_FBE27467",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 8, 17 }
+    }},
+
+    psp_module{9, "ModuleMgrForKernel", {
+        { 0x50f0c1ec, "sceKernelStartModule",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 9, 0 },
+        { 0x977de386, "sceKernelLoadModule",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 9, 1 },
+        { 0xa1a78c58, "sceKernelLoadModuleForLoadExecVSHDisc",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 9, 2 },
+        { 0xcc1d3699, "sceKernelSelfStopUnloadModule",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 9, 3 },
+        { 0xd1ff982a, "sceKernelStopModule",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 9, 4 },
+        { 0x748cbed9, "sceKernelQueryModuleInfo",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 9, 5 },
+        { 0x644395e2, "sceKernelGetModuleIdList",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 9, 6 },
+        { 0x2e0911aa, "sceKernelUnloadModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 9, 7 }
+    }},
+
+    psp_module{10, "StdioForUser", {
+        { 0x172d316e, "sceKernelStdin",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 10, 0 },
+        { 0xa6bab2e9, "sceKernelStdout",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 10, 1 },
+        { 0xf78ba90a, "sceKernelStderr",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 10, 2 },
+        { 0x432d8f5c, "sceKernelRegisterStdoutPipe",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 10, 3 },
+        { 0x6f797e03, "sceKernelRegisterStderrPipe",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 10, 4 },
+        { 0xa46785c9, "sceKernelStdioSendChar",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 5 },
+        { 0x0cbb0571, "sceKernelStdioLseek",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 6 },
+        { 0x3054d478, "sceKernelStdioRead",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 7 },
+        { 0xa3b931db, "sceKernelStdioWrite",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 8 },
+        { 0x924aba61, "sceKernelStdioOpen",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 9 },
+        { 0x9d061c19, "sceKernelStdioClose",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 10, 10 }
+    }},
+
+    psp_module{11, "sceHprm", {
+        { 0x089fdfa4, "sceHprm_089fdfa4",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 11, 0 },
+        { 0x1910b327, "sceHprmPeekCurrentKey",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 11, 1 },
+        { 0x208db1bd, "sceHprmIsRemoteExist",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 11, 2 },
+        { 0x7e69eda4, "sceHprmIsHeadphoneExist",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 11, 3 },
+        { 0x219c58f1, "sceHprmIsMicrophoneExist",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 11, 4 },
+        { 0xc7154136, "sceHprmRegisterCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 11, 5 },
+        { 0x444ed0b7, "sceHprmUnregitserCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 11, 6 },
+        { 0x2bcec83e, "sceHprmPeekLatch",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 11, 7 },
+        { 0x40d2f9f0, "sceHprmReadLatch",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 11, 8 }
+    }},
+
+    psp_module{12, "sceCcc", {
+        { 0xb4d1cbbf, "sceCccSetTable",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 0 },
+        { 0x00d1378f, "sceCccUTF8toUTF16",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 1 },
+        { 0x6f82ee03, "sceCccUTF8toSJIS",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 2 },
+        { 0x41b724a5, "sceCccUTF16toUTF8",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 3 },
+        { 0xf1b73d12, "sceCccUTF16toSJIS",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 4 },
+        { 0xa62e6e80, "sceCccSJIStoUTF8",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 5 },
+        { 0xbeb47224, "sceCccSJIStoUTF16",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 12, 6 },
+        { 0xb7d3c112, "sceCccStrlenUTF8",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 7 },
+        { 0x4bdeb2a8, "sceCccStrlenUTF16",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 8 },
+        { 0xd9392ccb, "sceCccStrlenSJIS",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 9 },
+        { 0x92c05851, "sceCccEncodeUTF8",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 10 },
+        { 0x8406f469, "sceCccEncodeUTF16",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 11 },
+        { 0x068c4320, "sceCccEncodeSJIS",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 12 },
+        { 0xc6a8bee2, "sceCccDecodeUTF8",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 13 },
+        { 0xe0cf8091, "sceCccDecodeUTF16",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 14 },
+        { 0x953e6c10, "sceCccDecodeSJIS",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 15 },
+        { 0x90521ac5, "sceCccIsValidUTF8",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 16 },
+        { 0xcc0a8bda, "sceCccIsValidUTF16",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 17 },
+        { 0x67bf0d19, "sceCccIsValidSJIS",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 18 },
+        { 0x76e33e9c, "sceCccIsValidUCS2",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 19 },
+        { 0xd2b18485, "sceCccIsValidUCS4",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 20 },
+        { 0xa2d5d209, "sceCccIsValidJIS",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 21 },
+        { 0xbd11eef3, "sceCccIsValidUnicode",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 12, 22 },
+        { 0x17e1d813, "sceCccSetErrorCharUTF8",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 23 },
+        { 0xb8476cf4, "sceCccSetErrorCharUTF16",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 24 },
+        { 0xc56949ad, "sceCccSetErrorCharSJIS",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 12, 25 },
+        { 0x70ecaa10, "sceCccUCStoJIS",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 26 },
+        { 0xfb7846e2, "sceCccJIStoUCS",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 12, 27 }
+    }},
+
+    psp_module{13, "sceCtrl", {
+        { 0x3e65a0ea, "sceCtrlInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 13, 0 },
+        { 0x1f4011e6, "sceCtrlSetSamplingMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 13, 1 },
+        { 0x6a2774f3, "sceCtrlSetSamplingCycle",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 13, 2 },
+        { 0x02baad91, "sceCtrlGetSamplingCycle",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 13, 3 },
+        { 0xda6b76a1, "sceCtrlGetSamplingMode",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 13, 4 },
+        { 0x1f803938, "sceCtrlReadBufferPositive",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 13, 5 },
+        { 0x3a622550, "sceCtrlPeekBufferPositive",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 13, 6 },
+        { 0xc152080a, "sceCtrlPeekBufferNegative",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 13, 7 },
+        { 0x60b81f86, "sceCtrlReadBufferNegative",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 13, 8 },
+        { 0xb1d0e5cd, "sceCtrlPeekLatch",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 13, 9 },
+        { 0x0b588501, "sceCtrlReadLatch",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 13, 10 },
+        { 0x348d99d4, "sceCtrlSetSuspendingExtraSamples",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 13, 11 },
+        { 0xaf5960f3, "sceCtrlGetSuspendingExtraSamples",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 13, 12 },
+        { 0xa68fd260, "sceCtrlClearRapidFire",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 13, 13 },
+        { 0x6841be1a, "sceCtrlSetRapidFire",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 13, 14 },
+        { 0xa7144800, "sceCtrlSetIdleCancelThreshold",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 13, 15 },
+        { 0x687660fa, "sceCtrlGetIdleCancelThreshold",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 13, 16 }
+    }},
+
+    psp_module{14, "sceDisplay", {
+        { 0x0e20f177, "sceDisplaySetMode",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 14, 0 },
+        { 0x289d82fe, "sceDisplaySetFrameBuf",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 14, 1 },
+        { 0xeeda2e54, "sceDisplayGetFrameBuf",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR, ARG_PTR, ARG_S32), 
+          unknown_header, 14, 2 },
+        { 0x36cdfade, "sceDisplayWaitVblank",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 3 },
+        { 0x984c27e7, "sceDisplayWaitVblankStart",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 4 },
+        { 0x40f1469c, "sceDisplayWaitVblankStartMulti",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 14, 5 },
+        { 0x8eb9ec49, "sceDisplayWaitVblankCB",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 6 },
+        { 0x46f186c3, "sceDisplayWaitVblankStartCB",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 7 },
+        { 0x77ed8b3a, "sceDisplayWaitVblankStartMultiCB",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 14, 8 },
+        { 0xdba6c4c4, "sceDisplayGetFramePerSec",
+          RET(ARG_FLOAT), ARGS(ARG_NONE),
+          unknown_header, 14, 9 },
+        { 0x773dd3a3, "sceDisplayGetCurrentHcount",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 10 },
+        { 0x210eab3a, "sceDisplayGetAccumulatedHcount",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 14, 11 },
+        { 0xa83ef139, "sceDisplayAdjustAccumulatedHcount",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 14, 12 },
+        { 0x9c6eaad7, "sceDisplayGetVcount",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 13 },
+        { 0xdea197d4, "sceDisplayGetMode",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 14, 14 },
+        { 0x7ed59bc4, "sceDisplaySetHoldMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 14, 15 },
+        { 0xa544c486, "sceDisplaySetResumeMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 14, 16 },
+        { 0xbf79f646, "sceDisplayGetResumeMode",
+          RET(ARG_U32), ARGS(ARG_PTR), 
+          unknown_header, 14, 17 },
+        { 0xb4f378fa, "sceDisplayIsForeground",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 18 },
+        { 0x31c4baa8, "sceDisplayGetBrightness",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR), 
+          unknown_header, 14, 19 },
+        { 0x9e3c6dc6, "sceDisplaySetBrightness",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 14, 20 },
+        { 0x4d4e10ec, "sceDisplayIsVblank",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 21 },
+        { 0x21038913, "sceDisplayIsVsync",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 14, 22 }
+    }},
+
+    psp_module{15, "sceAudio", {
+        { 0x01562ba3, "sceAudioOutput2Reserve",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 15, 0 },
+        { 0x2d53f36e, "sceAudioOutput2OutputBlocking",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 15, 1 },
+        { 0x63f2889c, "sceAudioOutput2ChangeLength",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 15, 2 },
+        { 0x647cef33, "sceAudioOutput2GetRestSample",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 15, 3 },
+        { 0x43196845, "sceAudioOutput2Release",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 4 },
+        { 0x80f1f7e0, "sceAudioInit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 5 },
+        { 0x210567f7, "sceAudioEnd",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 6 },
+        { 0xa2beaa6c, "sceAudioSetFrequency",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 15, 7 },
+        { 0x927ac32b, "sceAudioSetVolumeOffset",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 8 },
+        { 0x8c1009b2, "sceAudioOutput",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 9 },
+        { 0x136caf51, "sceAudioOutputBlocking",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 10 },
+        { 0xe2d56b2d, "sceAudioOutputPanned",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 11 },
+        { 0x13f592bc, "sceAudioOutputPannedBlocking",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 12 },
+        { 0x5ec81c55, "sceAudioChReserve",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 15, 13 },
+        { 0x6fc46853, "sceAudioChRelease",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 15, 14 },
+        { 0xe9d97901, "sceAudioGetChannelRestLen",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 15, 15 },
+        { 0xb011922f, "sceAudioGetChannelRestLength",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 15, 16 },
+        { 0xcb2e439e, "sceAudioSetChannelDataLen",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 15, 17 },
+        { 0x95fd0c2d, "sceAudioChangeChannelConfig",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 15, 18 },
+        { 0xb7e1d8e7, "sceAudioChangeChannelVolume",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 19 },
+        { 0x38553111, "sceAudioSRCChReserve",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 15, 20 },
+        { 0x5c37c0ae, "sceAudioSRCChRelease",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 21 },
+        { 0xe0727056, "sceAudioSRCOutputBlocking",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 15, 22 },
+        { 0x41efade7, "sceAudioOneshotOutput",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 23 },
+        { 0xb61595c0, "sceAudioLoopbackTest",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 24 },
+        { 0x7de61688, "sceAudioInputInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 25 },
+        { 0xe926d3fb, "sceAudioInputInitEx",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 26 },
+        { 0x6d4bec68, "sceAudioInput",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 27 },
+        { 0x086e5895, "sceAudioInputBlocking",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 15, 28 },
+        { 0xa708c6a6, "sceAudioGetInputLength",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 15, 29 },
+        { 0xa633048e, "sceAudioPollInputEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 30 },
+        { 0x87b2e651, "sceAudioWaitInputEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 15, 31 },
+        { 0x36fd8aa9, "sceAudioRoutingSetMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 15, 32 },
+        { 0x39240e7d, "sceAudioRoutingGetMode",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 33 },
+        { 0xbb548475, "sceAudioRoutingSetVolumeMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 15, 34 },
+        { 0x28235c56, "sceAudioRoutingGetVolumeMode",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 15, 35 }
+    }},
+
+    psp_module{16, "sceSasCore", {
+        { 0x42778a9f, "__sceSasInit",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 16, 0 },
+        { 0xa3589d81, "__sceSasCore",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 16, 1 },
+        { 0x50a14dfc, "__sceSasCoreWithMix",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 2 },
+        { 0x68a46b95, "__sceSasGetEndFlag",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 16, 3 },
+        { 0x440ca7d8, "__sceSasSetVolume",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 4 },
+        { 0xad84d37f, "__sceSasSetPitch",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 5 },
+        { 0x99944089, "__sceSasSetVoice",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 6 },
+        { 0xb7660a23, "__sceSasSetNoise",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 7 },
+        { 0x019b25eb, "__sceSasSetADSR",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 8 },
+        { 0x9ec3676a, "__sceSasSetADSRmode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 9 },
+        { 0x5f9529f6, "__sceSasSetSL",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 10 },
+        { 0x74ae582a, "__sceSasGetEnvelopeHeight",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 11 },
+        { 0xcbcd4f79, "__sceSasSetSimpleADSR",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 16, 12 },
+        { 0xa0cf2fa4, "__sceSasSetKeyOff",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 13 },
+        { 0x76f01aca, "__sceSasSetKeyOn",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 14 },
+        { 0xf983b186, "__sceSasRevVON",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 15 },
+        { 0xd5a229c9, "__sceSasRevEVOL",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 16, 16 },
+        { 0x33d4ab37, "__sceSasRevType",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 17 },
+        { 0x267a6dd2, "__sceSasRevParam",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 18 },
+        { 0x2c8e6ab3, "__sceSasGetPauseFlag",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 16, 19 },
+        { 0x787d04d5, "__sceSasSetPause",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 16, 20 },
+        { 0xa232cbe6, "__sceSasSetTrianglarWave",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 21 },
+        { 0xd5ebbbcd, "__sceSasSetSteepWave",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 22 },
+        { 0xbd11b7c2, "__sceSasGetGrain",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 16, 23 },
+        { 0xd1e0a01e, "__sceSasSetGrain",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 24 },
+        { 0xe175ef66, "__sceSasGetOutputmode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 16, 25 },
+        { 0xe855bf76, "__sceSasSetOutputmode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 16, 26 },
+        { 0x07f58c24, "__sceSasGetAllEnvelopeHeights",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 16, 27 },
+        { 0xe1cd9561, "__sceSasSetVoicePCM",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 16, 28 },
+        { 0x4aa9ead6, "__sceSasSetVoiceATRAC3",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 16, 29 },
+        { 0x7497ea85, "__sceSasConcatenateATRAC3",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 16, 30 },
+        { 0xf6107f00, "__sceSasUnsetATRAC3",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 16, 31 }
+    }},
+
+    psp_module{17, "sceLibFont", {
+        { 0x67f17ed7, "sceFontNewLib",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 17, 0 },
+        { 0x574b6fbc, "sceFontDoneLib",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 17, 1 },
+        { 0x48293280, "sceFontSetResolution",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_FLOAT, ARG_FLOAT), 
+          unknown_header, 17, 2 },
+        { 0x27f6e642, "sceFontGetNumFontList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 17, 3 },
+        { 0xbc75d85b, "sceFontGetFontList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 17, 4 },
+        { 0x099ef33c, "sceFontFindOptimumFont",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 5 },
+        { 0x681e61a7, "sceFontFindFont",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 6 },
+        { 0x2f67356a, "sceFontCalcMemorySize",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 17, 7 },
+        { 0x5333322d, "sceFontGetFontInfoByIndexNumber",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 8 },
+        { 0xa834319d, "sceFontOpen",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 17, 9 },
+        { 0x57fcb733, "sceFontOpenUserFile",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR), 
+          unknown_header, 17, 10 },
+        { 0xbb8e7fe6, "sceFontOpenUserMemory",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 17, 11 },
+        { 0x3aea8cb6, "sceFontClose",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 17, 12 },
+        { 0x0da7535e, "sceFontGetFontInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 17, 13 },
+        { 0xdcc80c2f, "sceFontGetCharInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 14 },
+        { 0xaa3de7b5, "sceFontGetShadowInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 15 },
+        { 0x5c3e4a9e, "sceFontGetCharImageRect",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 16 },
+        { 0x48b06520, "sceFontGetShadowImageRect",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 17 },
+        { 0x980f4895, "sceFontGetCharGlyphImage",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 18 },
+        { 0xca1e6945, "sceFontGetCharGlyphImage_Clip",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 17, 19 },
+        { 0x74b21701, "sceFontPixelToPointH",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 17, 20 },
+        { 0xf8f0752e, "sceFontPixelToPointV",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 17, 21 },
+        { 0x472694cd, "sceFontPointToPixelH",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 17, 22 },
+        { 0x3c4b7e82, "sceFontPointToPixelV",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 17, 23 },
+        { 0xee232411, "sceFontSetAltCharacterCode",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 17, 24 },
+        { 0x568be516, "sceFontGetShadowGlyphImage",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 17, 25 },
+        { 0x5dcf6858, "sceFontGetShadowGlyphImage_Clip",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 17, 26 },
+        { 0x02d7f94b, "sceFontFlush",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 17, 27 }
+    }},
+
+    psp_module{18, "sceNet", {
+        { 0x39af39a6, "sceNetInit",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 18, 0 },
+        { 0x281928a9, "sceNetTerm",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 18, 1 },
+        { 0x89360950, "sceNetEtherNtostr",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 18, 2 },
+        { 0xd27961c9, "sceNetEtherStrton",
+          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 18, 3 },
+        { 0x0bf0a3ae, "sceNetGetLocalEtherAddr",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 18, 4 },
+        { 0x50647530, "sceNetFreeThreadinfo",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 18, 5 },
+        { 0xcc393e48, "sceNetGetMallocStat",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 18, 6 },
+        { 0xad6844c6, "sceNetThreadAbort",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 18, 7 }
+    }},
+
+    psp_module{19, "sceNetResolver", {
+        { 0x224c5f44, "sceNetResolverStartNtoA",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 0 },
+        { 0x244172af, "sceNetResolverCreate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 1 },
+        { 0x94523e09, "sceNetResolverDelete",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 2 },
+        { 0xf3370e61, "sceNetResolverInit",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 19, 3 },
+        { 0x808f6063, "sceNetResolverStop",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 4 },
+        { 0x6138194a, "sceNetResolverTerm",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 5 },
+        { 0x629e2fb7, "sceNetResolverStartAtoN",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 6 },
+        { 0x14c17ef9, "sceNetResolverStartNtoAAsync",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 7 },
+        { 0xaac09184, "sceNetResolverStartAtoNAsync",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 8 },
+        { 0x12748eb9, "sceNetResolverWaitAsync",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 9 },
+        { 0x4ee99358, "sceNetResolverPollAsync",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 19, 10 }
+    }},
+
+    psp_module{20, "sceNetInet", {
+        { 0x17943399, "sceNetInetInit",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 20, 0 },
+        { 0x4cfe4e56, "sceNetInetShutdown",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 1 },
+        { 0xa9ed66b9, "sceNetInetTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 20, 2 },
+        { 0x8b7b220f, "sceNetInetSocket",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 20, 3 },
+        { 0x2fe71fe7, "sceNetInetSetsockopt",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 20, 4 },
+        { 0x4a114c7c, "sceNetInetGetsockopt",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 5 },
+        { 0x410b34aa, "sceNetInetConnect",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 20, 6 },
+        { 0x805502dd, "sceNetInetCloseWithRST",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 7 },
+        { 0xd10a1a7a, "sceNetInetListen",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 8 },
+        { 0xdb094e1b, "sceNetInetAccept",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 9 },
+        { 0xfaabb1dd, "sceNetInetPoll",
+          RET(ARG_S32), ARGS(ARG_PTR, ARG_U32, ARG_S32), 
+          unknown_header, 20, 10 },
+        { 0x5be8d595, "sceNetInetSelect",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 11 },
+        { 0x8d7284ea, "sceNetInetClose",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 12 },
+        { 0xcda85c99, "sceNetInetRecv",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 20, 13 },
+        { 0xc91142e4, "sceNetInetRecvfrom",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 14 },
+        { 0xeece61d2, "sceNetInetRecvmsg",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 15 },
+        { 0x7aa671bc, "sceNetInetSend",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 20, 16 },
+        { 0x05038fc7, "sceNetInetSendto",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 17 },
+        { 0x774e36f4, "sceNetInetSendmsg",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 18 },
+        { 0xfbabe411, "sceNetInetGetErrno",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 20, 19 },
+        { 0x1a33f9ae, "sceNetInetBind",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 20 },
+        { 0xb75d5b0a, "sceNetInetInetAddr",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 21 },
+        { 0x1bdf5d13, "sceNetInetInetAton",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 20, 22 },
+        { 0xd0792666, "sceNetInetInetNtop",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 23 },
+        { 0xe30b8c19, "sceNetInetInetPton",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 24 },
+        { 0x8ca3a97e, "sceNetInetGetPspError",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 25 },
+        { 0xe247b6d6, "sceNetInetGetpeername",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 26 },
+        { 0x162e6fd5, "sceNetInetGetsockname",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 27 },
+        { 0x80a21abd, "sceNetInetSocketAbort",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 28 },
+        { 0x39b0c7d3, "sceNetInetGetUdpcbstat",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 29 },
+        { 0xb3888ad4, "sceNetInetGetTcpcbstat",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 20, 30 }
+    }},
+
+    psp_module{21, "sceNetApctl", {
+        { 0xcfb957c6, "sceNetApctlConnect",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 21, 0 },
+        { 0x24fe91a1, "sceNetApctlDisconnect",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 21, 1 },
+        { 0x5deac81b, "sceNetApctlGetState",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 21, 2 },
+        { 0x8abadd51, "sceNetApctlAddHandler",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 21, 3 },
+        { 0xe2f91f9b, "sceNetApctlInit",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 21, 4 },
+        { 0x5963991b, "sceNetApctlDelHandler",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 21, 5 },
+        { 0xb3edd0ec, "sceNetApctlTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 21, 6 },
+        { 0x2befdf23, "sceNetApctlGetInfo",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 21, 7 },
+        { 0xa3e77e13, "sceNetApctlScanSSID2",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 21, 8 },
+        { 0xe9b2e5e6, "sceNetApctlScanUser",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 21, 9 },
+        { 0xf25a5006, "sceNetApctlGetBSSDescIDList2",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 21, 10 },
+        { 0x2935c45b, "sceNetApctlGetBSSDescEntry2",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 21, 11 },
+        { 0x04776994, "sceNetApctlGetBSSDescEntryUser",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 21, 12 },
+        { 0x6bddcb8c, "sceNetApctlGetBSSDescIDListUser",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 21, 13 },
+        { 0x7cfab990, "sceNetApctlAddInternalHandler",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 21, 14 },
+        { 0xe11bafab, "sceNetApctlDelInternalHandler",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 21, 15 },
+        { 0xa7bb73df, "sceNetApctl_A7BB73DF",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 21, 16 },
+        { 0x6f5d2981, "sceNetApctl_6F5D2981",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 21, 17 },
+        { 0x69745f0a, "sceNetApctl_lib2_69745F0A",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 21, 18 },
+        { 0x4c19731f, "sceNetApctl_lib2_4C19731F",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 21, 19 },
+        { 0xb3cf6849, "sceNetApctlScan",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 21, 20 },
+        { 0x0c7ffa5c, "sceNetApctlGetBSSDescIDList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 21, 21 },
+        { 0x96beb231, "sceNetApctlGetBSSDescEntry",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 21, 22 },
+        { 0xc20a144c, "sceNetApctl_lib2_C20A144C",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 21, 23 },
+        { 0x756e6f10, "__NetApctlCallbacks",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 21, 24 }
+    }},
+
+    psp_module{22, "sceNetAdhoc", {
+        { 0xe1d621d7, "sceNetAdhocInit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 22, 0 },
+        { 0xa62c6f57, "sceNetAdhocTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 22, 1 },
+        { 0x0ad043ed, "sceNetAdhocctlConnect",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 22, 2 },
+        { 0x6f92741b, "sceNetAdhocPdpCreate",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 22, 3 },
+        { 0xabed3790, "sceNetAdhocPdpSend",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 4 },
+        { 0xdfe53e03, "sceNetAdhocPdpRecv",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR, ARG_PTR, ARG_U32, ARG_S32), 
+          unknown_header, 22, 5 },
+        { 0x7f27bb5e, "sceNetAdhocPdpDelete",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 22, 6 },
+        { 0xc7c1fc57, "sceNetAdhocGetPdpStat",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 22, 7 },
+        { 0x157e6225, "sceNetAdhocPtpClose",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 22, 8 },
+        { 0x4da4c788, "sceNetAdhocPtpSend",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 9 },
+        { 0x877f6d66, "sceNetAdhocPtpOpen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 10 },
+        { 0x8bea2b3e, "sceNetAdhocPtpRecv",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 11 },
+        { 0x9df81198, "sceNetAdhocPtpAccept",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 12 },
+        { 0xe08bdac1, "sceNetAdhocPtpListen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 13 },
+        { 0xfc6fc07b, "sceNetAdhocPtpConnect",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 14 },
+        { 0x9ac2eeac, "sceNetAdhocPtpFlush",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 15 },
+        { 0xb9685118, "sceNetAdhocGetPtpStat",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 22, 16 },
+        { 0x3278ab0c, "sceNetAdhocGameModeCreateReplica",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32), 
+          unknown_header, 22, 17 },
+        { 0x98c204c8, "sceNetAdhocGameModeUpdateMaster",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 22, 18 },
+        { 0xfa324b4e, "sceNetAdhocGameModeUpdateReplica",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 22, 19 },
+        { 0xa0229362, "sceNetAdhocGameModeDeleteMaster",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 22, 20 },
+        { 0x0b2228e9, "sceNetAdhocGameModeDeleteReplica",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 22, 21 },
+        { 0x7f75c338, "sceNetAdhocGameModeCreateMaster",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 22, 22 },
+        { 0x73bfd52d, "sceNetAdhocSetSocketAlert",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 22, 23 },
+        { 0x4d2ce199, "sceNetAdhocGetSocketAlert",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 22, 24 },
+        { 0x7a662d6b, "sceNetAdhocPollSocket",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 22, 25 },
+        { 0x756e6e6f, "__NetTriggerCallbacks",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 22, 26 }
+    }},
+
+    psp_module{23, "sceNetAdhocMatching", {
+        { 0x2a2a1e07, "sceNetAdhocMatchingInit",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 23, 0 },
+        { 0x7945ecda, "sceNetAdhocMatchingTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 23, 1 },
+        { 0xca5eda6f, "sceNetAdhocMatchingCreate",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 23, 2 },
+        { 0x93ef3843, "sceNetAdhocMatchingStart",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 23, 3 },
+        { 0xe8454c65, "sceNetAdhocMatchingStart2",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 23, 4 },
+        { 0x32b156b3, "sceNetAdhocMatchingStop",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 23, 5 },
+        { 0xf16eaf4f, "sceNetAdhocMatchingDelete",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 23, 6 },
+        { 0x5e3d4b79, "sceNetAdhocMatchingSelectTarget",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
+          unknown_header, 23, 7 },
+        { 0xea3c6108, "sceNetAdhocMatchingCancelTarget",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 23, 8 },
+        { 0x8f58bedf, "sceNetAdhocMatchingCancelTargetWithOpt",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
+          unknown_header, 23, 9 },
+        { 0xb5d96c2a, "sceNetAdhocMatchingGetHelloOpt",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 23, 10 },
+        { 0xb58e61b7, "sceNetAdhocMatchingSetHelloOpt",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 23, 11 },
+        { 0xc58bcd9e, "sceNetAdhocMatchingGetMembers",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 23, 12 },
+        { 0xf79472d7, "sceNetAdhocMatchingSendData",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
+          unknown_header, 23, 13 },
+        { 0xec19337d, "sceNetAdhocMatchingAbortSendData",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 23, 14 },
+        { 0x40f8f435, "sceNetAdhocMatchingGetPoolMaxAlloc",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 23, 15 },
+        { 0x9c5cfb7d, "sceNetAdhocMatchingGetPoolStat",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 23, 16 },
+        { 0x756e6f00, "__NetMatchingCallbacks",
+          RET(ARG_VOID), ARGS(ARG_NONE),
+          unknown_header, 23, 17 }
+    }},
+
+    psp_module{24, "sceNetAdhocDiscover", {
+        { 0x941b3877, "sceNetAdhocDiscoverInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 24, 0 },
+        { 0x52de1b97, "sceNetAdhocDiscoverUpdate",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 24, 1 },
+        { 0x944ddbc6, "sceNetAdhocDiscoverGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 24, 2 },
+        { 0xa2246614, "sceNetAdhocDiscoverTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 24, 3 },
+        { 0xf7d13214, "sceNetAdhocDiscoverStop",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 24, 4 },
+        { 0xa423a21b, "sceNetAdhocDiscoverRequestSuspend",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 24, 5 }
+    }},
+
+    psp_module{25, "sceNetAdhocctl", {
+        { 0xe26f226e, "sceNetAdhocctlInit",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 25, 0 },
+        { 0x9d689e13, "sceNetAdhocctlTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 25, 1 },
+        { 0x20b317a0, "sceNetAdhocctlAddHandler",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 25, 2 },
+        { 0x6402490b, "sceNetAdhocctlDelHandler",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 25, 3 },
+        { 0x34401d65, "sceNetAdhocctlDisconnect",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 25, 4 },
+        { 0x0ad043ed, "sceNetAdhocctlConnect",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 25, 5 },
+        { 0x08fff7a0, "sceNetAdhocctlScan",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 25, 6 },
+        { 0x75ecd386, "sceNetAdhocctlGetState",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 25, 7 },
+        { 0x8916c003, "sceNetAdhocctlGetNameByAddr",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 25, 8 },
+        { 0xded9d28e, "sceNetAdhocctlGetParameter",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 25, 9 },
+        { 0x81aee1be, "sceNetAdhocctlGetScanInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 25, 10 },
+        { 0x5e7f79c9, "sceNetAdhocctlJoin",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 25, 11 },
+        { 0x8db83fdc, "sceNetAdhocctlGetPeerInfo",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
+          unknown_header, 25, 12 },
+        { 0xec0635c1, "sceNetAdhocctlCreate",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 25, 13 },
+        { 0xa5c055ce, "sceNetAdhocctlCreateEnterGameMode",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 25, 14 },
+        { 0x1ff89745, "sceNetAdhocctlJoinEnterGameMode",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32), 
+          unknown_header, 25, 15 },
+        { 0xcf8e084d, "sceNetAdhocctlExitGameMode",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 25, 16 },
+        { 0xe162cb14, "sceNetAdhocctlGetPeerList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 25, 17 },
+        { 0x362cbe8f, "sceNetAdhocctlGetAdhocId",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 25, 18 },
+        { 0x5a014ce0, "sceNetAdhocctlGetGameModeInfo",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 25, 19 },
+        { 0x99560abe, "sceNetAdhocctlGetAddrByName",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 25, 20 },
+        { 0xb0b80e80, "sceNetAdhocctlCreateEnterGameModeMin",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_S32, ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 25, 21 }
+    }},
+
+    psp_module{26, "sceRtc", {
+        { 0xc41c2853, "sceRtcGetTickResolution",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 26, 0 },
+        { 0x3f7ad767, "sceRtcGetCurrentTick",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 26, 1 },
+        { 0x011f03c1, "sceRtcGetAccumulativeTime",
+          RET(ARG_U64), ARGS(ARG_NONE),
+          unknown_header, 26, 2 },
+        { 0x029ca3b3, "sceRtcGetAccumlativeTime",
+          RET(ARG_U64), ARGS(ARG_NONE),
+          unknown_header, 26, 3 },
+        { 0x4cfa57b0, "sceRtcGetCurrentClock",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 26, 4 },
+        { 0xe7c27d1b, "sceRtcGetCurrentClockLocalTime",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 26, 5 },
+        { 0x34885e0d, "sceRtcConvertUtcToLocalTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 6 },
+        { 0x779242a2, "sceRtcConvertLocalTimeToUTC",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 7 },
+        { 0x42307a17, "sceRtcIsLeapYear",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 26, 8 },
+        { 0x05ef322c, "sceRtcGetDaysInMonth",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 9 },
+        { 0x57726bc1, "sceRtcGetDayOfWeek",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 26, 10 },
+        { 0x4b1b5e82, "sceRtcCheckValid",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 26, 11 },
+        { 0x3a807cc8, "sceRtcSetTime_t",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 12 },
+        { 0x27c4594c, "sceRtcGetTime_t",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 26, 13 },
+        { 0xf006f264, "sceRtcSetDosTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 14 },
+        { 0x36075567, "sceRtcGetDosTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 26, 15 },
+        { 0x7ace4c04, "sceRtcSetWin32FileTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U64), 
+          unknown_header, 26, 16 },
+        { 0xcf561893, "sceRtcGetWin32FileTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 17 },
+        { 0x7ed29e40, "sceRtcSetTick",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_UNKNOWN), 
+          unknown_header, 26, 18 },
+        { 0x6ff40acc, "sceRtcGetTick",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_UNKNOWN), 
+          unknown_header, 26, 19 },
+        { 0x9ed0ae87, "sceRtcCompareTick",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 20 },
+        { 0x44f45e05, "sceRtcTickAddTicks",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U64), 
+          unknown_header, 26, 21 },
+        { 0x26d25a5d, "sceRtcTickAddMicroseconds",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U64), 
+          unknown_header, 26, 22 },
+        { 0xf2a4afe5, "sceRtcTickAddSeconds",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U64), 
+          unknown_header, 26, 23 },
+        { 0xe6605bca, "sceRtcTickAddMinutes",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U64), 
+          unknown_header, 26, 24 },
+        { 0x26d7a24a, "sceRtcTickAddHours",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 25 },
+        { 0xe51b4b7a, "sceRtcTickAddDays",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 26 },
+        { 0xcf3a2ca8, "sceRtcTickAddWeeks",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 27 },
+        { 0xdbf74f1b, "sceRtcTickAddMonths",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 28 },
+        { 0x42842c77, "sceRtcTickAddYears",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 29 },
+        { 0xc663b3b9, "sceRtcFormatRFC2822",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 30 },
+        { 0x7de6711b, "sceRtcFormatRFC2822LocalTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 31 },
+        { 0x0498fb3c, "sceRtcFormatRFC3339",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 26, 32 },
+        { 0x27f98543, "sceRtcFormatRFC3339LocalTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 33 },
+        { 0xdfbc5f16, "sceRtcParseDateTime",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 34 },
+        { 0x28e1e988, "sceRtcParseRFC3339",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 35 },
+        { 0xe1c93e47, "sceRtcGetTime64_t",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_UNKNOWN), 
+          unknown_header, 26, 36 },
+        { 0x1909c99b, "sceRtcSetTime64_t",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U64), 
+          unknown_header, 26, 37 },
+        { 0x62685e98, "sceRtcGetLastAdjustedTime",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 26, 38 },
+        { 0x203ceb0d, "sceRtcGetLastReincarnatedTime",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 26, 39 },
+        { 0x7d1fbed3, "sceRtcSetAlarmTick",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 26, 40 },
+        { 0xf5fcc995, "sceRtcGetCurrentNetworkTick",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 41 },
+        { 0x81fcda34, "sceRtcIsAlarmed",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 42 },
+        { 0xfb3b18cd, "sceRtcRegisterCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 43 },
+        { 0x6a676d2d, "sceRtcUnregisterCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 44 },
+        { 0xc2ddbeb5, "sceRtcGetAlarmTick",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 26, 45 }
+    }},
+
+    psp_module{27, "sceWlanDrv", {
+        { 0xd7763699, "sceWlanGetSwitchState",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 27, 0 },
+        { 0x0c622081, "sceWlanGetEtherAddr",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 27, 1 },
+        { 0x93440b11, "sceWlanDevIsPowerOn",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 27, 2 }
+    }},
+
+    psp_module{28, "sceMpeg", {
+        { 0xe1ce83a7, "sceMpegGetAtracAu",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 0 },
+        { 0xfe246728, "sceMpegGetAvcAu",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 1 },
+        { 0xd8c5f121, "sceMpegCreate",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 2 },
+        { 0xf8dcb679, "sceMpegQueryAtracEsSize",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 3 },
+        { 0xc132e22f, "sceMpegQueryMemSize",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 28, 4 },
+        { 0x21ff80e4, "sceMpegQueryStreamOffset",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 5 },
+        { 0x611e9e11, "sceMpegQueryStreamSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 28, 6 },
+        { 0x42560f23, "sceMpegRegistStream",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 7 },
+        { 0x591a4aa2, "sceMpegUnRegistStream",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 28, 8 },
+        { 0x707b7629, "sceMpegFlushAllStream",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 9 },
+        { 0x500f0429, "sceMpegFlushStream",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 28, 10 },
+        { 0xa780cf7e, "sceMpegMallocAvcEsBuf",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 28, 11 },
+        { 0xceb870b1, "sceMpegFreeAvcEsBuf",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 28, 12 },
+        { 0x167afd9e, "sceMpegInitAu",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 13 },
+        { 0x682a619b, "sceMpegInit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 28, 14 },
+        { 0x606a4649, "sceMpegDelete",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 28, 15 },
+        { 0x874624d6, "sceMpegFinish",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 28, 16 },
+        { 0x800c44df, "sceMpegAtracDecode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 28, 17 },
+        { 0x0e3c2e9d, "sceMpegAvcDecode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 18 },
+        { 0x740fccd1, "sceMpegAvcDecodeStop",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 19 },
+        { 0x4571cc64, "sceMpegAvcDecodeFlush",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 20 },
+        { 0x0f6c18d7, "sceMpegAvcDecodeDetail",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 28, 21 },
+        { 0xa11c7026, "sceMpegAvcDecodeMode",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 28, 22 },
+        { 0x37295ed8, "sceMpegRingbufferConstruct",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 23 },
+        { 0x13407f13, "sceMpegRingbufferDestruct",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 24 },
+        { 0xb240a59e, "sceMpegRingbufferPut",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 25 },
+        { 0xb5f6dc87, "sceMpegRingbufferAvailableSize",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 28, 26 },
+        { 0xd7a29f46, "sceMpegRingbufferQueryMemSize",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 28, 27 },
+        { 0x769bebb6, "sceMpegRingbufferQueryPackNum",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 28, 28 },
+        { 0x211a057c, "sceMpegAvcQueryYCbCrSize",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 29 },
+        { 0xf0eb1125, "sceMpegAvcDecodeYCbCr",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 30 },
+        { 0xf2930c9c, "sceMpegAvcDecodeStopYCbCr",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 31 },
+        { 0x67179b1b, "sceMpegAvcInitYCbCr",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 28, 32 },
+        { 0x0558b075, "sceMpegAvcCopyYCbCr",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 33 },
+        { 0x31bd0272, "sceMpegAvcCsc",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 28, 34 },
+        { 0x9dcfb7ea, "sceMpegChangeGetAuMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 28, 35 },
+        { 0x8c1e027d, "sceMpegGetPcmAu",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 36 },
+        { 0xc02cf6b5, "sceMpegQueryPcmEsSize",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 37 },
+        { 0xc45c99cc, "sceMpegQueryUserdataEsSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 38 },
+        { 0x234586ae, "sceMpegChangeGetAvcAuMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 28, 39 },
+        { 0x63b9536a, "sceMpegAvcResourceGetAvcDecTopAddr",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 40 },
+        { 0x8160a2fe, "sceMpegAvcResourceFinish",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 41 },
+        { 0xaf26bb01, "sceMpegAvcResourceGetAvcEsBuf",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 42 },
+        { 0xfcbdb5ad, "sceMpegAvcResourceInit",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 43 },
+        { 0xf5e7ea31, "sceMpegAvcConvertToYuv420",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 28, 44 },
+        { 0x01977054, "sceMpegGetUserdataAu",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 28, 45 },
+        { 0x3c37a7a6, "sceMpegNextAvcRpAu",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 28, 46 },
+        { 0x11f95cf1, "sceMpegGetAvcNalAu",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 47 },
+        { 0xab0e9556, "sceMpegAvcDecodeDetailIndex",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 48 },
+        { 0xcf3547a2, "sceMpegAvcDecodeDetail2",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 49 },
+        { 0x921fcccf, "sceMpegGetAvcEsAu",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 50 },
+        { 0xe95838f6, "sceMpegAvcCscInfo",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 51 },
+        { 0xd1ce4950, "sceMpegAvcCscMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 52 },
+        { 0xdbb60658, "sceMpegFlushAu",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 28, 53 },
+        { 0xd4dd6e75, "sceMpeg_D4DD6E75",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 28, 54 },
+        { 0x11cab459, "sceMpeg_11CAB459",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 28, 55 },
+        { 0xc345ded2, "sceMpeg_C345DED2",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 28, 56 },
+        { 0xb27711a8, "sceMpeg_B27711A8",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 28, 57 },
+        { 0x988e9e12, "sceMpeg_988E9E12",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 28, 58 }
+    }},
+
+    psp_module{29, "sceMp3", {
+        { 0x07ec321a, "sceMp3ReserveMp3Handle",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 29, 0 },
+        { 0x0db149f4, "sceMp3NotifyAddStreamData",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 29, 1 },
+        { 0x2a368661, "sceMp3ResetPlayPosition",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 2 },
+        { 0x354d27ea, "sceMp3GetSumDecodedSample",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 3 },
+        { 0x35750070, "sceMp3InitResource",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 29, 4 },
+        { 0x3c2fa058, "sceMp3TermResource",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 29, 5 },
+        { 0x3cef484f, "sceMp3SetLoopNum",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 29, 6 },
+        { 0x44e07129, "sceMp3Init",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 7 },
+        { 0x732b042a, "sceMp3EndEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 29, 8 },
+        { 0x7f696782, "sceMp3GetMp3ChannelNum",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 9 },
+        { 0x87677e40, "sceMp3GetBitRate",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 10 },
+        { 0x87c263d1, "sceMp3GetMaxOutputSample",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 11 },
+        { 0x8ab81558, "sceMp3StartEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 29, 12 },
+        { 0x8f450998, "sceMp3GetSamplingRate",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 13 },
+        { 0xa703fe0f, "sceMp3GetInfoToAddStreamData",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 29, 14 },
+        { 0xd021c0fb, "sceMp3Decode",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 29, 15 },
+        { 0xd0a56296, "sceMp3CheckStreamDataNeeded",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 16 },
+        { 0xd8f54a51, "sceMp3GetLoopNum",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 17 },
+        { 0xf5478233, "sceMp3ReleaseMp3Handle",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 18 },
+        { 0xae6d2027, "sceMp3GetMPEGVersion",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 29, 19 },
+        { 0x3548aec8, "sceMp3GetFrameNum",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 29, 20 },
+        { 0x0840e808, "sceMp3ResetPlayPositionByFrame",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 29, 21 },
+        { 0x1b839b83, "sceMp3LowLevelInit",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 29, 22 },
+        { 0xe3ee2c81, "sceMp3LowLevelDecode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 29, 23 }
+    }},
+
+    psp_module{30, "sceHttp", {
+        { 0xab1abe07, "sceHttpInit",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 0 },
+        { 0xd1c8945e, "sceHttpEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 30, 1 },
+        { 0xa6800c34, "sceHttpInitCache",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 2 },
+        { 0x78b54c09, "sceHttpEndCache",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 30, 3 },
+        { 0x59e6d16f, "sceHttpEnableCache",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 4 },
+        { 0xccbd167a, "sceHttpDisableCache",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 5 },
+        { 0xd70d4847, "sceHttpGetProxy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 6 },
+        { 0x4cc7d78f, "sceHttpGetStatusCode",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 7 },
+        { 0xedeeb999, "sceHttpReadData",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 8 },
+        { 0xbb70706f, "sceHttpSendRequest",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 9 },
+        { 0xa5512e01, "sceHttpDeleteRequest",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 10 },
+        { 0x15540184, "sceHttpDeleteHeader",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 30, 11 },
+        { 0x5152773b, "sceHttpDeleteConnection",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 12 },
+        { 0x8acd1f73, "sceHttpSetConnectTimeOut",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 13 },
+        { 0x9988172d, "sceHttpSetSendTimeOut",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 14 },
+        { 0xf0f46c62, "sceHttpSetProxy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 15 },
+        { 0x0dafa58f, "sceHttpEnableCookie",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 16 },
+        { 0x78a0d3ec, "sceHttpEnableKeepAlive",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 17 },
+        { 0x0b12abfb, "sceHttpDisableCookie",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 18 },
+        { 0xc7ef2559, "sceHttpDisableKeepAlive",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 19 },
+        { 0xe4d21302, "sceHttpsInit",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 30, 20 },
+        { 0xf9d8eb63, "sceHttpsEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 30, 21 },
+        { 0x47347b50, "sceHttpCreateRequest",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_CONST_CHAR_PTR, ARG_U64), 
+          unknown_header, 30, 22 },
+        { 0x8eefd953, "sceHttpCreateConnection",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32), 
+          unknown_header, 30, 23 },
+        { 0xd081ec8f, "sceHttpGetNetworkErrno",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 24 },
+        { 0x3eaba285, "sceHttpAddExtraHeader",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 30, 25 },
+        { 0xc10b6bd9, "sceHttpAbortRequest",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 26 },
+        { 0xfcf8c055, "sceHttpDeleteTemplate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 27 },
+        { 0xf49934f6, "sceHttpSetMallocFunction",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 28 },
+        { 0x03d9526f, "sceHttpSetResolveRetry",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 30, 29 },
+        { 0x47940436, "sceHttpSetResolveTimeOut",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 30 },
+        { 0x2a6c3296, "sceHttpSetAuthInfoCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 31 },
+        { 0x0809c831, "sceHttpEnableRedirect",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 32 },
+        { 0x9fc5f10d, "sceHttpEnableAuth",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 33 },
+        { 0x1a0ebb69, "sceHttpDisableRedirect",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 34 },
+        { 0xae948fee, "sceHttpDisableAuth",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 30, 35 },
+        { 0x76d1363b, "sceHttpSaveSystemCookie",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 30, 36 },
+        { 0x87797bdd, "sceHttpsLoadDefaultCert",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 30, 37 },
+        { 0xf1657b22, "sceHttpLoadSystemCookie",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 30, 38 },
+        { 0x9b1f1f36, "sceHttpCreateTemplate",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32), 
+          unknown_header, 30, 39 },
+        { 0xb509b09e, "sceHttpCreateRequestWithURL",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_CONST_CHAR_PTR, ARG_U64), 
+          unknown_header, 30, 40 },
+        { 0xcdf8ecb9, "sceHttpCreateConnectionWithURL",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 30, 41 },
+        { 0x1f0fc3e3, "sceHttpSetRecvTimeOut",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 30, 42 },
+        { 0xdb266ccf, "sceHttpGetAllHeader",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 30, 43 },
+        { 0x0282a3bd, "sceHttpGetContentLength",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U64), 
+          unknown_header, 30, 44 },
+        { 0x7774bf4c, "sceHttpAddCookie",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 45 },
+        { 0x68ab0f86, "sceHttpsInitWithPath",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 46 },
+        { 0xb3faf831, "sceHttpsDisableOption",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 47 },
+        { 0x2255551e, "sceHttpGetNetworkPspError",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 48 },
+        { 0xab1540d5, "sceHttpsGetSslError",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 49 },
+        { 0xa4496de5, "sceHttpSetRedirectCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 50 },
+        { 0x267618f4, "sceHttpSetAuthInfoCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 51 },
+        { 0x569a1481, "sceHttpsSetSslCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 52 },
+        { 0xbac31bf1, "sceHttpsEnableOption",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 30, 53 }
+    }},
+
+    psp_module{31, "scePower", {
+        { 0x04b7766e, "scePowerRegisterCallback",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 31, 0 },
+        { 0x2b51fe2f, "scePower_2B51FE2F",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 1 },
+        { 0x442bfbac, "scePowerGetBacklightMaximum",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 2 },
+        { 0xefd3c963, "scePowerTick",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 3 },
+        { 0xedc13fe5, "scePowerGetIdleTimer",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 4 },
+        { 0x7f30b3b1, "scePowerIdleTimerEnable",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 5 },
+        { 0x972ce941, "scePowerIdleTimerDisable",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 6 },
+        { 0x27f3292c, "scePowerBatteryUpdateInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 7 },
+        { 0xe8e4e204, "scePowerGetForceSuspendCapacity",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 8 },
+        { 0xb999184c, "scePowerGetLowBatteryCapacity",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 9 },
+        { 0x87440f5e, "scePowerIsPowerOnline",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 10 },
+        { 0x0afd0d8b, "scePowerIsBatteryExist",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 11 },
+        { 0x1e490401, "scePowerIsBatteryCharging",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 12 },
+        { 0xb4432bc8, "scePowerGetBatteryChargingStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 13 },
+        { 0xd3075926, "scePowerIsLowBattery",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 14 },
+        { 0x78a1a796, "scePowerIsSuspendRequired",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 15 },
+        { 0x94f5a53f, "scePowerGetBatteryRemainCapacity",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 16 },
+        { 0xfd18a0ff, "scePowerGetBatteryFullCapacity",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 17 },
+        { 0x2085d15d, "scePowerGetBatteryLifePercent",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 18 },
+        { 0x8efb3fa2, "scePowerGetBatteryLifeTime",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 19 },
+        { 0x28e12023, "scePowerGetBatteryTemp",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 31, 20 },
+        { 0x862ae1a6, "scePowerGetBatteryElec",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 21 },
+        { 0x483ce86b, "scePowerGetBatteryVolt",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 22 },
+        { 0xcb49f5ce, "scePowerGetBatteryChargeCycle",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 23 },
+        { 0x23436a4a, "scePowerGetInnerTemp",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 24 },
+        { 0x0cd21b1f, "scePowerSetPowerSwMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 25 },
+        { 0x165ce085, "scePowerGetPowerSwMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 26 },
+        { 0xd6d016ef, "scePowerLock",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 27 },
+        { 0xca3d34c1, "scePowerUnlock",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 28 },
+        { 0xdb62c9cf, "scePowerCancelRequest",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 29 },
+        { 0x7fa406dd, "scePowerIsRequest",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 30 },
+        { 0x2b7c7cf4, "scePowerRequestStandby",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 31 },
+        { 0xac32c9cc, "scePowerRequestSuspend",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 32 },
+        { 0x2875994b, "scePower_2875994B",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 33 },
+        { 0x0074ef9b, "scePowerGetResumeCount",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 34 },
+        { 0xdfa8baf8, "scePowerUnregisterCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 31, 35 },
+        { 0xdb9d28dd, "scePowerUnregitserCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 31, 36 },
+        { 0x843fbf43, "scePowerSetCpuClockFrequency",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 31, 37 },
+        { 0xb8d7b3fb, "scePowerSetBusClockFrequency",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 31, 38 },
+        { 0xfee03a2f, "scePowerGetCpuClockFrequency",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 39 },
+        { 0x478fe6f5, "scePowerGetBusClockFrequency",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 40 },
+        { 0xfdb5bfe9, "scePowerGetCpuClockFrequencyInt",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 41 },
+        { 0xbd681969, "scePowerGetBusClockFrequencyInt",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 42 },
+        { 0xb1a52c83, "scePowerGetCpuClockFrequencyFloat",
+          RET(ARG_FLOAT), ARGS(ARG_NONE),
+          unknown_header, 31, 43 },
+        { 0x9badb3eb, "scePowerGetBusClockFrequencyFloat",
+          RET(ARG_FLOAT), ARGS(ARG_NONE),
+          unknown_header, 31, 44 },
+        { 0x737486f2, "scePowerSetClockFrequency",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 31, 45 },
+        { 0x34f9c463, "scePowerGetPllClockFrequencyInt",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 46 },
+        { 0xea382a27, "scePowerGetPllClockFrequencyFloat",
+          RET(ARG_FLOAT), ARGS(ARG_NONE),
+          unknown_header, 31, 47 },
+        { 0xebd177d6, "scePowerSetClockFrequency350",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 31, 48 },
+        { 0x469989ad, "scePower_469989ad",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 31, 49 },
+        { 0x545a7f3c, "scePower_545A7F3C",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 50 },
+        { 0xa4e93389, "scePower_A4E93389",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 51 },
+        { 0xa85880d0, "scePower_a85880d0_IsPSPNonFat",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 31, 52 },
+        { 0x3951af53, "scePowerWaitRequestCompletion",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 53 },
+        { 0x0442d852, "scePowerRequestColdReset",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 54 },
+        { 0xbafa3df0, "scePowerGetCallbackMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 55 },
+        { 0xa9d22232, "scePowerSetCallbackMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 31, 56 },
+        { 0x23c31ffe, "scePowerVolatileMemLock",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 31, 57 },
+        { 0xfa97a599, "scePowerVolatileMemTryLock",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 31, 58 },
+        { 0xb3edd801, "scePowerVolatileMemUnlock",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 31, 59 }
+    }},
+
+    psp_module{32, "sceImpose", {
+        { 0x36aa6e91, "sceImposeSetLanguageMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 32, 0 },
+        { 0x381bd9e7, "sceImposeHomeButton",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 1 },
+        { 0x0f341be4, "sceImposeGetHomePopup",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 2 },
+        { 0x5595a71a, "sceImposeSetHomePopup",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 3 },
+        { 0x24fd7bcf, "sceImposeGetLanguageMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 32, 4 },
+        { 0x8c943191, "sceImposeGetBatteryIconStatus",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 32, 5 },
+        { 0x72189c48, "sceImposeSetUMDPopup",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 32, 6 },
+        { 0xe0887bc8, "sceImposeGetUMDPopup",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 32, 7 },
+        { 0x8f6e3518, "sceImposeGetBacklightOffTime",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 32, 8 },
+        { 0x967f6d4a, "sceImposeSetBacklightOffTime",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 32, 9 },
+        { 0xfcd44963, "sceImpose_FCD44963",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 10 },
+        { 0xa9884b00, "sceImpose_A9884B00",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 11 },
+        { 0xbb3f5dec, "sceImpose_BB3F5DEC",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 12 },
+        { 0x9ba61b49, "sceImpose_9BA61B49",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 13 },
+        { 0xff1a2f07, "sceImpose_FF1A2F07",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 32, 14 }
+    }},
+
+    psp_module{33, "sceSuspendForUser", {
+        { 0xeadb1bd7, "sceKernelPowerLock",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 33, 0 },
+        { 0x3aee7261, "sceKernelPowerUnlock",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 33, 1 },
+        { 0x090ccb3f, "sceKernelPowerTick",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 33, 2 },
+        { 0xa14f40b2, "sceKernelVolatileMemTryLock",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 33, 3 },
+        { 0xa569e425, "sceKernelVolatileMemUnlock",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 33, 4 },
+        { 0x3e0271d3, "sceKernelVolatileMemLock",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 33, 5 }
+    }},
+
+    psp_module{34, "sceGe_user", {
+        { 0xe47e40e4, "sceGeEdramGetAddr",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 34, 0 },
+        { 0xab49e76a, "sceGeListEnQueue",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_PTR), 
+          unknown_header, 34, 1 },
+        { 0x1c0d95a6, "sceGeListEnQueueHead",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_PTR), 
+          unknown_header, 34, 2 },
+        { 0xe0d68148, "sceGeListUpdateStallAddr",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 34, 3 },
+        { 0x03444eb4, "sceGeListSync",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 34, 4 },
+        { 0xb287bd61, "sceGeDrawSync",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 34, 5 },
+        { 0xb448ec0d, "sceGeBreak",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 34, 6 },
+        { 0x4c06e472, "sceGeContinue",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 34, 7 },
+        { 0xa4fc06a4, "sceGeSetCallback",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 34, 8 },
+        { 0x05db22ce, "sceGeUnsetCallback",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 34, 9 },
+        { 0x1f6752ad, "sceGeEdramGetSize",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 34, 10 },
+        { 0xb77905ea, "sceGeEdramSetAddrTranslation",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 34, 11 },
+        { 0xdc93cfef, "sceGeGetCmd",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 34, 12 },
+        { 0x57c8945b, "sceGeGetMtx",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 34, 13 },
+        { 0x438a385a, "sceGeSaveContext",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 34, 14 },
+        { 0x0bf608fb, "sceGeRestoreContext",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 34, 15 },
+        { 0x5fb86ab0, "sceGeListDeQueue",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 34, 16 },
+        { 0xe66cb92e, "sceGeGetStack",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 34, 17 }
+    }},
+
+    psp_module{35, "sceUmdUser", {
+        { 0xc6183d47, "sceUmdActivate",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 35, 0 },
+        { 0x6b4a146c, "sceUmdGetDriveStat",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 35, 1 },
+        { 0x46ebb729, "sceUmdCheckMedium",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 35, 2 },
+        { 0xe83742ba, "sceUmdDeactivate",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 35, 3 },
+        { 0x8ef08fce, "sceUmdWaitDriveStat",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 35, 4 },
+        { 0x56202973, "sceUmdWaitDriveStatWithTimer",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 35, 5 },
+        { 0x4a9e5e29, "sceUmdWaitDriveStatCB",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 35, 6 },
+        { 0x6af9b50a, "sceUmdCancelWaitDriveStat",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 35, 7 },
+        { 0x20628e6f, "sceUmdGetErrorStat",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 35, 8 },
+        { 0x340b7686, "sceUmdGetDiscInfo",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 35, 9 },
+        { 0xaee7404d, "sceUmdRegisterUMDCallBack",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 35, 10 },
+        { 0xbd2bde07, "sceUmdUnRegisterUMDCallBack",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 35, 11 },
+        { 0x87533940, "sceUmdReplaceProhibit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 35, 12 },
+        { 0xcbe9f02a, "sceUmdReplacePermit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 35, 13 },
+        { 0x14c6c45c, "sceUmdUnuseUMDInMsUsbWlan",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 35, 14 },
+        { 0xb103fa38, "sceUmdUseUMDInMsUsbWlan",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 35, 15 }
+    }},
+
+    psp_module{36, "sceDmac", {
+        { 0x617f3fe6, "sceDmacMemcpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 36, 0 },
+        { 0xd97f94d8, "sceDmacTryMemcpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 36, 1 }
+    }},
+
+    psp_module{37, "sceUtility", {
+        { 0x1579a159, "sceUtilityLoadNetModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 0 },
+        { 0x64d50c56, "sceUtilityUnloadNetModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 1 },
+        { 0xf88155f6, "sceUtilityNetconfShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 2 },
+        { 0x4db1e739, "sceUtilityNetconfInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 3 },
+        { 0x91e70e35, "sceUtilityNetconfUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 4 },
+        { 0x6332aa39, "sceUtilityNetconfGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 5 },
+        { 0x5eee6548, "sceUtilityCheckNetParam",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 6 },
+        { 0x434d4b3a, "sceUtilityGetNetParam",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 7 },
+        { 0x4fed24d8, "sceUtilityGetNetParamLatestID",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 8 },
+        { 0x67af3428, "sceUtilityMsgDialogShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 9 },
+        { 0x2ad8e239, "sceUtilityMsgDialogInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 10 },
+        { 0x95fc253b, "sceUtilityMsgDialogUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 11 },
+        { 0x9a1c91d7, "sceUtilityMsgDialogGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 12 },
+        { 0x4928bd96, "sceUtilityMsgDialogAbort",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 13 },
+        { 0x9790b33c, "sceUtilitySavedataShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 14 },
+        { 0x50c4cd57, "sceUtilitySavedataInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 15 },
+        { 0xd4b95ffb, "sceUtilitySavedataUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 16 },
+        { 0x8874dbe0, "sceUtilitySavedataGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 17 },
+        { 0x3dfaeba9, "sceUtilityOskShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 18 },
+        { 0xf6269b82, "sceUtilityOskInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 19 },
+        { 0x4b85c861, "sceUtilityOskUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 20 },
+        { 0xf3f76017, "sceUtilityOskGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 21 },
+        { 0x41e30674, "sceUtilitySetSystemParamString",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 37, 22 },
+        { 0x45c18506, "sceUtilitySetSystemParamInt",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 37, 23 },
+        { 0x34b78343, "sceUtilityGetSystemParamString",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 37, 24 },
+        { 0xa5da2406, "sceUtilityGetSystemParamInt",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 37, 25 },
+        { 0xc492f751, "sceUtilityGameSharingInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 26 },
+        { 0xefc6f80f, "sceUtilityGameSharingShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 27 },
+        { 0x7853182d, "sceUtilityGameSharingUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 28 },
+        { 0x946963f3, "sceUtilityGameSharingGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 29 },
+        { 0x2995d020, "sceUtilitySavedataErrInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 30 },
+        { 0xb62a4061, "sceUtilitySavedataErrShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 31 },
+        { 0xed0fad38, "sceUtilitySavedataErrUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 32 },
+        { 0x88bc7406, "sceUtilitySavedataErrGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 33 },
+        { 0xbda7d894, "sceUtilityHtmlViewerGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 34 },
+        { 0xcdc3aa41, "sceUtilityHtmlViewerInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 35 },
+        { 0xf5ce1134, "sceUtilityHtmlViewerShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 36 },
+        { 0x05afb9e4, "sceUtilityHtmlViewerUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 37 },
+        { 0x16a1a8d8, "sceUtilityAuthDialogGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 38 },
+        { 0x943cba46, "sceUtilityAuthDialogInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 39 },
+        { 0x0f3eeaac, "sceUtilityAuthDialogShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 40 },
+        { 0x147f7c85, "sceUtilityAuthDialogUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 41 },
+        { 0xc629af26, "sceUtilityLoadAvModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 42 },
+        { 0xf7d8d092, "sceUtilityUnloadAvModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 43 },
+        { 0x2a2b3de0, "sceUtilityLoadModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 44 },
+        { 0xe49bfe92, "sceUtilityUnloadModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 45 },
+        { 0x0251b134, "sceUtilityScreenshotInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 46 },
+        { 0xf9e0008c, "sceUtilityScreenshotShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 47 },
+        { 0xab083ea9, "sceUtilityScreenshotUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 48 },
+        { 0xd81957b7, "sceUtilityScreenshotGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 49 },
+        { 0x86a03a27, "sceUtilityScreenshotContStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 50 },
+        { 0x0d5bc6d2, "sceUtilityLoadUsbModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 51 },
+        { 0xf64910f0, "sceUtilityUnloadUsbModule",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 37, 52 },
+        { 0x24ac31eb, "sceUtilityGamedataInstallInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 53 },
+        { 0x32e32dcb, "sceUtilityGamedataInstallShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 54 },
+        { 0x4aecd179, "sceUtilityGamedataInstallUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 55 },
+        { 0xb57e95d9, "sceUtilityGamedataInstallGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 56 },
+        { 0x180f7b62, "sceUtilityGamedataInstallAbort",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 57 },
+        { 0x16d02af0, "sceUtilityNpSigninInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 58 },
+        { 0xe19c97d6, "sceUtilityNpSigninShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 59 },
+        { 0xf3fbc572, "sceUtilityNpSigninUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 60 },
+        { 0x86abdb1b, "sceUtilityNpSigninGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 61 },
+        { 0x1281da8e, "sceUtilityInstallInitStart",
+          RET(ARG_VOID), ARGS(ARG_U32), 
+          unknown_header, 37, 62 },
+        { 0x5ef1c24a, "sceUtilityInstallShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 63 },
+        { 0xa03d29ba, "sceUtilityInstallUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 64 },
+        { 0xc4700fa3, "sceUtilityInstallGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 65 },
+        { 0x54a5c62f, "sceUtilityStoreCheckoutShutdownStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 66 },
+        { 0xda97f1aa, "sceUtilityStoreCheckoutInitStart",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 37, 67 },
+        { 0xb8592d5f, "sceUtilityStoreCheckoutUpdate",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 68 },
+        { 0x3aad51dc, "sceUtilityStoreCheckoutGetStatus",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 37, 69 },
+        { 0xd17a0573, "sceUtilityPS3ScanShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 70 },
+        { 0x42071a83, "sceUtilityPS3ScanInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 71 },
+        { 0xd852cdce, "sceUtilityPS3ScanUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 72 },
+        { 0x89317c8f, "sceUtilityPS3ScanGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 73 },
+        { 0xe1bc175e, "sceUtility_E1BC175E",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 74 },
+        { 0x43e521b7, "sceUtility_43E521B7",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 75 },
+        { 0xdb4149ee, "sceUtility_DB4149EE",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 76 },
+        { 0xcfe7c460, "sceUtility_CFE7C460",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 77 },
+        { 0xc130d441, "sceUtilityPsnShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 78 },
+        { 0xa7bb7c67, "sceUtilityPsnInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 79 },
+        { 0x0940a1b9, "sceUtilityPsnUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 80 },
+        { 0x094198b8, "sceUtilityPsnGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 81 },
+        { 0x9f313d14, "sceUtilityAutoConnectShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 82 },
+        { 0x3a15cd0a, "sceUtilityAutoConnectInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 83 },
+        { 0xd23665f4, "sceUtilityAutoConnectUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 84 },
+        { 0xd4c2bd73, "sceUtilityAutoConnectGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 85 },
+        { 0x0e0c27af, "sceUtilityAutoConnectAbort",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 86 },
+        { 0x06a48659, "sceUtilityRssSubscriberShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 87 },
+        { 0x4b0a8fe5, "sceUtilityRssSubscriberInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 88 },
+        { 0xa084e056, "sceUtilityRssSubscriberUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 89 },
+        { 0x2b96173b, "sceUtilityRssSubscriberGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 90 },
+        { 0x149a7895, "sceUtilityDNASShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 91 },
+        { 0xdde5389d, "sceUtilityDNASInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 92 },
+        { 0x4a833ba4, "sceUtilityDNASUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 93 },
+        { 0xa50e5b30, "sceUtilityDNASGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 94 },
+        { 0xe7b778d8, "sceUtilityRssReaderShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 95 },
+        { 0x81c44706, "sceUtilityRssReaderInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 96 },
+        { 0x6f56f9cf, "sceUtilityRssReaderUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 97 },
+        { 0x8326ab05, "sceUtilityRssReaderGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 98 },
+        { 0xb0fb7ff5, "sceUtilityRssReaderContStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 99 },
+        { 0xbc6b6296, "sceNetplayDialogShutdownStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 100 },
+        { 0x3ad50ae7, "sceNetplayDialogInitStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 101 },
+        { 0x417bed54, "sceNetplayDialogUpdate",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 102 },
+        { 0xb6cee597, "sceNetplayDialogGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 103 },
+        { 0x28d35634, "sceUtility_28D35634",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 104 },
+        { 0x70267adf, "sceUtility_70267ADF",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 105 },
+        { 0xece1d3e5, "sceUtility_ECE1D3E5",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 106 },
+        { 0xef3582b2, "sceUtility_EF3582B2",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 37, 107 },
+        { 0xc0de0001, "__UtilityFinishDialog",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 108 },
+        { 0xc0de0002, "__UtilityWorkUs",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 109 },
+        { 0xc0de0003, "__UtilityInitDialog",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 37, 110 }
+    }},
+
+    psp_module{38, "sceATRAC3plus_Library", {
+        { 0x7db31251, "sceAtracAddStreamData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 38, 0 },
+        { 0x6a8c3cd5, "sceAtracDecodeData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 38, 1 },
+        { 0xd5c28cc0, "sceAtracEndEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 38, 2 },
+        { 0x780f88d1, "sceAtracGetAtracID",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 38, 3 },
+        { 0xca3ca3d2, "sceAtracGetBufferInfoForReseting",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 38, 4 },
+        { 0xa554a158, "sceAtracGetBitrate",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 5 },
+        { 0x31668baa, "sceAtracGetChannel",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 6 },
+        { 0xfaa4f89b, "sceAtracGetLoopStatus",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR), 
+          unknown_header, 38, 7 },
+        { 0xe88f759b, "sceAtracGetInternalErrorInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 8 },
+        { 0xd6a5f2f7, "sceAtracGetMaxSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 9 },
+        { 0xe23e3a35, "sceAtracGetNextDecodePosition",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 10 },
+        { 0x36faabfb, "sceAtracGetNextSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 11 },
+        { 0x9ae849a7, "sceAtracGetRemainFrame",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 12 },
+        { 0x83e85ea0, "sceAtracGetSecondBufferInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR), 
+          unknown_header, 38, 13 },
+        { 0xa2bba8be, "sceAtracGetSoundSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 38, 14 },
+        { 0x5d268707, "sceAtracGetStreamDataInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 38, 15 },
+        { 0x61eb33f5, "sceAtracReleaseAtracID",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 38, 16 },
+        { 0x644e5607, "sceAtracResetPlayPosition",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 38, 17 },
+        { 0x3f6e26b5, "sceAtracSetHalfwayBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 18 },
+        { 0x83bf7afd, "sceAtracSetSecondBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 19 },
+        { 0x0e2a73ab, "sceAtracSetData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 20 },
+        { 0x7a20e7af, "sceAtracSetDataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 38, 21 },
+        { 0xd1f59fdb, "sceAtracStartEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 38, 22 },
+        { 0x868120b5, "sceAtracSetLoopNum",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 38, 23 },
+        { 0x132f1eca, "sceAtracReinit",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 38, 24 },
+        { 0xeca32a99, "sceAtracIsSecondBufferNeeded",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 38, 25 },
+        { 0x0fae370e, "sceAtracSetHalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 26 },
+        { 0x2dd3e298, "sceAtracGetBufferInfoForResetting",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 38, 27 },
+        { 0x5cf9d852, "sceAtracSetMOutHalfwayBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 28 },
+        { 0xf6837a1a, "sceAtracSetMOutData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 29 },
+        { 0x472e3825, "sceAtracSetMOutDataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 38, 30 },
+        { 0x9cd7de03, "sceAtracSetMOutHalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 31 },
+        { 0xb3b5d042, "sceAtracGetOutputChannel",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 38, 32 },
+        { 0x5622b7c1, "sceAtracSetAA3DataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 38, 33 },
+        { 0x5dd66588, "sceAtracSetAA3HalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 38, 34 },
+        { 0x231fc6b7, "_sceAtracGetContextAddress",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 38, 35 },
+        { 0x1575d64b, "sceAtracLowLevelInitDecoder",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 38, 36 },
+        { 0x0c116e1b, "sceAtracLowLevelDecode",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_U32, ARG_PTR), 
+          unknown_header, 38, 37 }
+    }},
+
+    psp_module{39, "sceAtrac3plus", {
+        { 0x7db31251, "sceAtracAddStreamData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 39, 0 },
+        { 0x6a8c3cd5, "sceAtracDecodeData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 39, 1 },
+        { 0xd5c28cc0, "sceAtracEndEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 39, 2 },
+        { 0x780f88d1, "sceAtracGetAtracID",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 39, 3 },
+        { 0xca3ca3d2, "sceAtracGetBufferInfoForReseting",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 39, 4 },
+        { 0xa554a158, "sceAtracGetBitrate",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 5 },
+        { 0x31668baa, "sceAtracGetChannel",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 6 },
+        { 0xfaa4f89b, "sceAtracGetLoopStatus",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR), 
+          unknown_header, 39, 7 },
+        { 0xe88f759b, "sceAtracGetInternalErrorInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 8 },
+        { 0xd6a5f2f7, "sceAtracGetMaxSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 9 },
+        { 0xe23e3a35, "sceAtracGetNextDecodePosition",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 10 },
+        { 0x36faabfb, "sceAtracGetNextSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 11 },
+        { 0x9ae849a7, "sceAtracGetRemainFrame",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 12 },
+        { 0x83e85ea0, "sceAtracGetSecondBufferInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR), 
+          unknown_header, 39, 13 },
+        { 0xa2bba8be, "sceAtracGetSoundSample",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 39, 14 },
+        { 0x5d268707, "sceAtracGetStreamDataInfo",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 39, 15 },
+        { 0x61eb33f5, "sceAtracReleaseAtracID",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 39, 16 },
+        { 0x644e5607, "sceAtracResetPlayPosition",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 39, 17 },
+        { 0x3f6e26b5, "sceAtracSetHalfwayBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 18 },
+        { 0x83bf7afd, "sceAtracSetSecondBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 19 },
+        { 0x0e2a73ab, "sceAtracSetData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 20 },
+        { 0x7a20e7af, "sceAtracSetDataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 39, 21 },
+        { 0xd1f59fdb, "sceAtracStartEntry",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 39, 22 },
+        { 0x868120b5, "sceAtracSetLoopNum",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 39, 23 },
+        { 0x132f1eca, "sceAtracReinit",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 39, 24 },
+        { 0xeca32a99, "sceAtracIsSecondBufferNeeded",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 39, 25 },
+        { 0x0fae370e, "sceAtracSetHalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 26 },
+        { 0x2dd3e298, "sceAtracGetBufferInfoForResetting",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
+          unknown_header, 39, 27 },
+        { 0x5cf9d852, "sceAtracSetMOutHalfwayBuffer",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 28 },
+        { 0xf6837a1a, "sceAtracSetMOutData",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 29 },
+        { 0x472e3825, "sceAtracSetMOutDataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 39, 30 },
+        { 0x9cd7de03, "sceAtracSetMOutHalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 31 },
+        { 0xb3b5d042, "sceAtracGetOutputChannel",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_PTR), 
+          unknown_header, 39, 32 },
+        { 0x5622b7c1, "sceAtracSetAA3DataAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 39, 33 },
+        { 0x5dd66588, "sceAtracSetAA3HalfwayBufferAndGetID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 39, 34 },
+        { 0x231fc6b7, "_sceAtracGetContextAddress",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 39, 35 },
+        { 0x1575d64b, "sceAtracLowLevelInitDecoder",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 39, 36 },
+        { 0x0c116e1b, "sceAtracLowLevelDecode",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_U32, ARG_PTR), 
+          unknown_header, 39, 37 }
+    }},
+
+    psp_module{40, "scePsmf", {
+        { 0xc22c8327, "scePsmfSetPsmf",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 0 },
+        { 0xc7db3a5b, "scePsmfGetCurrentStreamType",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR, ARG_PTR), 
+          unknown_header, 40, 1 },
+        { 0x28240568, "scePsmfGetCurrentStreamNumber",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 40, 2 },
+        { 0x1e6d9013, "scePsmfSpecifyStreamWithStreamType",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 40, 3 },
+        { 0x0c120e1d, "scePsmfSpecifyStreamWithStreamTypeNumber",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 40, 4 },
+        { 0x4bc9bde0, "scePsmfSpecifyStream",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 40, 5 },
+        { 0x76d3aeba, "scePsmfGetPresentationStartTime",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 6 },
+        { 0xbd8ae0d8, "scePsmfGetPresentationEndTime",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 7 },
+        { 0xeaed89cd, "scePsmfGetNumberOfStreams",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 40, 8 },
+        { 0x7491c438, "scePsmfGetNumberOfEPentries",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 40, 9 },
+        { 0x0ba514e5, "scePsmfGetVideoInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 40, 10 },
+        { 0xa83f7113, "scePsmfGetAudioInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
+          unknown_header, 40, 11 },
+        { 0x971a3a90, "scePsmfCheckEPmap",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 40, 12 },
+        { 0x68d42328, "scePsmfGetNumberOfSpecificStreams",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 40, 13 },
+        { 0x5b70fcc1, "scePsmfQueryStreamOffset",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 14 },
+        { 0x9553cc91, "scePsmfQueryStreamSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 15 },
+        { 0xb78eb9e9, "scePsmfGetHeaderSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 16 },
+        { 0xa5ebfe81, "scePsmfGetStreamSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 17 },
+        { 0xe1283895, "scePsmfGetPsmfVersion",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 40, 18 },
+        { 0x2673646b, "scePsmfVerifyPsmf",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 40, 19 },
+        { 0x4e624a34, "scePsmfGetEPWithId",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 40, 20 },
+        { 0x7c0e7ac3, "scePsmfGetEPWithTimestamp",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 40, 21 },
+        { 0x5f457515, "scePsmfGetEPidWithTimestamp",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 40, 22 },
+        { 0x43ac7dbb, "scePsmfGetPsmfMark",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 40, 23 },
+        { 0xde78e9fc, "scePsmfGetNumberOfPsmfMarks",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 40, 24 }
+    }},
+
+    psp_module{41, "scePsmfPlayer", {
+        { 0x235d8787, "scePsmfPlayerCreate",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 41, 0 },
+        { 0x1078c008, "scePsmfPlayerStop",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 1 },
+        { 0x1e57a8e7, "scePsmfPlayerConfigPlayer",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 41, 2 },
+        { 0x2beb1569, "scePsmfPlayerBreak",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 3 },
+        { 0x3d6d25a9, "scePsmfPlayerSetPsmf",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 41, 4 },
+        { 0x58b83577, "scePsmfPlayerSetPsmfCB",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 41, 5 },
+        { 0x3ea82a4b, "scePsmfPlayerGetAudioOutSize",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 6 },
+        { 0x3ed62233, "scePsmfPlayerGetCurrentPts",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 41, 7 },
+        { 0x46f61f8b, "scePsmfPlayerGetVideoData",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 41, 8 },
+        { 0x68f07175, "scePsmfPlayerGetCurrentAudioStream",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 41, 9 },
+        { 0x75f03fa2, "scePsmfPlayerSelectSpecificVideo",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 41, 10 },
+        { 0x85461eff, "scePsmfPlayerSelectSpecificAudio",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 41, 11 },
+        { 0x8a9ebdcd, "scePsmfPlayerSelectVideo",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 41, 12 },
+        { 0x95a84ee5, "scePsmfPlayerStart",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 41, 13 },
+        { 0x9b71a274, "scePsmfPlayerDelete",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 14 },
+        { 0x9ff2b2e7, "scePsmfPlayerGetCurrentVideoStream",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 41, 15 },
+        { 0xa0b8ca55, "scePsmfPlayerUpdate",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 16 },
+        { 0xa3d81169, "scePsmfPlayerChangePlayMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 41, 17 },
+        { 0xb8d10c56, "scePsmfPlayerSelectAudio",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 41, 18 },
+        { 0xb9848a74, "scePsmfPlayerGetAudioData",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 41, 19 },
+        { 0xdf089680, "scePsmfPlayerGetPsmfInfo",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 41, 20 },
+        { 0xe792cd94, "scePsmfPlayerReleasePsmf",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 21 },
+        { 0xf3efaa91, "scePsmfPlayerGetCurrentPlayMode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 41, 22 },
+        { 0xf8ef08a6, "scePsmfPlayerGetCurrentStatus",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 23 },
+        { 0x2d0e4e0a, "scePsmfPlayerSetTempBuf",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 41, 24 },
+        { 0x76c0f4ae, "scePsmfPlayerSetPsmfOffset",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 41, 25 },
+        { 0xa72db4f9, "scePsmfPlayerSetPsmfOffsetCB",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 41, 26 },
+        { 0x340c12cb, "scePsmfPlayer_340C12CB",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 41, 27 },
+        { 0x05b193b7, "__PsmfPlayerFinish",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 41, 28 }
+    }},
+
+    psp_module{42, "sceOpenPSID", {
+        { 0xc69bebce, "sceOpenPSIDGetOpenPSID",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 42, 0 }
+    }},
+
+    psp_module{43, "sceParseUri", {
+        { 0x49e950ec, "sceUriEscape",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 43, 0 },
+        { 0x062bb07e, "sceUriUnescape",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 43, 1 },
+        { 0x568518c9, "sceUriParse",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 43, 2 },
+        { 0x7ee318af, "sceUriBuild",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 43, 3 }
+    }},
+
+    psp_module{44, "sceSsl", {
+        { 0x957ecbe2, "sceSslInit",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 44, 0 },
+        { 0x191cdeff, "sceSslEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 44, 1 },
+        { 0x5bfb6b61, "sceSslGetNotAfter",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 2 },
+        { 0x17a10dcc, "sceSslGetNotBefore",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 3 },
+        { 0x3dd5e023, "sceSslGetSubjectName",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 4 },
+        { 0x1b7c8191, "sceSslGetIssuerName",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 5 },
+        { 0xcc0919b0, "sceSslGetSerialNumber",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 6 },
+        { 0x058d21c0, "sceSslGetNameEntryCount",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 7 },
+        { 0xd6d097b4, "sceSslGetNameEntryInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 8 },
+        { 0xb99ede6a, "sceSslGetUsedMemoryMax",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 44, 9 },
+        { 0x0eb43b06, "sceSslGetUsedMemoryCurrent",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 44, 10 },
+        { 0xf57765d3, "sceSslGetKeyUsage",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 44, 11 }
+    }},
+
+    psp_module{45, "sceParseHttp", {
+        { 0x8077a433, "sceParseHttpStatusLine",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 45, 0 },
+        { 0xad7bfdef, "sceParseHttpResponseHeader",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 45, 1 }
+    }},
+
+    psp_module{46, "sceVaudio", {
+        { 0x8986295e, "sceVaudioOutputBlocking",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 46, 0 },
+        { 0x03b6807d, "sceVaudioChReserve",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 46, 1 },
+        { 0x67585dfd, "sceVaudioChRelease",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 46, 2 },
+        { 0x346fbe94, "sceVaudioSetEffectType",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 46, 3 },
+        { 0xcbd4ac51, "sceVaudioSetAlcMode",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 46, 4 },
+        { 0x504e4745, "sceVaudio_504E4745",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 46, 5 },
+        { 0x27acc20b, "sceVaudioChReserveBuffering",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 46, 6 },
+        { 0xe8e78dc8, "sceVaudio_E8E78DC8",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 46, 7 }
+    }},
+
+    psp_module{47, "sceUsbstor", {
+        { 0x60066cfe, "sceUsbstorGetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 47, 0 }
+    }},
+
+    psp_module{48, "sceUsbstorBoot", {
+        { 0xe58818a8, "sceUsbstorBootSetCapacity",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 48, 0 },
+        { 0x594bbf95, "sceUsbstorBootSetLoadAddr",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 48, 1 },
+        { 0x6d865ecd, "sceUsbstorBootGetDataSize",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 48, 2 },
+        { 0xa1119f0d, "sceUsbstorBootSetStatus",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 48, 3 },
+        { 0x1f080078, "sceUsbstorBootRegisterNotify",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 48, 4 },
+        { 0xa55c9e16, "sceUsbstorBootUnregisterNotify",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 48, 5 }
+    }},
+
+    psp_module{49, "sceUsb", {
+        { 0xae5de6af, "sceUsbStart",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 49, 0 },
+        { 0xc2464fa0, "sceUsbStop",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 49, 1 },
+        { 0xc21645a4, "sceUsbGetState",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 49, 2 },
+        { 0x4e537366, "sceUsbGetDrvList",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 49, 3 },
+        { 0x112cc951, "sceUsbGetDrvState",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 49, 4 },
+        { 0x586db82c, "sceUsbActivate",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 49, 5 },
+        { 0xc572a9c8, "sceUsbDeactivate",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 49, 6 },
+        { 0x5be0e002, "sceUsbWaitState",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_PTR), 
+          unknown_header, 49, 7 },
+        { 0x616f2b61, "sceUsbWaitStateCB",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_PTR), 
+          unknown_header, 49, 8 },
+        { 0x1c360735, "sceUsbWaitCancel",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 49, 9 }
+    }},
+
+    psp_module{50, "sceChnnlsv", {
+        { 0xe7833020, "sceSdSetIndex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 50, 0 },
+        { 0xf21a1fca, "sceSdRemoveValue",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 50, 1 },
+        { 0xc4c494f8, "sceSdGetLastIndex",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 50, 2 },
+        { 0xabfdfc8b, "sceSdCreateList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 50, 3 },
+        { 0x850a7fa1, "sceSdSetMember",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 50, 4 },
+        { 0x21be78b4, "sceChnnlsv_21BE78B4",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 50, 5 }
+    }},
+
+    psp_module{51, "sceNpDrm", {
+        { 0xa1336091, "sceNpDrmSetLicenseeKey",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 51, 0 },
+        { 0x9b745542, "sceNpDrmClearLicenseeKey",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 51, 1 },
+        { 0x275987d1, "sceNpDrmRenameCheck",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 51, 2 },
+        { 0x08d98894, "sceNpDrmEdataSetupKey",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 51, 3 },
+        { 0x219ef5cc, "sceNpDrmEdataGetDataSize",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 51, 4 },
+        { 0x2baa4294, "sceNpDrmOpen",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 51, 5 }
+    }},
+
+    psp_module{52, "scePspNpDrm_user", {
+        { 0xa1336091, "sceNpDrmSetLicenseeKey",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 52, 0 },
+        { 0x9b745542, "sceNpDrmClearLicenseeKey",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 52, 1 },
+        { 0x275987d1, "sceNpDrmRenameCheck",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 52, 2 },
+        { 0x08d98894, "sceNpDrmEdataSetupKey",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 52, 3 },
+        { 0x219ef5cc, "sceNpDrmEdataGetDataSize",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 52, 4 },
+        { 0x2baa4294, "sceNpDrmOpen",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 52, 5 }
+    }},
+
+    psp_module{53, "sceP3da", {
+        { 0x374500a5, "sceP3daBridgeInit",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 53, 0 },
+        { 0x43f756a2, "sceP3daBridgeExit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 53, 1 },
+        { 0x013016f3, "sceP3daBridgeCore",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 53, 2 }
+    }},
+
+    psp_module{54, "sceGameUpdate", {
+        { 0xcbe69fb3, "sceGameUpdateInit",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 54, 0 },
+        { 0xbb4b68de, "sceGameUpdateTerm",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 54, 1 },
+        { 0x596ad78c, "sceGameUpdateRun",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 54, 2 },
+        { 0x5f5d98a6, "sceGameUpdateAbort",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 54, 3 }
+    }},
+
+    psp_module{55, "sceDeflt", {
+        { 0x0ba3b9cc, "sceGzipGetCompressedData",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 0 },
+        { 0x106a3552, "sceGzipGetName",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 1 },
+        { 0x1b5b82bc, "sceGzipIsValid",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 2 },
+        { 0x2ee39a64, "sceZlibAdler32",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 3 },
+        { 0x44054e03, "sceDeflateDecompress",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_PTR), 
+          unknown_header, 55, 4 },
+        { 0x6a548477, "sceZlibGetCompressedData",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 5 },
+        { 0x6dbcf897, "sceGzipDecompress",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_PTR), 
+          unknown_header, 55, 6 },
+        { 0x8aa82c92, "sceGzipGetInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 7 },
+        { 0xa9e4fb28, "sceZlibDecompress",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_PTR), 
+          unknown_header, 55, 8 },
+        { 0xafe01fd3, "sceZlibGetInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 9 },
+        { 0xb767f9a0, "sceGzipGetComment",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 10 },
+        { 0xe46eb986, "sceZlibIsValid",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 55, 11 }
+    }},
+
+    psp_module{56, "sceMp4", {
+        { 0x68651cbc, "sceMp4Init",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 0 },
+        { 0x9042b257, "sceMp4Finish",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 1 },
+        { 0xb1221ee7, "sceMp4Create",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 2 },
+        { 0x538c2057, "sceMp4Delete",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 56, 3 },
+        { 0x113e9e7b, "sceMp4GetNumberOfMetaData",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 4 },
+        { 0x7443af1d, "sceMp4GetMovieInfo",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 56, 5 },
+        { 0x5eb65f26, "sceMp4GetNumberOfSpecificTrack",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 6 },
+        { 0x7adfd01c, "sceMp4RegistTrack",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 7 },
+        { 0xbca9389c, "sceMp4TrackSampleBufQueryMemSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 8 },
+        { 0x9c8f4fc1, "sceMp4TrackSampleBufConstruct",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 9 },
+        { 0x0f0187d2, "sceMp4GetAvcTrackInfoData",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 10 },
+        { 0x9ce6f5cf, "sceMp4GetAacTrackInfoData",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 11 },
+        { 0x4ed4ab1e, "sceMp4AacDecodeInitResource",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 56, 12 },
+        { 0x10ee0d2c, "sceMp4AacDecodeInit",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 56, 13 },
+        { 0x496e8a65, "sceMp4TrackSampleBufFlush",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 14 },
+        { 0xb4b400d1, "sceMp4GetSampleNumWithTimeStamp",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 15 },
+        { 0xf7c51ec1, "sceMp4GetSampleInfo",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 16 },
+        { 0x74a1ca3e, "sceMp4SearchSyncSampleNum",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 56, 17 },
+        { 0xd8250b75, "sceMp4PutSampleNum",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 18 },
+        { 0x8754ecb8, "sceMp4TrackSampleBufAvailableSize",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 56, 19 },
+        { 0x31bcd7e0, "sceMp4TrackSampleBufPut",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 20 },
+        { 0x5601a6f0, "sceMp4GetAacAu",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 21 },
+        { 0x7663cb5c, "sceMp4AacDecode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 22 },
+        { 0x503a3cba, "sceMp4GetAvcAu",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 23 },
+        { 0x01c76489, "sceMp4TrackSampleBufDestruct",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 24 },
+        { 0x6710fe77, "sceMp4UnregistTrack",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 25 },
+        { 0x5d72b333, "sceMp4AacDecodeExit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 26 },
+        { 0x7d332394, "sceMp4AacDecodeTermResource",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 27 },
+        { 0x131bde57, "sceMp4InitAu",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 56, 28 },
+        { 0x17eaa97d, "sceMp4GetAvcAuWithoutSampleBuf",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 29 },
+        { 0x28ccb940, "sceMp4GetTrackEditList",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 30 },
+        { 0x3069c2b5, "sceMp4GetAvcParamSet",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 31 },
+        { 0xd2ac9a7e, "sceMp4GetMetaData",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 32 },
+        { 0x4fb5b756, "sceMp4GetMetaDataInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 33 },
+        { 0x427bef7f, "sceMp4GetTrackNumOfEditList",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 34 },
+        { 0x532029b8, "sceMp4GetAacAuWithoutSampleBuf",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 35 },
+        { 0xa6c724dc, "sceMp4GetSampleNum",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 36 },
+        { 0x3c2183c7, "mp4msv_3C2183C7",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 37 },
+        { 0x9ca13d1a, "mp4msv_9CA13D1A",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 56, 38 }
+    }},
+
+    psp_module{57, "sceAac", {
+        { 0xe0c89aca, "sceAacInit",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 0 },
+        { 0x33b8c009, "sceAacExit",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 1 },
+        { 0x5cffc57c, "sceAacInitResource",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 2 },
+        { 0x23d35cae, "sceAacTermResource",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 57, 3 },
+        { 0x7e4cfee4, "sceAacDecode",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 57, 4 },
+        { 0x523347d9, "sceAacGetLoopNum",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 5 },
+        { 0xbbdd6403, "sceAacSetLoopNum",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 57, 6 },
+        { 0xd7c51541, "sceAacCheckStreamDataNeeded",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 57, 7 },
+        { 0xac6dcbe3, "sceAacNotifyAddStreamData",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 57, 8 },
+        { 0x02098c69, "sceAacGetInfoToAddStreamData",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 57, 9 },
+        { 0x6dc7758a, "sceAacGetMaxOutputSample",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 10 },
+        { 0x506bf66c, "sceAacGetSumDecodedSample",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 11 },
+        { 0xd2da2bba, "sceAacResetPlayPosition",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 57, 12 }
+    }},
+
+    psp_module{58, "scePauth", {
+        { 0xf7aa47f6, "scePauth_F7AA47F6",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 58, 0 },
+        { 0x98b83b5d, "scePauth_98B83B5D",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 58, 1 }
+    }},
+
+    psp_module{59, "sceNp", {
+        { 0x857b47d3, "sceNpInit",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 59, 0 },
+        { 0x37e1e274, "sceNpTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 59, 1 },
+        { 0xbb069a87, "sceNpGetContentRatingFlag",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 59, 2 },
+        { 0x1d60ae4b, "sceNpGetChatRestrictionFlag",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 59, 3 }
+    }},
+
+    psp_module{60, "sceNpCommerce2", {
+        { 0x005b5f20, "sceNpCommerce2GetProductInfoStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 0 },
+        { 0x0e9956e3, "sceNpCommerce2Init",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 1 },
+        { 0x1888a9fe, "sceNpCommerce2DestroyReq",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 2 },
+        { 0x1c952dcb, "sceNpCommerce2GetGameProductInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 3 },
+        { 0x2b25f6e9, "sceNpCommerce2CreateSessionStart",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 4 },
+        { 0x3371d5f1, "sceNpCommerce2GetProductInfoCreateReq",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 5 },
+        { 0x4ecd4503, "sceNpCommerce2CreateSessionCreateReq",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 6 },
+        { 0x590a3229, "sceNpCommerce2GetSessionInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 7 },
+        { 0x6f1fe37f, "sceNpCommerce2CreateCtx",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 8 },
+        { 0xa5a34ea4, "sceNpCommerce2Term",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 9 },
+        { 0xaa4a1e3d, "sceNpCommerce2GetProductInfoGetResult",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 10 },
+        { 0xbc61ffc8, "sceNpCommerce2CreateSessionGetResult",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 11 },
+        { 0xc7f32242, "sceNpCommerce2AbortReq",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 12 },
+        { 0xf2278b90, "sceNpCommerce2GetGameSkuInfoFromGameProductInfo",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 13 },
+        { 0xf297ab9c, "sceNpCommerce2DestroyCtx",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 14 },
+        { 0xfc30c19e, "sceNpCommerce2InitGetProductInfoResult",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 60, 15 }
+    }},
+
+    psp_module{61, "sceNpService", {
+        { 0x00acfac3, "sceNpServiceTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 61, 0 },
+        { 0x0f8f5821, "sceNpServiceInit",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 61, 1 },
+        { 0x5494274b, "sceNpLookupCreateTransactionCtx",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 61, 2 },
+        { 0xa670d3a3, "sceNpLookupDestroyTransactionCtx",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 61, 3 },
+        { 0xc76f55ed, "sceNpLookupTitleSmallStorage",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 61, 4 }
+    }},
+
+    psp_module{62, "sceNpAuth", {
+        { 0x4ec1f667, "sceNpAuthTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 62, 0 },
+        { 0xa1de86f8, "sceNpAuthInit",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 62, 1 },
+        { 0xf4531adc, "sceNpAuthGetMemoryStat",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 62, 2 },
+        { 0xcd86a656, "sceNpAuthCreateStartRequest",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 62, 3 },
+        { 0x3f1c1f70, "sceNpAuthGetTicket",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 62, 4 },
+        { 0x6900f084, "sceNpAuthGetEntitlementById",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 62, 5 },
+        { 0xd99455dd, "sceNpAuthAbortRequest",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 62, 6 },
+        { 0x72bb0467, "sceNpAuthDestroyRequest",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 62, 7 }
+    }},
+
+    psp_module{63, "sceMd5", {
+        { 0x19884a15, "sceMd5BlockInit",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 63, 0 },
+        { 0xa30206c2, "sceMd5BlockUpdate",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 63, 1 },
+        { 0x4876afff, "sceMd5BlockResult",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 63, 2 },
+        { 0x98e31a9e, "sceMd5Digest",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 63, 3 }
+    }},
+
+    psp_module{64, "sceJpeg", {
+        { 0x0425b986, "sceJpegDecompressAllImage",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 0 },
+        { 0x04b5ae02, "sceJpegMJpegCsc",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 64, 1 },
+        { 0x04b93cef, "sceJpegDecodeMJpeg",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 64, 2 },
+        { 0x227662d7, "sceJpegDecodeMJpegYCbCrSuccessively",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 64, 3 },
+        { 0x48b602b7, "sceJpegDeleteMJpeg",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 4 },
+        { 0x64b6f978, "sceJpegDecodeMJpegSuccessively",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 64, 5 },
+        { 0x67f0ed84, "sceJpegCsc",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 64, 6 },
+        { 0x7d2f3d7f, "sceJpegFinishMJpeg",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 7 },
+        { 0x8f2bb012, "sceJpegGetOutputInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 64, 8 },
+        { 0x91eed83c, "sceJpegDecodeMJpegYCbCr",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 64, 9 },
+        { 0x9b36444c, "sceJpeg_9B36444C",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 10 },
+        { 0x9d47469c, "sceJpegCreateMJpeg",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 64, 11 },
+        { 0xac9e70e6, "sceJpegInitMJpeg",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 12 },
+        { 0xa06a75c4, "sceJpegMJpegCscWithColorOption",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 64, 13 }
+    }},
+
+    psp_module{65, "sceAudiocodec", {
+        { 0x70a703f8, "sceAudiocodecDecode",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 0 },
+        { 0x5b37eb1d, "sceAudiocodecInit",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 1 },
+        { 0x8aca11d5, "sceAudiocodecGetInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 2 },
+        { 0x3a20a200, "sceAudiocodecGetEDRAM",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 3 },
+        { 0x29681260, "sceAudiocodecReleaseEDRAM",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 4 },
+        { 0x9d3f790c, "sceAudiocodecCheckNeedMem",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 65, 5 },
+        { 0x59176a0f, "sceAudiocodecAlcExtendParameter",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 65, 6 }
+    }},
+
+    psp_module{66, "sceHeap", {
+        { 0x0e875980, "sceHeapReallocHeapMemory",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 66, 0 },
+        { 0x1c84b58d, "sceHeapReallocHeapMemoryWithOption",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 66, 1 },
+        { 0x2abadc63, "sceHeapFreeHeapMemory",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 66, 2 },
+        { 0x2a0c2009, "sceHeapGetMallinfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 66, 3 },
+        { 0x2b7299d8, "sceHeapAllocHeapMemoryWithOption",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 66, 4 },
+        { 0x4929b40d, "sceHeapGetTotalFreeSize",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 66, 5 },
+        { 0x7012bbdd, "sceHeapIsAllocatedHeapMemory",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 66, 6 },
+        { 0x70210b73, "sceHeapDeleteHeap",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 66, 7 },
+        { 0x7de281c2, "sceHeapCreateHeap",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 66, 8 },
+        { 0xa8e102a0, "sceHeapAllocHeapMemory",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 66, 9 }
+    }},
+
+    psp_module{67, "FakeSysCalls", {
+        { 0xc0debabe, "__KernelReturnFromThread",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 0 },
+        { 0xbadc0fee, "__KernelReturnFromMipsCall",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 1 },
+        { 0xbadd00d5, "__KernelReturnFromInterrupt",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 2 },
+        { 0xbad0b0c9, "__KernelReturnFromExtendStack",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 3 },
+        { 0xbad0d318, "__KernelReturnFromModuleFunc",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 4 },
+        { 0x1d7e1d7e, "_sceKernelIdle",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 5 },
+        { 0x9e45bd95, "__KernelGPUReplay",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 6 },
+        { 0xbad0259b, "HLEReturnFromMipsCall",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 67, 7 }
+    }},
+
+    psp_module{68, "UtilsForUser", {
+        { 0x91e4f6a7, "sceKernelLibcClock",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 68, 0 },
+        { 0x27cc57f0, "sceKernelLibcTime",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 68, 1 },
+        { 0x71ec4271, "sceKernelLibcGettimeofday",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 68, 2 },
+        { 0xbfa98062, "sceKernelDcacheInvalidateRange",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 68, 3 },
+        { 0xc8186a58, "sceKernelUtilsMd5Digest",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 68, 4 },
+        { 0x9e5c5086, "sceKernelUtilsMd5BlockInit",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 68, 5 },
+        { 0x61e1e525, "sceKernelUtilsMd5BlockUpdate",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 68, 6 },
+        { 0xb8d24e78, "sceKernelUtilsMd5BlockResult",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 68, 7 },
+        { 0x840259f1, "sceKernelUtilsSha1Digest",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 68, 8 },
+        { 0xf8fcd5ba, "sceKernelUtilsSha1BlockInit",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 68, 9 },
+        { 0x346f6da8, "sceKernelUtilsSha1BlockUpdate",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 68, 10 },
+        { 0x585f1c09, "sceKernelUtilsSha1BlockResult",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 68, 11 },
+        { 0xe860e75e, "sceKernelUtilsMt19937Init",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 68, 12 },
+        { 0x06fb8a63, "sceKernelUtilsMt19937UInt",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 68, 13 },
+        { 0x37fb5c42, "sceKernelGetGPI",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 68, 14 },
+        { 0x6ad345d7, "sceKernelSetGPO",
+          RET(ARG_VOID), ARGS(ARG_U32), 
+          unknown_header, 68, 15 },
+        { 0x79d1c3fa, "sceKernelDcacheWritebackAll",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 68, 16 },
+        { 0xb435dec5, "sceKernelDcacheWritebackInvalidateAll",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 68, 17 },
+        { 0x3ee30821, "sceKernelDcacheWritebackRange",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 68, 18 },
+        { 0x34b9fa9e, "sceKernelDcacheWritebackInvalidateRange",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 68, 19 },
+        { 0xc2df770e, "sceKernelIcacheInvalidateRange",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
+          unknown_header, 68, 20 },
+        { 0x80001c4c, "sceKernelDcacheProbe",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 68, 21 },
+        { 0x16641d70, "sceKernelDcacheReadTag",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 68, 22 },
+        { 0x4fd31c9d, "sceKernelIcacheProbe",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 68, 23 },
+        { 0xfb05fad0, "sceKernelIcacheReadTag",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 68, 24 },
+        { 0x920f104a, "sceKernelIcacheInvalidateAll",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 68, 25 }
+    }},
+
+    psp_module{69, "KDebugForKernel", {
+        { 0xe7a3874d, "sceKernelRegisterAssertHandler",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 0 },
+        { 0x2ff4e9f9, "sceKernelAssert",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 1 },
+        { 0x9b868276, "sceKernelGetDebugPutchar",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 2 },
+        { 0xe146606d, "sceKernelRegisterDebugPutchar",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 3 },
+        { 0x7ceb2c09, "sceKernelRegisterKprintfHandler",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 69, 4 },
+        { 0x84f370bc, "Kprintf",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 5 },
+        { 0x5ce9838b, "sceKernelDebugWrite",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 6 },
+        { 0x66253c4e, "sceKernelRegisterDebugWrite",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 7 },
+        { 0xdbb5597f, "sceKernelDebugRead",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 8 },
+        { 0xe6554fda, "sceKernelRegisterDebugRead",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 9 },
+        { 0xb9c643c9, "sceKernelDebugEcho",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 10 },
+        { 0x7d1c74f0, "sceKernelDebugEchoSet",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 11 },
+        { 0x24c32559, "sceKernelDipsw",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 12 },
+        { 0xd636b827, "sceKernelRemoveByDebugSection",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 13 },
+        { 0x5282dd5e, "sceKernelDipswSet",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 14 },
+        { 0x9f8703e4, "KDebugForKernel_9F8703E4",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 15 },
+        { 0x333dcec7, "KDebugForKernel_333DCEC7",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 16 },
+        { 0xe892d9a1, "KDebugForKernel_E892D9A1",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 17 },
+        { 0xa126f497, "KDebugForKernel_A126F497",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 18 },
+        { 0xb7251823, "sceKernelAcceptMbogoSig",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 69, 19 }
+    }},
+
+    psp_module{70, "sceSAScore", {
+    }},
+
+    psp_module{71, "SceBase64_Library", {
+    }},
+
+    psp_module{72, "sceCert_Loader", {
+    }},
+
+    psp_module{73, "SceFont_Library", {
+    }},
+
+    psp_module{74, "sceNetApctl", {
+    }},
+
+    psp_module{75, "sceSIRCS_IrDA_Driver", {
+    }},
+
+    psp_module{76, "Pspnet_Scan", {
+    }},
+
+    psp_module{77, "Pspnet_Show_MacAddr", {
+    }},
+
+    psp_module{78, "pspeDebug", {
+        { 0xdeadbeaf, "pspeDebugWrite",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 78, 0 }
+    }},
+
+    psp_module{79, "StdioForKernel", {
+        { 0x98220f3e, "sceKernelStdoutReopen",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 0 },
+        { 0xfb5380c5, "sceKernelStderrReopen",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 1 },
+        { 0xcab439df, "printf",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 2 },
+        { 0x2ccf071a, "fdprintf",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 3 },
+        { 0xd97c8cb9, "puts",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 4 },
+        { 0x172d316e, "sceKernelStdin",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 5 },
+        { 0xa6bab2e9, "sceKernelStdout",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 79, 6 },
+        { 0xf78ba90a, "sceKernelStderr",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 79, 7 }
+    }},
+
+    psp_module{80, "LoadCoreForKernel", {
+        { 0xace23476, "sceKernelCheckPspConfig",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 0 },
+        { 0x7be1421c, "sceKernelCheckExecFile",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 1 },
+        { 0xbf983ef2, "sceKernelProbeExecutableObject",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 2 },
+        { 0x7068e6ba, "sceKernelLoadExecutableObject",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 3 },
+        { 0xb4d6fecc, "sceKernelApplyElfRelSection",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 4 },
+        { 0x54ab2675, "sceKernelApplyPspRelSection",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 5 },
+        { 0x2952f5ac, "sceKernelDcacheWBinvAll",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 6 },
+        { 0xd8779ac6, "sceKernelIcacheClearAll",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 80, 7 },
+        { 0x99a695f0, "sceKernelRegisterLibrary",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 8 },
+        { 0x5873a31f, "sceKernelRegisterLibraryForUser",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 9 },
+        { 0x0b464512, "sceKernelReleaseLibrary",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 10 },
+        { 0x9baf90f6, "sceKernelCanReleaseLibrary",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 11 },
+        { 0x0e760dba, "sceKernelLinkLibraryEntries",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 12 },
+        { 0x0de1f600, "sceKernelLinkLibraryEntriesForUser",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 13 },
+        { 0xda1b09aa, "sceKernelUnLinkLibraryEntries",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 14 },
+        { 0xc99dd47a, "sceKernelQueryLoadCoreCB",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 15 },
+        { 0x616fcccd, "sceKernelSetBootCallbackLevel",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 16 },
+        { 0xf32a2940, "sceKernelModuleFromUID",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 17 },
+        { 0xcd0f3bac, "sceKernelCreateModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 18 },
+        { 0x6b2371c2, "sceKernelDeleteModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 19 },
+        { 0x7320d964, "sceKernelModuleAssign",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 20 },
+        { 0x44b292ab, "sceKernelAllocModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 21 },
+        { 0xbd61d4d5, "sceKernelFreeModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 22 },
+        { 0xae7c6e76, "sceKernelRegisterModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 23 },
+        { 0x74cf001a, "sceKernelReleaseModule",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 24 },
+        { 0xfb8ae27d, "sceKernelFindModuleByAddress",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 25 },
+        { 0xcce4a157, "sceKernelFindModuleByUID",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 80, 26 },
+        { 0x82ce54ed, "sceKernelModuleCount",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 27 },
+        { 0xc0584f0c, "sceKernelGetModuleList",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 28 },
+        { 0xcf8a41b1, "sceKernelFindModuleByName",
+          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 80, 29 },
+        { 0xb95fa50d, "LoadCoreForKernel_B95FA50D",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 80, 30 }
+    }},
+
+    psp_module{81, "IoFileMgrForKernel", {
+        { 0xa905b705, "sceIoCloseAll",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 0 },
+        { 0x411106ba, "sceIoGetThreadCwd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 1 },
+        { 0xcb0a151f, "sceIoChangeThreadCwd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 2 },
+        { 0x8e982a74, "sceIoAddDrv",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 3 },
+        { 0xc7f35804, "sceIoDelDrv",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 4 },
+        { 0x3c54e908, "sceIoReopen",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 5 },
+        { 0xb29ddf9c, "sceIoDopen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 6 },
+        { 0xe3eb004c, "sceIoDread",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          unknown_header, 81, 7 },
+        { 0xeb092469, "sceIoDclose",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 81, 8 },
+        { 0x109f50bc, "sceIoOpen",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32), 
+          unknown_header, 81, 9 },
+        { 0x6a638d83, "sceIoRead",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 81, 10 },
+        { 0x42ec03ac, "sceIoWrite",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 81, 11 },
+        { 0x68963324, "sceIoLseek32",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 81, 12 },
+        { 0x27eb27b8, "sceIoLseek",
+          RET(ARG_S64), ARGS(ARG_S32, ARG_S64, ARG_S32), 
+          unknown_header, 81, 13 },
+        { 0x810c4bc3, "sceIoClose",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 81, 14 },
+        { 0x779103a0, "sceIoRename",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 15 },
+        { 0xf27a9c51, "sceIoRemove",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 16 },
+        { 0x55f4717d, "sceIoChdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 17 },
+        { 0x06a70004, "sceIoMkdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 81, 18 },
+        { 0x1117c65f, "sceIoRmdir",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 19 },
+        { 0x54f5fb11, "sceIoDevctl",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR, ARG_S32, ARG_PTR, ARG_S32), 
+          unknown_header, 81, 20 },
+        { 0x63632449, "sceIoIoctl",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_PTR, ARG_S32, ARG_PTR, ARG_S32), 
+          unknown_header, 81, 21 },
+        { 0xab96437f, "sceIoSync",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32), 
+          unknown_header, 81, 22 },
+        { 0xb2a628c1, "sceIoAssign",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 81, 23 },
+        { 0x6d08a871, "sceIoUnassign",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
+          unknown_header, 81, 24 },
+        { 0xace946e8, "sceIoGetstat",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 81, 25 },
+        { 0xb8a740f4, "sceIoChstat",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 81, 26 },
+        { 0xa0b5a7c2, "sceIoReadAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          unknown_header, 81, 27 },
+        { 0x3251ea56, "sceIoPollAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 81, 28 },
+        { 0xe23eec33, "sceIoWaitAsync",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 81, 29 },
+        { 0x35dbd746, "sceIoWaitAsyncCB",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_UNKNOWN), 
+          unknown_header, 81, 30 },
+        { 0xbd17474f, "IoFileMgrForKernel_BD17474F",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 31 },
+        { 0x76da16e3, "IoFileMgrForKernel_76DA16E3",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 81, 32 }
+    }},
+
+    psp_module{82, "LoadExecForKernel", {
+        { 0x4ac57943, "sceKernelRegisterExitCallback",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 82, 0 },
+        { 0xa3d5e142, "sceKernelExitVSHVSH",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 82, 1 },
+        { 0x28d0d249, "sceKernelLoadExecVSHMs2",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
+          unknown_header, 82, 2 },
+        { 0x6d302d3d, "sceKernelExitVSHKernel",
+          RET(ARG_VOID), ARGS(ARG_U32), 
+          unknown_header, 82, 3 }
+    }},
+
+    psp_module{83, "SysMemForKernel", {
+        { 0x636c953b, "sceKernelAllocHeapMemory",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 83, 0 },
+        { 0xc9805775, "sceKernelDeleteHeap",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 83, 1 },
+        { 0x1c1fbfe7, "sceKernelCreateHeap",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32, ARG_CONST_CHAR_PTR), 
+          unknown_header, 83, 2 },
+        { 0x237dbd4f, "sceKernelAllocPartitionMemory",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32), 
+          unknown_header, 83, 3 },
+        { 0xb6d61d02, "sceKernelFreePartitionMemory",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 83, 4 },
+        { 0x9d9a5ba1, "sceKernelGetBlockHeadAddr",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 83, 5 },
+        { 0x9697cd32, "sceKernelPartitionTotalFreeMemSize",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 83, 6 },
+        { 0xe6581468, "sceKernelPartitionMaxFreeMemSize",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 83, 7 },
+        { 0x3fc9ae6a, "sceKernelDevkitVersion",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 83, 8 },
+        { 0x536ad5e1, "SysMemForKernel_536AD5E1",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 83, 9 }
+    }},
+
+    psp_module{84, "sceMt19937", {
+        { 0xecf5d379, "sceMt19937Init",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 84, 0 },
+        { 0xf40c98e6, "sceMt19937UInt",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 84, 1 }
+    }},
+
+    psp_module{85, "SysclibForKernel", {
+        { 0xab7592ff, "memcpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 85, 0 },
+        { 0x476fd94a, "strcat",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 85, 1 },
+        { 0xc0ab8932, "strcmp",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 85, 2 },
+        { 0xec6f1cf2, "strcpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 85, 3 },
+        { 0x52df196c, "strlen",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 85, 4 },
+        { 0x81d0d1f7, "memcmp",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 85, 5 },
+        { 0x7661e728, "sprintf",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 85, 6 },
+        { 0x10f3bb61, "memset",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 85, 7 },
+        { 0x0d188658, "strstr",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 85, 8 },
+        { 0x7ab35214, "strncmp",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 85, 9 },
+        { 0xa48d2592, "memmove",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 85, 10 },
+        { 0xb49a7697, "strncpy",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 85, 11 }
+    }},
+
+    psp_module{86, "sceCtrl_driver", {
+        { 0x3e65a0ea, "sceCtrlInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 86, 0 },
+        { 0x1f4011e6, "sceCtrlSetSamplingMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 86, 1 },
+        { 0x6a2774f3, "sceCtrlSetSamplingCycle",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 86, 2 },
+        { 0x02baad91, "sceCtrlGetSamplingCycle",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 86, 3 },
+        { 0xda6b76a1, "sceCtrlGetSamplingMode",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 86, 4 },
+        { 0x1f803938, "sceCtrlReadBufferPositive",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 86, 5 },
+        { 0x3a622550, "sceCtrlPeekBufferPositive",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 86, 6 },
+        { 0xc152080a, "sceCtrlPeekBufferNegative",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 86, 7 },
+        { 0x60b81f86, "sceCtrlReadBufferNegative",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 86, 8 },
+        { 0xb1d0e5cd, "sceCtrlPeekLatch",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 86, 9 },
+        { 0x0b588501, "sceCtrlReadLatch",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 86, 10 },
+        { 0x348d99d4, "sceCtrlSetSuspendingExtraSamples",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 86, 11 },
+        { 0xaf5960f3, "sceCtrlGetSuspendingExtraSamples",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 86, 12 },
+        { 0xa68fd260, "sceCtrlClearRapidFire",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 86, 13 },
+        { 0x6841be1a, "sceCtrlSetRapidFire",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 86, 14 },
+        { 0xa7144800, "sceCtrlSetIdleCancelThreshold",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 86, 15 },
+        { 0x687660fa, "sceCtrlGetIdleCancelThreshold",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 86, 16 }
+    }},
+
+    psp_module{87, "sceDisplay_driver", {
+        { 0x0e20f177, "sceDisplaySetMode",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 87, 0 },
+        { 0x289d82fe, "sceDisplaySetFrameBuf",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 87, 1 },
+        { 0xeeda2e54, "sceDisplayGetFrameBuf",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR, ARG_PTR, ARG_S32), 
+          unknown_header, 87, 2 },
+        { 0x36cdfade, "sceDisplayWaitVblank",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 3 },
+        { 0x984c27e7, "sceDisplayWaitVblankStart",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 4 },
+        { 0x40f1469c, "sceDisplayWaitVblankStartMulti",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 87, 5 },
+        { 0x8eb9ec49, "sceDisplayWaitVblankCB",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 6 },
+        { 0x46f186c3, "sceDisplayWaitVblankStartCB",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 7 },
+        { 0x77ed8b3a, "sceDisplayWaitVblankStartMultiCB",
+          RET(ARG_U32), ARGS(ARG_S32), 
+          unknown_header, 87, 8 },
+        { 0xdba6c4c4, "sceDisplayGetFramePerSec",
+          RET(ARG_FLOAT), ARGS(ARG_NONE),
+          unknown_header, 87, 9 },
+        { 0x773dd3a3, "sceDisplayGetCurrentHcount",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 10 },
+        { 0x210eab3a, "sceDisplayGetAccumulatedHcount",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 87, 11 },
+        { 0xa83ef139, "sceDisplayAdjustAccumulatedHcount",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 87, 12 },
+        { 0x9c6eaad7, "sceDisplayGetVcount",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 13 },
+        { 0xdea197d4, "sceDisplayGetMode",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR, ARG_PTR), 
+          unknown_header, 87, 14 },
+        { 0x7ed59bc4, "sceDisplaySetHoldMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 87, 15 },
+        { 0xa544c486, "sceDisplaySetResumeMode",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 87, 16 },
+        { 0xbf79f646, "sceDisplayGetResumeMode",
+          RET(ARG_U32), ARGS(ARG_PTR), 
+          unknown_header, 87, 17 },
+        { 0xb4f378fa, "sceDisplayIsForeground",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 18 },
+        { 0x31c4baa8, "sceDisplayGetBrightness",
+          RET(ARG_U32), ARGS(ARG_PTR, ARG_PTR), 
+          unknown_header, 87, 19 },
+        { 0x9e3c6dc6, "sceDisplaySetBrightness",
+          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 87, 20 },
+        { 0x4d4e10ec, "sceDisplayIsVblank",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 21 },
+        { 0x21038913, "sceDisplayIsVsync",
+          RET(ARG_U32), ARGS(ARG_NONE),
+          unknown_header, 87, 22 }
+    }},
+
+    psp_module{88, "sceMpegbase", {
+        { 0xbea18f91, "sceMpegBasePESpacketCopy",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 88, 0 },
+        { 0x492b5e4b, "sceMpegBaseCscInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 88, 1 },
+        { 0x0530be4e, "sceMpegbase_0530BE4E",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 88, 2 },
+        { 0x91929a21, "sceMpegBaseCscAvc",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 88, 3 },
+        { 0x304882e1, "sceMpegBaseCscAvcRange",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 88, 4 },
+        { 0x7ac0321a, "sceMpegBaseYCrCbCopy",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 88, 5 }
+    }},
+
+    psp_module{89, "sceUsbGps", {
+        { 0x268f95ca, "sceUsbGpsSetInitDataLocation",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 0 },
+        { 0x31f95cde, "sceUsbGpsGetPowerSaveMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 1 },
+        { 0x54d26aa4, "sceUsbGpsGetInitDataLocation",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 89, 2 },
+        { 0x5881c826, "sceUsbGpsGetStaticNavMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 3 },
+        { 0x63d1f89d, "sceUsbGpsResetInitialPosition",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 4 },
+        { 0x69e4aaa8, "sceUsbGpsSaveInitData",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 5 },
+        { 0x6eed4811, "sceUsbGpsClose",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 89, 6 },
+        { 0x7c16ac3a, "sceUsbGpsGetState",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 89, 7 },
+        { 0x934ec2b2, "sceUsbGpsGetData",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 89, 8 },
+        { 0x9d8f99e8, "sceUsbGpsSetPowerSaveMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 9 },
+        { 0x9f267d34, "sceUsbGpsOpen",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 89, 10 },
+        { 0xa259cd67, "sceUsbGpsReset",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 11 },
+        { 0xa8ed0bc2, "sceUsbGpsSetStaticNavMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 89, 12 }
+    }},
+
+    psp_module{90, "sceLibFttt", {
+        { 0x67f17ed7, "sceFontNewLib",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 90, 0 },
+        { 0x574b6fbc, "sceFontDoneLib",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 90, 1 },
+        { 0x48293280, "sceFontSetResolution",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_FLOAT, ARG_FLOAT), 
+          unknown_header, 90, 2 },
+        { 0x27f6e642, "sceFontGetNumFontList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 90, 3 },
+        { 0xbc75d85b, "sceFontGetFontList",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 90, 4 },
+        { 0x099ef33c, "sceFontFindOptimumFont",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 5 },
+        { 0x681e61a7, "sceFontFindFont",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 6 },
+        { 0x2f67356a, "sceFontCalcMemorySize",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 90, 7 },
+        { 0x5333322d, "sceFontGetFontInfoByIndexNumber",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 8 },
+        { 0xa834319d, "sceFontOpen",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 90, 9 },
+        { 0x57fcb733, "sceFontOpenUserFile",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR), 
+          unknown_header, 90, 10 },
+        { 0xbb8e7fe6, "sceFontOpenUserMemory",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_PTR), 
+          unknown_header, 90, 11 },
+        { 0x3aea8cb6, "sceFontClose",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 90, 12 },
+        { 0x0da7535e, "sceFontGetFontInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 90, 13 },
+        { 0xdcc80c2f, "sceFontGetCharInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 14 },
+        { 0xaa3de7b5, "sceFontGetShadowInfo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 15 },
+        { 0x5c3e4a9e, "sceFontGetCharImageRect",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 16 },
+        { 0x48b06520, "sceFontGetShadowImageRect",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 17 },
+        { 0x980f4895, "sceFontGetCharGlyphImage",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 18 },
+        { 0xca1e6945, "sceFontGetCharGlyphImage_Clip",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 90, 19 },
+        { 0x74b21701, "sceFontPixelToPointH",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 90, 20 },
+        { 0xf8f0752e, "sceFontPixelToPointV",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 90, 21 },
+        { 0x472694cd, "sceFontPointToPixelH",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 90, 22 },
+        { 0x3c4b7e82, "sceFontPointToPixelV",
+          RET(ARG_FLOAT), ARGS(ARG_S32, ARG_FLOAT, ARG_U32), 
+          unknown_header, 90, 23 },
+        { 0xee232411, "sceFontSetAltCharacterCode",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 90, 24 },
+        { 0x568be516, "sceFontGetShadowGlyphImage",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 90, 25 },
+        { 0x5dcf6858, "sceFontGetShadowGlyphImage_Clip",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 90, 26 },
+        { 0x02d7f94b, "sceFontFlush",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 90, 27 }
+    }},
+
+    psp_module{91, "sceSha256", {
+        { 0x318a350c, "sceSha256Digest",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32), 
+          unknown_header, 91, 0 }
+    }},
+
+    psp_module{92, "sceAdler", {
+        { 0x9702ef11, "sceAdler32",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 92, 0 }
+    }},
+
+    psp_module{93, "sceSfmt19937", {
+        { 0x161aceb2, "sceSfmt19937InitGenRand",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 93, 0 },
+        { 0xdd5a5d6c, "sceSfmt19937InitByArray",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 93, 1 },
+        { 0xb33fe749, "sceSfmt19937GenRand32",
+          RET(ARG_U32), ARGS(ARG_U32), 
+          unknown_header, 93, 2 },
+        { 0xd5ac9f99, "sceSfmt19937GenRand64",
+          RET(ARG_U64), ARGS(ARG_U32), 
+          unknown_header, 93, 3 },
+        { 0xdb025bfa, "sceSfmt19937FillArray32",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 93, 4 },
+        { 0xee2938c4, "sceSfmt19937FillArray64",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 93, 5 }
+    }},
+
+    psp_module{94, "sceAudioRouting", {
+        { 0x39240e7d, "sceAudioRoutingGetMode",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 94, 0 },
+        { 0x28235c56, "sceAudioRoutingGetVolumeMode",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 94, 1 },
+        { 0x36fd8aa9, "sceAudioRoutingSetMode",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 94, 2 },
+        { 0xbb548475, "sceAudioRoutingSetVolumeMode",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 94, 3 }
+    }},
+
+    psp_module{95, "sceUsbCam", {
+        { 0x03ed7a82, "sceUsbCamSetupMic",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 95, 0 },
+        { 0x2e930264, "sceUsbCamSetupMicEx",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 1 },
+        { 0x82a64030, "sceUsbCamStartMic",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 2 },
+        { 0x5145868a, "sceUsbCamStopMic",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 3 },
+        { 0x36636925, "sceUsbCamReadMicBlocking",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 95, 4 },
+        { 0x3dc0088e, "sceUsbCamReadMic",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 95, 5 },
+        { 0xb048a67d, "sceUsbCamWaitReadMicEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 6 },
+        { 0xf8847f60, "sceUsbCamPollReadMicEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 7 },
+        { 0x5778b452, "sceUsbCamGetMicDataLength",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 8 },
+        { 0x08aee98a, "sceUsbCamSetMicGain",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 9 },
+        { 0x17f7b2fb, "sceUsbCamSetupVideo",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 95, 10 },
+        { 0xcfe9e999, "sceUsbCamSetupVideoEx",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32), 
+          unknown_header, 95, 11 },
+        { 0x574a8c3f, "sceUsbCamStartVideo",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 12 },
+        { 0x6cf32cb9, "sceUsbCamStopVideo",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 13 },
+        { 0x7dac0c71, "sceUsbCamReadVideoFrameBlocking",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 95, 14 },
+        { 0x99d86281, "sceUsbCamReadVideoFrame",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 95, 15 },
+        { 0xf90b2293, "sceUsbCamWaitReadVideoFrameEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 16 },
+        { 0x41e73e95, "sceUsbCamPollReadVideoFrameEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 17 },
+        { 0xdf9d0c92, "sceUsbCamGetReadVideoFrameSize",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 18 },
+        { 0x3f0cf289, "sceUsbCamSetupStill",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 95, 19 },
+        { 0x0a41a298, "sceUsbCamSetupStillEx",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 95, 20 },
+        { 0x61be5cac, "sceUsbCamStillInputBlocking",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 21 },
+        { 0xfb0a6c5d, "sceUsbCamStillInput",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 22 },
+        { 0x7563afa1, "sceUsbCamStillWaitInputEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 23 },
+        { 0x1a46cfe7, "sceUsbCamStillPollInputEnd",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 24 },
+        { 0xa720937c, "sceUsbCamStillCancelInput",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 25 },
+        { 0xe5959c36, "sceUsbCamStillGetInputLength",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 26 },
+        { 0xf93c4669, "sceUsbCamAutoImageReverseSW",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 95, 27 },
+        { 0x11a1f128, "sceUsbCamGetAutoImageReverseState",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 28 },
+        { 0x4c34f553, "sceUsbCamGetLensDirection",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 95, 29 },
+        { 0x383e9fa8, "sceUsbCamGetSaturation",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 30 },
+        { 0x6e205974, "sceUsbCamSetSaturation",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 31 },
+        { 0x70f522c5, "sceUsbCamGetBrightness",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 32 },
+        { 0x4f3d84d5, "sceUsbCamSetBrightness",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 33 },
+        { 0xa063a957, "sceUsbCamGetContrast",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 34 },
+        { 0x09c26c7e, "sceUsbCamSetContrast",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 35 },
+        { 0xfdb68c23, "sceUsbCamGetSharpness",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 36 },
+        { 0x622f83cc, "sceUsbCamSetSharpness",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 37 },
+        { 0x994471e0, "sceUsbCamGetImageEffectMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 38 },
+        { 0xd4876173, "sceUsbCamSetImageEffectMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 39 },
+        { 0x2bcd50c0, "sceUsbCamGetEvLevel",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 40 },
+        { 0x1d686870, "sceUsbCamSetEvLevel",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 41 },
+        { 0xd5279339, "sceUsbCamGetReverseMode",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 42 },
+        { 0x951bedf5, "sceUsbCamSetReverseMode",
+          RET(ARG_S32), ARGS(ARG_S32), 
+          unknown_header, 95, 43 },
+        { 0x9e8aaf8d, "sceUsbCamGetZoom",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 44 },
+        { 0xc484901f, "sceUsbCamSetZoom",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 45 },
+        { 0xaa7d94ba, "sceUsbCamGetAntiFlicker",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 46 },
+        { 0x6784e6a8, "sceUsbCamSetAntiFlicker",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 47 },
+        { 0xd293a100, "sceUsbCamRegisterLensRotationCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 48 },
+        { 0x41ee8797, "sceUsbCamUnregisterLensRotationCallback",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 95, 49 }
+    }},
+
+    psp_module{96, "sceG729", {
+        { 0x13f1028a, "sceG729DecodeExit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 0 },
+        { 0x17c11696, "sceG729DecodeInitResource",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 1 },
+        { 0x3489d1f3, "sceG729DecodeCore",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 2 },
+        { 0x55e14f75, "sceG729DecodeInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 3 },
+        { 0x5a409d1b, "sceG729EncodeExit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 4 },
+        { 0x74804d93, "sceG729DecodeReset",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 5 },
+        { 0x890b86ae, "sceG729DecodeTermResource",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 6 },
+        { 0x8c87a2ca, "sceG729EncodeReset",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 7 },
+        { 0x94714d50, "sceG729EncodeTermResource",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 8 },
+        { 0xaa1e5462, "sceG729EncodeInitResource",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 9 },
+        { 0xcfcd367c, "sceG729EncodeInit",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 10 },
+        { 0xdb7259d5, "sceG729EncodeCore",
+          RET(ARG_UNKNOWN), ARGS(ARG_NONE),
+          unknown_header, 96, 11 }
+    }},
+
+    psp_module{97, "sceNetUpnp", {
+        { 0x27045362, "sceNetUpnpGetNatInfo",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 97, 0 },
+        { 0x3432b2e5, "sceNetUpnpStart",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 97, 1 },
+        { 0x3e32ed9e, "sceNetUpnpStop",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 97, 2 },
+        { 0x540491ef, "sceNetUpnpTerm",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 97, 3 },
+        { 0xe24220b5, "sceNetUpnpInit",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 97, 4 }
+    }},
+
+    psp_module{98, "sceNetIfhandle", {
+        { 0xc80181a2, "sceNetGetDropRate",
+          RET(ARG_S32), ARGS(ARG_PTR, ARG_PTR), 
+          unknown_header, 98, 0 },
+        { 0xfd8585e1, "sceNetSetDropRate",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          unknown_header, 98, 1 }
+    }},
+
+    psp_module{99, "KUBridge", {
+        { 0x4c25ea72, "kuKernelLoadModule",
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
+          unknown_header, 99, 0 },
+        { 0x24331850, "kuKernelGetModel",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 99, 1 }
+    }},
+
+    psp_module{100, "sceUsbAcc", {
+        { 0x79a1c743, "sceUsbAccGetAuthStat",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 100, 0 },
+        { 0x0cd7d4aa, "sceUsbAccGetInfo",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 100, 1 }
+    }},
+
+    psp_module{101, "sceUsbMic", {
+        { 0x06128e42, "sceUsbMicPollInputEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 101, 0 },
+        { 0x2e6dcdcd, "sceUsbMicInputBlocking",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 101, 1 },
+        { 0x45310f07, "sceUsbMicInputInitEx",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 101, 2 },
+        { 0x5f7f368d, "sceUsbMicInput",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
+          unknown_header, 101, 3 },
+        { 0x63400e20, "sceUsbMicGetInputLength",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 101, 4 },
+        { 0xb8e536eb, "sceUsbMicInputInit",
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
+          unknown_header, 101, 5 },
+        { 0xf899001c, "sceUsbMicWaitInputEnd",
+          RET(ARG_S32), ARGS(ARG_NONE),
+          unknown_header, 101, 6 }
+    }},
+
+    psp_module{102, "sceOpenPSID_driver", {
+        { 0x19d579f0, "sceOpenPSIDGetPSID",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 102, 0 },
+        { 0xc69bebce, "sceOpenPSIDGetOpenPSID",
+          RET(ARG_S32), ARGS(ARG_U32), 
+          unknown_header, 102, 1 }
+    }},
+
+    psp_module{103, "semaphore", {
+        { 0x4c537c72, "sceUtilsBufferCopyWithRange",
+          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 103, 0 },
+        { 0x77e97079, "sceUtilsBufferCopyByPollingWithRange",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
+          unknown_header, 103, 1 }
+    }},
+
+    psp_module{104, "sceDdrdb", {
+        { 0xf013f8bf, "sceDdrdb_F013F8BF",
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
+          unknown_header, 104, 0 }
+    }}
 };
 
-const psp_module unknown_module{
-    "unknown module",
-    {{0xffffffff, "unknown function", 0xffff, 0xffff}}
+const psp_module unknown_module{0xffff, "unknown_module", {
+        { 0xffffffff, "unknown function",
+          L'\0', L"",
+          unknown_header, 0xffff, 0xffff }
+    }
 };
 
 const psp_function *get_psp_function(u16 mod, u16 fun)
