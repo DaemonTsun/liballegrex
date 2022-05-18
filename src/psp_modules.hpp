@@ -10,8 +10,10 @@ struct psp_function
     u32 nid;
     const char *name;
 
+    /*
     psp_function_arg_t ret;
     const psp_function_arg_t *args;
+    */
 
     u16 module_num;
     u16 function_num;
