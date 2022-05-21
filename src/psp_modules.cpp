@@ -117,6 +117,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_time_t                              \x0123
 #define ARG_time_t_PTR                          \x0124
 #define ARG_SceKernelUtilsMt19937Context_PTR    \x0125
+#define ARG_PspIntrHandlerOptionParam_PTR       \x0126
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -940,7 +941,7 @@ const std::array _modules
           unknown_header, 5, 17 },
         { 0xfc114573, "sceKernelGetCompiledSdkVersion",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 5, 18 },
+          user_pspsysmem_h, 5, 18 },
         { 0x2a3e5280, "sceKernelQueryMemoryInfo",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 5, 19 },
@@ -975,17 +976,17 @@ const std::array _modules
 
     psp_module{6, "InterruptManager", {
         { 0xca04a2b9, "sceKernelRegisterSubIntrHandler",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 6, 0 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_VOID_PTR, ARG_VOID_PTR), 
+          user_pspintrman_h, 6, 0 },
         { 0xd61e6961, "sceKernelReleaseSubIntrHandler",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 6, 1 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          user_pspintrman_h, 6, 1 },
         { 0xfb8e22ec, "sceKernelEnableSubIntr",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 6, 2 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          user_pspintrman_h, 6, 2 },
         { 0x8a389411, "sceKernelDisableSubIntr",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 6, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          user_pspintrman_h, 6, 3 },
         { 0x5cb5a78b, "sceKernelSuspendSubIntr",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 6, 4 },
@@ -996,8 +997,8 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 6, 6 },
         { 0xd2e8363f, "QueryIntrHandlerInfo",
-          RET(ARG_S32), NO_ARGS,
-          unknown_header, 6, 7 },
+          RET(ARG_S32), ARGS(ARG_SceUID, ARG_SceUID, ARG_PspIntrHandlerOptionParam_PTR),
+          user_pspintrman_h, 6, 7 },
         { 0xeee43f47, "sceKernelRegisterUserSpaceIntrStack",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 6, 8 }
