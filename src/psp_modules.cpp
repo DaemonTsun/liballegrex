@@ -56,6 +56,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_S32_PTR        \x000b
 #define ARG_U8             \x000c
 #define ARG_U8_PTR         \x000d
+#define ARG_CONST_U8_PTR   \x000e
 
 #define ARG_VOID_PTR       \x0010
 #define ARG_CONST_VOID_PTR \x0011
@@ -112,6 +113,10 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_timezone_PTR                        \x011f
 #define ARG_clock_t                             \x0120
 #define ARG_SceKernelLoadExecParam_PTR          \x0121
+#define ARG_SceKernelUtilsMd5Context_PTR        \x0122
+#define ARG_time_t                              \x0123
+#define ARG_time_t_PTR                          \x0124
+#define ARG_SceKernelUtilsMt19937Context_PTR    \x0125
 
 #define ARG_UNKNOWN        \xffff
 
@@ -122,11 +127,13 @@ const char *get_psp_function_arg_name(psp_function_arg_t arg)
     return nullptr;
 }
 
+// pspdev/pspsdk headers
 const char *unknown_header = "unknown header";
 const char *user_pspintrman_h = "user/pspintrman.h";
 const char *user_pspthreadman_h = "user/pspthreadman.h";
 const char *user_psploadexec_h = "user/psploadexec.h";
 const char *user_psputils_h = "user/psputils.h";
+const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -816,62 +823,62 @@ const std::array _modules
 
     psp_module{4, "UtilsForKernel", {
         { 0xc2df770e, "sceKernelIcacheInvalidateRange",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 0 },
+          RET(ARG_VOID), ARGS(ARG_CONST_VOID_PTR, ARG_U32),
+          kernel_psputilsforkernel_h, 4, 0 },
         { 0x78934841, "sceKernelGzipDecompress",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 1 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U32, ARG_CONST_U8_PTR, ARG_U32),
+          kernel_psputilsforkernel_h, 4, 1 },
         { 0xe8db3ce6, "sceKernelDeflateDecompress",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 2 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U32, ARG_CONST_U8_PTR, ARG_U32),
+          kernel_psputilsforkernel_h, 4, 2 },
         { 0x840259f1, "sceKernelUtilsSha1Digest",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 3 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U32, ARG_U8_PTR),
+          user_psputils_h, 4, 3 },
         { 0x9e5c5086, "sceKernelUtilsMd5BlockInit",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 4 },
+          RET(ARG_S32), ARGS(ARG_SceKernelUtilsMd5Context_PTR),
+          user_psputils_h, 4, 4 },
         { 0x61e1e525, "sceKernelUtilsMd5BlockUpdate",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 5 },
+          RET(ARG_S32), ARGS(ARG_SceKernelUtilsMd5Context_PTR, ARG_U8_PTR, ARG_U32),
+          user_psputils_h, 4, 5 },
         { 0xb8d24e78, "sceKernelUtilsMd5BlockResult",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 6 },
+          RET(ARG_S32), ARGS(ARG_SceKernelUtilsMd5Context_PTR, ARG_U8_PTR),
+          user_psputils_h, 4, 6 },
         { 0xc8186a58, "sceKernelUtilsMd5Digest",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 7 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U32, ARG_U8_PTR),
+          user_psputils_h, 4, 7 },
         { 0x6c6887ee, "UtilsForKernel_6C6887EE",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 4, 8 },
         { 0x91e4f6a7, "sceKernelLibcClock",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 9 },
+          RET(ARG_clock_t), NO_ARGS,
+          user_psputils_h, 4, 9 },
         { 0x27cc57f0, "sceKernelLibcTime",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 10 },
+          RET(ARG_time_t), ARGS(ARG_time_t_PTR),
+          user_psputils_h, 4, 10 },
         { 0x79d1c3fa, "sceKernelDcacheWritebackAll",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 11 },
+          RET(ARG_VOID), NO_ARGS,
+          user_psputils_h, 4, 11 },
         { 0x3ee30821, "sceKernelDcacheWritebackRange",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 12 },
+          RET(ARG_VOID), ARGS(ARG_CONST_VOID_PTR, ARG_U32),
+          user_psputils_h, 4, 12 },
         { 0x34b9fa9e, "sceKernelDcacheWritebackInvalidateRange",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 13 },
+          RET(ARG_VOID), ARGS(ARG_CONST_VOID_PTR, ARG_U32),
+          user_psputils_h, 4, 13 },
         { 0xb435dec5, "sceKernelDcacheWritebackInvalidateAll",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 14 },
+          RET(ARG_VOID), NO_ARGS,
+          user_psputils_h, 4, 14 },
         { 0xbfa98062, "sceKernelDcacheInvalidateRange",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 15 },
+          RET(ARG_VOID), ARGS(ARG_CONST_VOID_PTR, ARG_U32),
+          user_psputils_h, 4, 15 },
         { 0x920f104a, "sceKernelIcacheInvalidateAll",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 16 },
+          RET(ARG_VOID), NO_ARGS,
+          kernel_psputilsforkernel_h, 4, 16 },
         { 0xe860e75e, "sceKernelUtilsMt19937Init",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 17 },
+          RET(ARG_S32), ARGS(ARG_SceKernelUtilsMt19937Context_PTR, ARG_U32),
+          user_psputils_h, 4, 17 },
         { 0x06fb8a63, "sceKernelUtilsMt19937UInt",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 4, 18 }
+          RET(ARG_U32), ARGS(ARG_SceKernelUtilsMt19937Context_PTR),
+          user_psputils_h, 4, 18 }
     }},
 
     psp_module{5, "SysMemUserForUser", {
