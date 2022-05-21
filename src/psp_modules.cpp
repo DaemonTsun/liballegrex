@@ -111,6 +111,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceKernelTimeval_PTR                \x011e
 #define ARG_timezone_PTR                        \x011f
 #define ARG_clock_t                             \x0120
+#define ARG_SceKernelLoadExecParam_PTR          \x0121
 
 #define ARG_UNKNOWN        \xffff
 
@@ -795,13 +796,13 @@ const std::array _modules
     psp_module{3, "LoadExecForUser", {
         { 0x05572a5f, "sceKernelExitGame",
           RET(ARG_VOID), NO_ARGS,
-          unknown_header, 3, 0 },
+          user_psploadexec_h, 3, 0 },
         { 0x4ac57943, "sceKernelRegisterExitCallback",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 3, 1 },
+          user_psploadexec_h, 3, 1 },
         { 0xbd2f1094, "sceKernelLoadExec",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
-          unknown_header, 3, 2 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_SceKernelLoadExecParam_PTR), 
+          user_psploadexec_h, 3, 2 },
         { 0x2ac9954b, "sceKernelExitGameWithStatus",
           RET(ARG_VOID), NO_ARGS,
           unknown_header, 3, 3 },
