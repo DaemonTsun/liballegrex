@@ -118,6 +118,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_time_t_PTR                          \x0124
 #define ARG_SceKernelUtilsMt19937Context_PTR    \x0125
 
+#define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
 
 
@@ -133,6 +134,7 @@ const char *user_pspintrman_h = "user/pspintrman.h";
 const char *user_pspthreadman_h = "user/pspthreadman.h";
 const char *user_psploadexec_h = "user/psploadexec.h";
 const char *user_psputils_h = "user/psputils.h";
+const char *user_pspsysmem_h = "user/pspsysmem.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -883,29 +885,29 @@ const std::array _modules
 
     psp_module{5, "SysMemUserForUser", {
         { 0xa291f107, "sceKernelMaxFreeMemSize",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 5, 0 },
+          RET(ARG_SceSize), NO_ARGS,
+          user_pspsysmem_h, 5, 0 },
         { 0xf919f628, "sceKernelTotalFreeMemSize",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 5, 1 },
+          RET(ARG_SceSize), NO_ARGS,
+          user_pspsysmem_h, 5, 1 },
         { 0x3fc9ae6a, "sceKernelDevkitVersion",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 5, 2 },
+          RET(ARG_S32), NO_ARGS,
+          user_pspsysmem_h, 5, 2 },
         { 0x237dbd4f, "sceKernelAllocPartitionMemory",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 5, 3 },
+          RET(ARG_SceUID), ARGS(ARG_SceUID, ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceSize, ARG_VOID_PTR), 
+          user_pspsysmem_h, 5, 3 },
         { 0xb6d61d02, "sceKernelFreePartitionMemory",
-          RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 5, 4 },
+          RET(ARG_S32), ARGS(ARG_SceUID), 
+          user_pspsysmem_h, 5, 4 },
         { 0x9d9a5ba1, "sceKernelGetBlockHeadAddr",
-          RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 5, 5 },
+          RET(ARG_VOID_PTR), ARGS(ARG_SceUID), 
+          user_pspsysmem_h, 5, 5 },
         { 0x13a5abef, "sceKernelPrintf",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
-          unknown_header, 5, 6 },
+          RET(ARG_VOID), ARGS(ARG_CONST_CHAR_PTR, ARG_VA_ARGS), 
+          user_pspsysmem_h, 5, 6 },
         { 0x7591c7db, "sceKernelSetCompiledSdkVersion",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 5, 7 },
+          user_pspsysmem_h, 5, 7 },
         { 0x342061e5, "sceKernelSetCompiledSdkVersion370",
           RET(ARG_S32), ARGS(ARG_S32), 
           unknown_header, 5, 8 },
