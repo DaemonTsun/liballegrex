@@ -144,6 +144,7 @@ const char *user_psputils_h = "user/psputils.h";
 const char *user_pspsysmem_h = "user/pspsysmem.h";
 const char *user_pspiofilemgr_h = "user/pspiofilemgr.h";
 const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
+const char *user_pspstdio_h = "user/pspstdio.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -1215,14 +1216,14 @@ const std::array _modules
 
     psp_module{10, "StdioForUser", {
         { 0x172d316e, "sceKernelStdin",
-          RET(ARG_S32), NO_ARGS,
-          unknown_header, 10, 0 },
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 10, 0 },
         { 0xa6bab2e9, "sceKernelStdout",
-          RET(ARG_S32), NO_ARGS,
-          unknown_header, 10, 1 },
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 10, 1 },
         { 0xf78ba90a, "sceKernelStderr",
-          RET(ARG_S32), NO_ARGS,
-          unknown_header, 10, 2 },
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 10, 2 },
         { 0x432d8f5c, "sceKernelRegisterStdoutPipe",
           RET(ARG_S32), ARGS(ARG_U32), 
           unknown_header, 10, 3 },
