@@ -146,6 +146,7 @@ const char *user_pspiofilemgr_h = "user/pspiofilemgr.h";
 const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
 const char *user_pspstdio_h = "user/pspstdio.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
+const char *hprm_psphprm_h = "hprm/psphprm.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -1255,17 +1256,17 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 11, 0 },
         { 0x1910b327, "sceHprmPeekCurrentKey",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 11, 1 },
+          RET(ARG_S32), ARGS(ARG_U32_PTR), 
+          hprm_psphprm_h, 11, 1 },
         { 0x208db1bd, "sceHprmIsRemoteExist",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 11, 2 },
+          RET(ARG_S32), NO_ARGS,
+          hprm_psphprm_h, 11, 2 },
         { 0x7e69eda4, "sceHprmIsHeadphoneExist",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 11, 3 },
+          RET(ARG_S32), NO_ARGS,
+          hprm_psphprm_h, 11, 3 },
         { 0x219c58f1, "sceHprmIsMicrophoneExist",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 11, 4 },
+          RET(ARG_S32), NO_ARGS,
+          hprm_psphprm_h, 11, 4 },
         { 0xc7154136, "sceHprmRegisterCallback",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 11, 5 },
@@ -1273,11 +1274,11 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 11, 6 },
         { 0x2bcec83e, "sceHprmPeekLatch",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 11, 7 },
+          RET(ARG_S32), ARGS(ARG_U32_PTR), 
+          hprm_psphprm_h, 11, 7 },
         { 0x40d2f9f0, "sceHprmReadLatch",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 11, 8 }
+          RET(ARG_S32), ARGS(ARG_U32_PTR), 
+          hprm_psphprm_h, 11, 8 }
     }},
 
     psp_module{12, "sceCcc", {
