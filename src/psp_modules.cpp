@@ -124,6 +124,8 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceKernelLMOption_PTR               \x0129
 #define ARG_SceKernelSMOption_PTR               \x012a
 #define ARG_SceKernelModuleInfo_PTR             \x012b
+#define ARG_SceCtrlData_PTR                     \x012c
+#define ARG_SceCtrlLatch_PTR                    \x012d
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -147,6 +149,7 @@ const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
 const char *user_pspstdio_h = "user/pspstdio.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
+const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -1373,35 +1376,35 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 13, 0 },
         { 0x1f4011e6, "sceCtrlSetSamplingMode",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 13, 1 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ctrl_pspctrl_h, 13, 1 },
         { 0x6a2774f3, "sceCtrlSetSamplingCycle",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 13, 2 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ctrl_pspctrl_h, 13, 2 },
         { 0x02baad91, "sceCtrlGetSamplingCycle",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 13, 3 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR), 
+          ctrl_pspctrl_h, 13, 3 },
         { 0xda6b76a1, "sceCtrlGetSamplingMode",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 13, 4 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR), 
+          ctrl_pspctrl_h, 13, 4 },
         { 0x1f803938, "sceCtrlReadBufferPositive",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 13, 5 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlData_PTR, ARG_S32), 
+          ctrl_pspctrl_h, 13, 5 },
         { 0x3a622550, "sceCtrlPeekBufferPositive",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 13, 6 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlData_PTR, ARG_S32), 
+          ctrl_pspctrl_h, 13, 6 },
         { 0xc152080a, "sceCtrlPeekBufferNegative",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 13, 7 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlData_PTR, ARG_S32), 
+          ctrl_pspctrl_h, 13, 7 },
         { 0x60b81f86, "sceCtrlReadBufferNegative",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 13, 8 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlData_PTR, ARG_S32), 
+          ctrl_pspctrl_h, 13, 8 },
         { 0xb1d0e5cd, "sceCtrlPeekLatch",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 13, 9 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlLatch_PTR), 
+          ctrl_pspctrl_h, 13, 9 },
         { 0x0b588501, "sceCtrlReadLatch",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 13, 10 },
+          RET(ARG_S32), ARGS(ARG_SceCtrlLatch_PTR), 
+          ctrl_pspctrl_h, 13, 10 },
         { 0x348d99d4, "sceCtrlSetSuspendingExtraSamples",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 13, 11 },
@@ -1416,10 +1419,10 @@ const std::array _modules
           unknown_header, 13, 14 },
         { 0xa7144800, "sceCtrlSetIdleCancelThreshold",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 13, 15 },
+          ctrl_pspctrl_h, 13, 15 },
         { 0x687660fa, "sceCtrlGetIdleCancelThreshold",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 13, 16 }
+          RET(ARG_S32), ARGS(ARG_S32_PTR, ARG_S32_PTR), 
+          ctrl_pspctrl_h, 13, 16 }
     }},
 
     psp_module{14, "sceDisplay", {
