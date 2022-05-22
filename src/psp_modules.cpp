@@ -121,6 +121,9 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspIntrHandlerOptionParam_PTR       \x0126
 #define ARG_SceIoDirent_PTR                     \x0127
 #define ARG_SceIoStat_PTR                       \x0128
+#define ARG_SceKernelLMOption_PTR               \x0129
+#define ARG_SceKernelSMOption_PTR               \x012a
+#define ARG_SceKernelModuleInfo_PTR             \x012b
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -140,6 +143,7 @@ const char *user_psploadexec_h = "user/psploadexec.h";
 const char *user_psputils_h = "user/psputils.h";
 const char *user_pspsysmem_h = "user/pspsysmem.h";
 const char *user_pspiofilemgr_h = "user/pspiofilemgr.h";
+const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -1127,38 +1131,38 @@ const std::array _modules
 
     psp_module{8, "ModuleMgrForUser", {
         { 0x977de386, "sceKernelLoadModule",
-          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
-          unknown_header, 8, 0 },
+          RET(ARG_SceUID), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceKernelLMOption_PTR), 
+          user_pspmodulemgr_h, 8, 0 },
         { 0xb7f46618, "sceKernelLoadModuleByID",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 1 },
+          RET(ARG_SceUID), ARGS(ARG_SceUID, ARG_S32, ARG_SceKernelLMOption_PTR), 
+          user_pspmodulemgr_h, 8, 1 },
         { 0x50f0c1ec, "sceKernelStartModule",
-          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 2 },
+          RET(ARG_S32), ARGS(ARG_SceUID, ARG_SceSize, ARG_VOID_PTR, ARG_S32_PTR, ARG_SceKernelSMOption_PTR), 
+          user_pspmodulemgr_h, 8, 2 },
         { 0xd675ebb8, "sceKernelSelfStopUnloadModule",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_SceSize, ARG_VOID_PTR), 
+          user_pspmodulemgr_h, 8, 3 },
         { 0xd1ff982a, "sceKernelStopModule",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 4 },
+          RET(ARG_S32), ARGS(ARG_SceUID, ARG_SceSize, ARG_VOID_PTR, ARG_S32_PTR, ARG_SceKernelSMOption_PTR), 
+          user_pspmodulemgr_h, 8, 4 },
         { 0x2e0911aa, "sceKernelUnloadModule",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 8, 5 },
+          RET(ARG_S32), ARGS(ARG_SceUID), 
+          user_pspmodulemgr_h, 8, 5 },
         { 0x710f61b5, "sceKernelLoadModuleMs",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 8, 6 },
+          RET(ARG_SceUID), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceKernelLMOption_PTR),
+          user_pspmodulemgr_h, 8, 6 },
         { 0xf9275d98, "sceKernelLoadModuleBufferUsbWlan",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 7 },
+          RET(ARG_SceUID), ARGS(ARG_SceSize, ARG_VOID_PTR, ARG_S32, ARG_SceKernelLMOption_PTR), 
+          user_pspmodulemgr_h, 8, 7 },
         { 0xcc1d3699, "sceKernelStopUnloadSelfModule",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 8, 8 },
+          RET(ARG_S32), ARGS(ARG_SceSize, ARG_VOID_PTR, ARG_S32_PTR, ARG_SceKernelSMOption_PTR),
+          user_pspmodulemgr_h, 8, 8 },
         { 0x748cbed9, "sceKernelQueryModuleInfo",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 8, 9 },
+          RET(ARG_S32), ARGS(ARG_SceUID, ARG_SceKernelModuleInfo_PTR), 
+          user_pspmodulemgr_h, 8, 9 },
         { 0xd8b73127, "sceKernelGetModuleIdByAddress",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 8, 10 },
+          RET(ARG_S32), ARGS(ARG_CONST_VOID_PTR), 
+          user_pspmodulemgr_h, 8, 10 },
         { 0xf0a26395, "sceKernelGetModuleId",
           RET(ARG_U32), NO_ARGS,
           unknown_header, 8, 11 },
@@ -1169,8 +1173,8 @@ const std::array _modules
           RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
           unknown_header, 8, 13 },
         { 0x644395e2, "sceKernelGetModuleIdList",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 8, 14 },
+          RET(ARG_S32), ARGS(ARG_SceUID_PTR, ARG_S32, ARG_S32_PTR), 
+          user_pspmodulemgr_h, 8, 14 },
         { 0xf2d8d1b4, "sceKernelLoadModuleNpDrm",
           RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
           unknown_header, 8, 15 },
