@@ -57,6 +57,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_U8             \x000c
 #define ARG_U8_PTR         \x000d
 #define ARG_CONST_U8_PTR   \x000e
+#define ARG_CHAR_PTR       \x000f
 
 #define ARG_VOID_PTR       \x0010
 #define ARG_CONST_VOID_PTR \x0011
@@ -127,6 +128,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceCtrlData_PTR                     \x012c
 #define ARG_SceCtrlLatch_PTR                    \x012d
 #define ARG_pspAudioInputParams_PTR             \x012e
+#define ARG_SceNetMallocStat_PTR                \x012f
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -156,6 +158,7 @@ const char *display_pspdisplay_h = "display/pspdisplay.h";
 const char *display_pspdisplay_kernel_h = "display/pspdisplay_kernel.h";
 const char *audio_pspaudio_h = "audio/pspaudio.h";
 const char *audio_pspaudio_kernel_h = "audio/pspaudio_kernel.h";
+const char *net_pspnet_h = "net/pspnet.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -1802,29 +1805,29 @@ const std::array _modules
 
     psp_module{18, "sceNet", {
         { 0x39af39a6, "sceNetInit",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 18, 0 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
+          net_pspnet_h, 18, 0 },
         { 0x281928a9, "sceNetTerm",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 18, 1 },
+          RET(ARG_S32), NO_ARGS,
+          net_pspnet_h, 18, 1 },
         { 0x89360950, "sceNetEtherNtostr",
-          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 18, 2 },
+          RET(ARG_VOID), ARGS(ARG_U8_PTR, ARG_CHAR_PTR), 
+          net_pspnet_h, 18, 2 },
         { 0xd27961c9, "sceNetEtherStrton",
-          RET(ARG_VOID), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 18, 3 },
+          RET(ARG_VOID), ARGS(ARG_CHAR_PTR, ARG_U8_PTR), 
+          net_pspnet_h, 18, 3 },
         { 0x0bf0a3ae, "sceNetGetLocalEtherAddr",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 18, 4 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR), 
+          net_pspnet_h, 18, 4 },
         { 0x50647530, "sceNetFreeThreadinfo",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 18, 5 },
+          net_pspnet_h, 18, 5 },
         { 0xcc393e48, "sceNetGetMallocStat",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 18, 6 },
+          RET(ARG_S32), ARGS(ARG_SceNetMallocStat_PTR), 
+          net_pspnet_h, 18, 6 },
         { 0xad6844c6, "sceNetThreadAbort",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 18, 7 }
+          net_pspnet_h, 18, 7 }
     }},
 
     psp_module{19, "sceNetResolver", {
