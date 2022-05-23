@@ -140,6 +140,8 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_msghdr_PTR                          \x0138
 #define ARG_CONST_msghdr_PTR                    \x0138
 #define ARG_in_addr_t                           \x0139
+#define ARG_sceNetApctlHandler                  \x013a
+#define ARG_SceNetApctlInfo_PTR                 \x013b
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -172,6 +174,7 @@ const char *audio_pspaudio_kernel_h = "audio/pspaudio_kernel.h";
 const char *net_pspnet_h = "net/pspnet.h";
 const char *net_pspnet_resolver_h = "net/pspnet_resolver.h";
 const char *net_pspnet_inet_h = "net/pspnet_inet.h";
+const char *net_pspnet_apctl_h = "net/pspnet_apctl.h";
 const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -1979,28 +1982,28 @@ const std::array _modules
     psp_module{21, "sceNetApctl", {
         { 0xcfb957c6, "sceNetApctlConnect",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 21, 0 },
+          net_pspnet_apctl_h, 21, 0 },
         { 0x24fe91a1, "sceNetApctlDisconnect",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 21, 1 },
+          net_pspnet_apctl_h, 21, 1 },
         { 0x5deac81b, "sceNetApctlGetState",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 21, 2 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR), 
+          net_pspnet_apctl_h, 21, 2 },
         { 0x8abadd51, "sceNetApctlAddHandler",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 21, 3 },
+          RET(ARG_S32), ARGS(ARG_sceNetApctlHandler, ARG_VOID_PTR), 
+          net_pspnet_apctl_h, 21, 3 },
         { 0xe2f91f9b, "sceNetApctlInit",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 21, 4 },
+          net_pspnet_apctl_h, 21, 4 },
         { 0x5963991b, "sceNetApctlDelHandler",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 21, 5 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          net_pspnet_apctl_h, 21, 5 },
         { 0xb3edd0ec, "sceNetApctlTerm",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 21, 6 },
+          net_pspnet_apctl_h, 21, 6 },
         { 0x2befdf23, "sceNetApctlGetInfo",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
-          unknown_header, 21, 7 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_SceNetApctlInfo_PTR), 
+          net_pspnet_apctl_h, 21, 7 },
         { 0xa3e77e13, "sceNetApctlScanSSID2",
           RET(ARG_S32), NO_ARGS,
           unknown_header, 21, 8 },
