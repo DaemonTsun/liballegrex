@@ -129,6 +129,9 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceCtrlLatch_PTR                    \x012d
 #define ARG_pspAudioInputParams_PTR             \x012e
 #define ARG_SceNetMallocStat_PTR                \x012f
+#define ARG_SceNetMallocStat_PTR                \x012f
+#define ARG_in_addr_PTR                         \x0130
+#define ARG_const_in_addr_PTR                   \x0131
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -159,6 +162,7 @@ const char *display_pspdisplay_kernel_h = "display/pspdisplay_kernel.h";
 const char *audio_pspaudio_h = "audio/pspaudio.h";
 const char *audio_pspaudio_kernel_h = "audio/pspaudio_kernel.h";
 const char *net_pspnet_h = "net/pspnet.h";
+const char *net_pspnet_resolver_h = "net/pspnet_resolver.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -1832,26 +1836,26 @@ const std::array _modules
 
     psp_module{19, "sceNetResolver", {
         { 0x224c5f44, "sceNetResolverStartNtoA",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 0 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_in_addr_PTR),
+          net_pspnet_resolver_h, 19, 0 },
         { 0x244172af, "sceNetResolverCreate",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 1 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR, ARG_VOID_PTR, ARG_SceSize),
+          net_pspnet_resolver_h, 19, 1 },
         { 0x94523e09, "sceNetResolverDelete",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 2 },
+          RET(ARG_S32), ARGS(ARG_S32),
+          net_pspnet_resolver_h, 19, 2 },
         { 0xf3370e61, "sceNetResolverInit",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 19, 3 },
+          net_pspnet_resolver_h, 19, 3 },
         { 0x808f6063, "sceNetResolverStop",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 4 },
+          RET(ARG_S32), ARGS(ARG_S32),
+          net_pspnet_resolver_h, 19, 4 },
         { 0x6138194a, "sceNetResolverTerm",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 5 },
+          RET(ARG_S32), NO_ARGS,
+          net_pspnet_resolver_h, 19, 5 },
         { 0x629e2fb7, "sceNetResolverStartAtoN",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 19, 6 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_const_in_addr_PTR, ARG_CHAR_PTR, ARG_SceSize, ARG_U32, ARG_S32),
+          net_pspnet_resolver_h, 19, 6 },
         { 0x14c17ef9, "sceNetResolverStartNtoAAsync",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 19, 7 },
