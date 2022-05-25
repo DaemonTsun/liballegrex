@@ -58,10 +58,14 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_U8_PTR         \x000d
 #define ARG_CONST_U8_PTR   \x000e
 #define ARG_CHAR_PTR       \x000f
+#define ARG_U16            \x0010
+#define ARG_U16_PTR        \x0011
+#define ARG_S16            \x0012
+#define ARG_S16_PTR        \x0013
 
-#define ARG_VOID_PTR       \x0010
-#define ARG_CONST_VOID_PTR \x0011
-#define ARG_VOID_PTR_PTR   \x0012
+#define ARG_VOID_PTR       \x001d
+#define ARG_CONST_VOID_PTR \x001e
+#define ARG_VOID_PTR_PTR   \x001f
 
 #define ARG_SceUID         \x0020
 #define ARG_SceUID_PTR     \x0021
@@ -142,6 +146,8 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_in_addr_t                           \x0139
 #define ARG_sceNetApctlHandler                  \x013a
 #define ARG_SceNetApctlInfo_PTR                 \x013b
+#define ARG_pdpStatStruct_PTR                   \x013c
+#define ARG_ptpStatStruct_PTR                   \x013d
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -175,6 +181,8 @@ const char *net_pspnet_h = "net/pspnet.h";
 const char *net_pspnet_resolver_h = "net/pspnet_resolver.h";
 const char *net_pspnet_inet_h = "net/pspnet_inet.h";
 const char *net_pspnet_apctl_h = "net/pspnet_apctl.h";
+const char *net_pspnet_adhoc_h = "net/pspnet_adhoc.h";
+const char *net_pspnet_adhocctl_h = "net/pspnet_adhocctl.h";
 const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -2059,74 +2067,74 @@ const std::array _modules
 
     psp_module{22, "sceNetAdhoc", {
         { 0xe1d621d7, "sceNetAdhocInit",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 22, 0 },
+          RET(ARG_S32), NO_ARGS,
+          net_pspnet_adhoc_h, 22, 0 },
         { 0xa62c6f57, "sceNetAdhocTerm",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 22, 1 },
+          net_pspnet_adhoc_h, 22, 1 },
         { 0x0ad043ed, "sceNetAdhocctlConnect",
           RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), 
-          unknown_header, 22, 2 },
+          net_pspnet_adhocctl_h, 22, 2 },
         { 0x6f92741b, "sceNetAdhocPdpCreate",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_U32), 
-          unknown_header, 22, 3 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U16, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 3 },
         { 0xabed3790, "sceNetAdhocPdpSend",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_U32, ARG_PTR, ARG_S32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 4 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_U16, ARG_VOID_PTR, ARG_U32, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 4 },
         { 0xdfe53e03, "sceNetAdhocPdpRecv",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_PTR, ARG_PTR, ARG_PTR, ARG_PTR, ARG_U32, ARG_S32), 
-          unknown_header, 22, 5 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_U16_PTR, ARG_VOID_PTR, ARG_VOID_PTR, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 5 },
         { 0x7f27bb5e, "sceNetAdhocPdpDelete",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 22, 6 },
+          net_pspnet_adhoc_h, 22, 6 },
         { 0xc7c1fc57, "sceNetAdhocGetPdpStat",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 22, 7 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR, ARG_pdpStatStruct_PTR), 
+          net_pspnet_adhoc_h, 22, 7 },
         { 0x157e6225, "sceNetAdhocPtpClose",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 22, 8 },
+          net_pspnet_adhoc_h, 22, 8 },
         { 0x4da4c788, "sceNetAdhocPtpSend",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 9 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR, ARG_S32_PTR, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 9 },
         { 0x877f6d66, "sceNetAdhocPtpOpen",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 10 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U16, ARG_U8_PTR, ARG_U16, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 10 },
         { 0x8bea2b3e, "sceNetAdhocPtpRecv",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 11 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR, ARG_S32_PTR, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 11 },
         { 0x9df81198, "sceNetAdhocPtpAccept",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 12 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_U16_PTR, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 12 },
         { 0xe08bdac1, "sceNetAdhocPtpListen",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 13 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_U16, ARG_U32, ARG_U32, ARG_S32, ARG_S32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 13 },
         { 0xfc6fc07b, "sceNetAdhocPtpConnect",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 14 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 14 },
         { 0x9ac2eeac, "sceNetAdhocPtpFlush",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32), 
-          unknown_header, 22, 15 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 15 },
         { 0xb9685118, "sceNetAdhocGetPtpStat",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 22, 16 },
+          RET(ARG_S32), ARGS(ARG_S32_PTR, ARG_ptpStatStruct_PTR), 
+          net_pspnet_adhoc_h, 22, 16 },
         { 0x3278ab0c, "sceNetAdhocGameModeCreateReplica",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_S32), 
-          unknown_header, 22, 17 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_VOID_PTR, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 17 },
         { 0x98c204c8, "sceNetAdhocGameModeUpdateMaster",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 22, 18 },
+          net_pspnet_adhoc_h, 22, 18 },
         { 0xfa324b4e, "sceNetAdhocGameModeUpdateReplica",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
-          unknown_header, 22, 19 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 19 },
         { 0xa0229362, "sceNetAdhocGameModeDeleteMaster",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 22, 20 },
+          net_pspnet_adhoc_h, 22, 20 },
         { 0x0b2228e9, "sceNetAdhocGameModeDeleteReplica",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 22, 21 },
+          net_pspnet_adhoc_h, 22, 21 },
         { 0x7f75c338, "sceNetAdhocGameModeCreateMaster",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 22, 22 },
+          RET(ARG_S32), ARGS(ARG_VOID_PTR, ARG_S32), 
+          net_pspnet_adhoc_h, 22, 22 },
         { 0x73bfd52d, "sceNetAdhocSetSocketAlert",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
           unknown_header, 22, 23 },
