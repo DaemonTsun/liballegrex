@@ -148,6 +148,8 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceNetApctlInfo_PTR                 \x013b
 #define ARG_pdpStatStruct_PTR                   \x013c
 #define ARG_ptpStatStruct_PTR                   \x013d
+#define ARG_pspAdhocMatchingCallback            \x013e
+#define ARG_pspAdhocPoolStat_PTR                \x013f
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -183,6 +185,7 @@ const char *net_pspnet_inet_h = "net/pspnet_inet.h";
 const char *net_pspnet_apctl_h = "net/pspnet_apctl.h";
 const char *net_pspnet_adhoc_h = "net/pspnet_adhoc.h";
 const char *net_pspnet_adhocctl_h = "net/pspnet_adhocctl.h";
+const char *net_pspnet_adhocmatching_h = "net/pspnet_adhocmatching.h";
 const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -2151,56 +2154,56 @@ const std::array _modules
 
     psp_module{23, "sceNetAdhocMatching", {
         { 0x2a2a1e07, "sceNetAdhocMatchingInit",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 23, 0 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          net_pspnet_adhocmatching_h, 23, 0 },
         { 0x7945ecda, "sceNetAdhocMatchingTerm",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 23, 1 },
+          net_pspnet_adhocmatching_h, 23, 1 },
         { 0xca5eda6f, "sceNetAdhocMatchingCreate",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
-          unknown_header, 23, 2 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U16, ARG_S32, ARG_U32, ARG_U32, ARG_S32, ARG_U32, ARG_pspAdhocMatchingCallback), 
+          net_pspnet_adhocmatching_h, 23, 2 },
         { 0x93ef3843, "sceNetAdhocMatchingStart",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
-          unknown_header, 23, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 3 },
         { 0xe8454c65, "sceNetAdhocMatchingStart2",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_U32), 
           unknown_header, 23, 4 },
         { 0x32b156b3, "sceNetAdhocMatchingStop",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 23, 5 },
+          net_pspnet_adhocmatching_h, 23, 5 },
         { 0xf16eaf4f, "sceNetAdhocMatchingDelete",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 23, 6 },
+          net_pspnet_adhocmatching_h, 23, 6 },
         { 0x5e3d4b79, "sceNetAdhocMatchingSelectTarget",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
-          unknown_header, 23, 7 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_S32, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 7 },
         { 0xea3c6108, "sceNetAdhocMatchingCancelTarget",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
-          unknown_header, 23, 8 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR), 
+          net_pspnet_adhocmatching_h, 23, 8 },
         { 0x8f58bedf, "sceNetAdhocMatchingCancelTargetWithOpt",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
-          unknown_header, 23, 9 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_S32, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 9 },
         { 0xb5d96c2a, "sceNetAdhocMatchingGetHelloOpt",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 23, 10 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32_PTR, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 10 },
         { 0xb58e61b7, "sceNetAdhocMatchingSetHelloOpt",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32), 
-          unknown_header, 23, 11 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 11 },
         { 0xc58bcd9e, "sceNetAdhocMatchingGetMembers",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 23, 12 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32_PTR, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 12 },
         { 0xf79472d7, "sceNetAdhocMatchingSendData",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32), 
-          unknown_header, 23, 13 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR, ARG_S32, ARG_VOID_PTR), 
+          net_pspnet_adhocmatching_h, 23, 13 },
         { 0xec19337d, "sceNetAdhocMatchingAbortSendData",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
-          unknown_header, 23, 14 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR), 
+          net_pspnet_adhocmatching_h, 23, 14 },
         { 0x40f8f435, "sceNetAdhocMatchingGetPoolMaxAlloc",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 23, 15 },
+          net_pspnet_adhocmatching_h, 23, 15 },
         { 0x9c5cfb7d, "sceNetAdhocMatchingGetPoolStat",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 23, 16 },
+          RET(ARG_S32), ARGS(ARG_pspAdhocPoolStat_PTR), 
+          net_pspnet_adhocmatching_h, 23, 16 },
         { 0x756e6f00, "__NetMatchingCallbacks",
           RET(ARG_VOID), NO_ARGS,
           unknown_header, 23, 17 }
