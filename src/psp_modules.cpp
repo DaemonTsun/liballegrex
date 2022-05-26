@@ -200,6 +200,7 @@ const char *net_pspnet_adhocctl_h = "net/pspnet_adhocctl.h";
 const char *net_pspnet_adhocmatching_h = "net/pspnet_adhocmatching.h";
 const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 const char *rtc_psprtc_h = "rtc/psprtc.h";
+const char *wlan_pspwlan_h = "wlan/pspwlan.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -2455,14 +2456,14 @@ const std::array _modules
 
     psp_module{27, "sceWlanDrv", {
         { 0xd7763699, "sceWlanGetSwitchState",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 27, 0 },
+          RET(ARG_S32), NO_ARGS,
+          wlan_pspwlan_h, 27, 0 },
         { 0x0c622081, "sceWlanGetEtherAddr",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 27, 1 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR), 
+          wlan_pspwlan_h, 27, 1 },
         { 0x93440b11, "sceWlanDevIsPowerOn",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 27, 2 }
+          RET(ARG_S32), NO_ARGS,
+          wlan_pspwlan_h, 27, 2 }
     }},
 
     psp_module{28, "sceMpeg", {
