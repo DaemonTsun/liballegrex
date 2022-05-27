@@ -65,6 +65,8 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_U64_PTR        \x0014
 #define ARG_S64_PTR        \x0015
 #define ARG_CONST_U64_PTR  \x0016
+#define ARG_U8_PTR_PTR     \x0017
+#define ARG_S16_PTR_PTR    \x0018
 
 #define ARG_VOID_PTR       \x001d
 #define ARG_CONST_VOID_PTR \x001e
@@ -169,6 +171,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_SceMpeg                             \x014d // should this exist
 #define ARG_SceMpegAvcMode_PTR                  \x014e
 #define ARG_sceMpegRingbufferCB                 \x014f
+#define ARG_SceMp3InitArg_PTR                   \x0150
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -209,6 +212,7 @@ const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 const char *rtc_psprtc_h = "rtc/psprtc.h";
 const char *wlan_pspwlan_h = "wlan/pspwlan.h";
 const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
+const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -2656,62 +2660,62 @@ const std::array _modules
 
     psp_module{29, "sceMp3", {
         { 0x07ec321a, "sceMp3ReserveMp3Handle",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 29, 0 },
+          RET(ARG_S32), ARGS(ARG_SceMp3InitArg_PTR), 
+          mp3_pspmp3_h, 29, 0 },
         { 0x0db149f4, "sceMp3NotifyAddStreamData",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 29, 1 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          mp3_pspmp3_h, 29, 1 },
         { 0x2a368661, "sceMp3ResetPlayPosition",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 2 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 2 },
         { 0x354d27ea, "sceMp3GetSumDecodedSample",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 3 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 3 },
         { 0x35750070, "sceMp3InitResource",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 29, 4 },
+          mp3_pspmp3_h, 29, 4 },
         { 0x3c2fa058, "sceMp3TermResource",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 29, 5 },
+          mp3_pspmp3_h, 29, 5 },
         { 0x3cef484f, "sceMp3SetLoopNum",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 29, 6 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          mp3_pspmp3_h, 29, 6 },
         { 0x44e07129, "sceMp3Init",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 7 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 7 },
         { 0x732b042a, "sceMp3EndEntry",
           RET(ARG_U32), NO_ARGS,
           unknown_header, 29, 8 },
         { 0x7f696782, "sceMp3GetMp3ChannelNum",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 9 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 9 },
         { 0x87677e40, "sceMp3GetBitRate",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 10 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 10 },
         { 0x87c263d1, "sceMp3GetMaxOutputSample",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 11 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 11 },
         { 0x8ab81558, "sceMp3StartEntry",
           RET(ARG_U32), NO_ARGS,
           unknown_header, 29, 12 },
         { 0x8f450998, "sceMp3GetSamplingRate",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 13 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 13 },
         { 0xa703fe0f, "sceMp3GetInfoToAddStreamData",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR, ARG_PTR, ARG_PTR), 
-          unknown_header, 29, 14 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U8_PTR_PTR, ARG_S32_PTR, ARG_S32_PTR), 
+          mp3_pspmp3_h, 29, 14 },
         { 0xd021c0fb, "sceMp3Decode",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_PTR), 
-          unknown_header, 29, 15 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S16_PTR_PTR), 
+          mp3_pspmp3_h, 29, 15 },
         { 0xd0a56296, "sceMp3CheckStreamDataNeeded",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 16 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 16 },
         { 0xd8f54a51, "sceMp3GetLoopNum",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 17 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 17 },
         { 0xf5478233, "sceMp3ReleaseMp3Handle",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 29, 18 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          mp3_pspmp3_h, 29, 18 },
         { 0xae6d2027, "sceMp3GetMPEGVersion",
           RET(ARG_U32), ARGS(ARG_U32), 
           unknown_header, 29, 19 },
