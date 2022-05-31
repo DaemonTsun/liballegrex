@@ -177,6 +177,12 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspHttpFreeFunction                 \x0153
 #define ARG_PspHttpReallocFunction              \x0154
 #define ARG_PspHttpPasswordCB                   \x0155
+#define ARG_PspGeListArgs_PTR                   \x0156
+#define ARG_PspGeBreakParam_PTR                 \x0157
+#define ARG_PspGeCallbackData_PTR               \x0158
+#define ARG_PspGeContext_PTR                    \x0159
+#define ARG_CONST_PspGeContext_PTR              \x015a
+#define ARG_PspGeStack_PTR                      \x015b
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -222,6 +228,7 @@ const char *wlan_pspwlan_h = "wlan/pspwlan.h";
 const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
 const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 const char *power_psppower_h = "power/psppower.h";
+const char *ge_pspge_h = "ge/pspge.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -3161,59 +3168,59 @@ const std::array _modules
 
     psp_module{34, "sceGe_user", {
         { 0xe47e40e4, "sceGeEdramGetAddr",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 34, 0 },
+          RET(ARG_VOID_PTR), NO_ARGS,
+          ge_pspge_h, 34, 0 },
         { 0xab49e76a, "sceGeListEnQueue",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_PTR), 
-          unknown_header, 34, 1 },
+          RET(ARG_S32), ARGS(ARG_CONST_VOID_PTR, ARG_VOID_PTR, ARG_S32, ARG_PspGeListArgs_PTR), 
+          ge_pspge_h, 34, 1 },
         { 0x1c0d95a6, "sceGeListEnQueueHead",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_PTR), 
-          unknown_header, 34, 2 },
+          RET(ARG_S32), ARGS(ARG_CONST_VOID_PTR, ARG_VOID_PTR, ARG_S32, ARG_PspGeListArgs_PTR), 
+          ge_pspge_h, 34, 2 },
         { 0xe0d68148, "sceGeListUpdateStallAddr",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 34, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR), 
+          ge_pspge_h, 34, 3 },
         { 0x03444eb4, "sceGeListSync",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 34, 4 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
+          ge_pspge_h, 34, 4 },
         { 0xb287bd61, "sceGeDrawSync",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 34, 5 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ge_pspge_h, 34, 5 },
         { 0xb448ec0d, "sceGeBreak",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 34, 6 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_PspGeBreakParam_PTR), 
+          ge_pspge_h, 34, 6 },
         { 0x4c06e472, "sceGeContinue",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 34, 7 },
+          ge_pspge_h, 34, 7 },
         { 0xa4fc06a4, "sceGeSetCallback",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 34, 8 },
+          RET(ARG_S32), ARGS(ARG_PspGeCallbackData_PTR), 
+          ge_pspge_h, 34, 8 },
         { 0x05db22ce, "sceGeUnsetCallback",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 34, 9 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ge_pspge_h, 34, 9 },
         { 0x1f6752ad, "sceGeEdramGetSize",
           RET(ARG_U32), NO_ARGS,
-          unknown_header, 34, 10 },
+          ge_pspge_h, 34, 10 },
         { 0xb77905ea, "sceGeEdramSetAddrTranslation",
-          RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 34, 11 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ge_pspge_h, 34, 11 },
         { 0xdc93cfef, "sceGeGetCmd",
           RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 34, 12 },
+          ge_pspge_h, 34, 12 },
         { 0x57c8945b, "sceGeGetMtx",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
-          unknown_header, 34, 13 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR), 
+          ge_pspge_h, 34, 13 },
         { 0x438a385a, "sceGeSaveContext",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 34, 14 },
+          RET(ARG_S32), ARGS(ARG_PspGeContext_PTR), 
+          ge_pspge_h, 34, 14 },
         { 0x0bf608fb, "sceGeRestoreContext",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 34, 15 },
+          RET(ARG_S32), ARGS(ARG_CONST_PspGeContext_PTR), 
+          ge_pspge_h, 34, 15 },
         { 0x5fb86ab0, "sceGeListDeQueue",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 34, 16 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          ge_pspge_h, 34, 16 },
         { 0xe66cb92e, "sceGeGetStack",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
-          unknown_header, 34, 17 }
+          RET(ARG_S32), ARGS(ARG_S32, ARG_PspGeStack_PTR), 
+          ge_pspge_h, 34, 17 }
     }},
 
     psp_module{35, "sceUmdUser", {
