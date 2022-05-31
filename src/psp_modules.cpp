@@ -231,6 +231,7 @@ const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 const char *power_psppower_h = "power/psppower.h";
 const char *ge_pspge_h = "ge/pspge.h";
 const char *umd_pspumd_h = "umd/pspumd.h";
+const char *dmac_pspdmac_h = "dmac/pspdmac.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -3278,11 +3279,11 @@ const std::array _modules
 
     psp_module{36, "sceDmac", {
         { 0x617f3fe6, "sceDmacMemcpy",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 36, 0 },
+          RET(ARG_S32), ARGS(ARG_VOID_PTR, ARG_CONST_VOID_PTR, ARG_SceSize), 
+          dmac_pspdmac_h, 36, 0 },
         { 0xd97f94d8, "sceDmacTryMemcpy",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32), 
-          unknown_header, 36, 1 }
+          RET(ARG_S32), ARGS(ARG_VOID_PTR, ARG_CONST_VOID_PTR, ARG_SceSize), 
+          dmac_pspdmac_h, 36, 1 }
     }},
 
     psp_module{37, "sceUtility", {
