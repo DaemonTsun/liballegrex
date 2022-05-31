@@ -198,6 +198,7 @@ const char *user_pspsysmem_h = "user/pspsysmem.h";
 const char *user_pspiofilemgr_h = "user/pspiofilemgr.h";
 const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
 const char *user_pspstdio_h = "user/pspstdio.h";
+const char *user_pspsuspend_h = "user/pspsuspend.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 const char *kernel_pspaudiorouting_h = "kernel/pspaudiorouting.h";
 const char *kernel_pspimpose_driver = "kernel/pspimpose_driver.h";
@@ -3148,14 +3149,14 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_S32), 
           unknown_header, 33, 2 },
         { 0xa14f40b2, "sceKernelVolatileMemTryLock",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 33, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR_PTR, ARG_S32_PTR), 
+          user_pspsuspend_h, 33, 3 },
         { 0xa569e425, "sceKernelVolatileMemUnlock",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 33, 4 },
+          user_pspsuspend_h, 33, 4 },
         { 0x3e0271d3, "sceKernelVolatileMemLock",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 33, 5 }
+          RET(ARG_S32), ARGS(ARG_S32, ARG_VOID_PTR_PTR, ARG_S32_PTR), 
+          user_pspsuspend_h, 33, 5 }
     }},
 
     psp_module{34, "sceGe_user", {
