@@ -183,6 +183,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspGeContext_PTR                    \x0159
 #define ARG_CONST_PspGeContext_PTR              \x015a
 #define ARG_PspGeStack_PTR                      \x015b
+#define ARG_pspUmdInfo_PTR                      \x015c
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -229,6 +230,7 @@ const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
 const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 const char *power_psppower_h = "power/psppower.h";
 const char *ge_pspge_h = "ge/pspge.h";
+const char *umd_pspumd_h = "umd/pspumd.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -3226,46 +3228,46 @@ const std::array _modules
     psp_module{35, "sceUmdUser", {
         { 0xc6183d47, "sceUmdActivate",
           RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
-          unknown_header, 35, 0 },
+          umd_pspumd_h, 35, 0 },
         { 0x6b4a146c, "sceUmdGetDriveStat",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 35, 1 },
+          RET(ARG_S32), NO_ARGS,
+          umd_pspumd_h, 35, 1 },
         { 0x46ebb729, "sceUmdCheckMedium",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 35, 2 },
+          umd_pspumd_h, 35, 2 },
         { 0xe83742ba, "sceUmdDeactivate",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_CONST_CHAR_PTR), 
-          unknown_header, 35, 3 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR), 
+          umd_pspumd_h, 35, 3 },
         { 0x8ef08fce, "sceUmdWaitDriveStat",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 35, 4 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          umd_pspumd_h, 35, 4 },
         { 0x56202973, "sceUmdWaitDriveStatWithTimer",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 35, 5 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          umd_pspumd_h, 35, 5 },
         { 0x4a9e5e29, "sceUmdWaitDriveStatCB",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
-          unknown_header, 35, 6 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_U32), 
+          umd_pspumd_h, 35, 6 },
         { 0x6af9b50a, "sceUmdCancelWaitDriveStat",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 35, 7 },
+          RET(ARG_S32), NO_ARGS,
+          umd_pspumd_h, 35, 7 },
         { 0x20628e6f, "sceUmdGetErrorStat",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 35, 8 },
+          RET(ARG_S32), NO_ARGS,
+          umd_pspumd_h, 35, 8 },
         { 0x340b7686, "sceUmdGetDiscInfo",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 35, 9 },
+          RET(ARG_S32), ARGS(ARG_pspUmdInfo_PTR), 
+          umd_pspumd_h, 35, 9 },
         { 0xaee7404d, "sceUmdRegisterUMDCallBack",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 35, 10 },
+          RET(ARG_S32), ARGS(ARG_S32), 
+          umd_pspumd_h, 35, 10 },
         { 0xbd2bde07, "sceUmdUnRegisterUMDCallBack",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 35, 11 },
+          umd_pspumd_h, 35, 11 },
         { 0x87533940, "sceUmdReplaceProhibit",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 35, 12 },
+          RET(ARG_S32), NO_ARGS,
+          umd_pspumd_h, 35, 12 },
         { 0xcbe9f02a, "sceUmdReplacePermit",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 35, 13 },
+          RET(ARG_S32), NO_ARGS,
+          umd_pspumd_h, 35, 13 },
         { 0x14c6c45c, "sceUmdUnuseUMDInMsUsbWlan",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 35, 14 },
