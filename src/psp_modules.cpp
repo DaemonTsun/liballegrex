@@ -256,6 +256,7 @@ const char *utility_psputility_modules_h = "utility/psputility_modules.h";
 const char *utility_psputility_usbmodules_h = "utility/psputility_usbmodules.h";
 const char *atrac3_pspatrac3_h = "atrac3/pspatrac3.h";
 const char *openpsid_pspopenpsid_h = "openpsid/pspopenpsid.h";
+const char *usbstor_pspusbstor_h = "usbstor/pspusbstor.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -4146,8 +4147,8 @@ const std::array _modules
 
     psp_module{47, "sceUsbstor", {
         { 0x60066cfe, "sceUsbstorGetStatus",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 47, 0 }
+          RET(ARG_S32), NO_ARGS,
+          usbstor_pspusbstor_h, 47, 0 }
     }},
 
     psp_module{48, "sceUsbstorBoot", {
