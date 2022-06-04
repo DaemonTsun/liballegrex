@@ -232,6 +232,7 @@ const char *net_pspnet_adhoc_h = "net/pspnet_adhoc.h";
 const char *net_pspnet_adhocctl_h = "net/pspnet_adhocctl.h";
 const char *net_pspnet_adhocmatching_h = "net/pspnet_adhocmatching.h";
 const char *net_psphttp_h = "net/psphttp.h";
+const char *net_pspssl_h = "net/pspssl.h";
 const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 const char *rtc_psprtc_h = "rtc/psprtc.h";
 const char *wlan_pspwlan_h = "wlan/pspwlan.h";
@@ -4071,10 +4072,10 @@ const std::array _modules
     psp_module{44, "sceSsl", {
         { 0x957ecbe2, "sceSslInit",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 44, 0 },
+          net_pspssl_h, 44, 0 },
         { 0x191cdeff, "sceSslEnd",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 44, 1 },
+          net_pspssl_h, 44, 1 },
         { 0x5bfb6b61, "sceSslGetNotAfter",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 44, 2 },
@@ -4097,11 +4098,11 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 44, 8 },
         { 0xb99ede6a, "sceSslGetUsedMemoryMax",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 44, 9 },
+          RET(ARG_S32), ARGS(ARG_U32_PTR), 
+          net_pspssl_h, 44, 9 },
         { 0x0eb43b06, "sceSslGetUsedMemoryCurrent",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 44, 10 },
+          RET(ARG_S32), ARGS(ARG_U32_PTR), 
+          net_pspssl_h, 44, 10 },
         { 0xf57765d3, "sceSslGetKeyUsage",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 44, 11 }
