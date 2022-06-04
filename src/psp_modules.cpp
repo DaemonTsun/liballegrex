@@ -5867,8 +5867,8 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_U32, ARG_U32), 
           unknown_header, 102, 0 },
         { 0xc69bebce, "sceOpenPSIDGetOpenPSID",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 102, 1 }
+          RET(ARG_S32), ARGS(ARG_PspOpenPSID_PTR), 
+          openpsid_pspopenpsid_h, 102, 1 }
     }},
 
     psp_module{103, "semaphore", {
