@@ -237,6 +237,7 @@ const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
 const char *rtc_psprtc_h = "rtc/psprtc.h";
 const char *wlan_pspwlan_h = "wlan/pspwlan.h";
 const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
+const char *mpeg_pspjpeg_h = "mpeg/pspjpeg.h";
 const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 const char *power_psppower_h = "power/psppower.h";
 const char *ge_pspge_h = "ge/pspge.h";
@@ -4640,14 +4641,14 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32, ARG_S32), 
           unknown_header, 64, 1 },
         { 0x04b93cef, "sceJpegDecodeMJpeg",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
-          unknown_header, 64, 2 },
+          RET(ARG_S32), ARGS(ARG_U8_PTR, ARG_SceSize, ARG_VOID_PTR, ARG_U32), 
+          mpeg_pspjpeg_h, 64, 2 },
         { 0x227662d7, "sceJpegDecodeMJpegYCbCrSuccessively",
           RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32), 
           unknown_header, 64, 3 },
         { 0x48b602b7, "sceJpegDeleteMJpeg",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 64, 4 },
+          mpeg_pspjpeg_h, 64, 4 },
         { 0x64b6f978, "sceJpegDecodeMJpegSuccessively",
           RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
           unknown_header, 64, 5 },
@@ -4656,7 +4657,7 @@ const std::array _modules
           unknown_header, 64, 6 },
         { 0x7d2f3d7f, "sceJpegFinishMJpeg",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 64, 7 },
+          mpeg_pspjpeg_h, 64, 7 },
         { 0x8f2bb012, "sceJpegGetOutputInfo",
           RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32), 
           unknown_header, 64, 8 },
@@ -4668,10 +4669,10 @@ const std::array _modules
           unknown_header, 64, 10 },
         { 0x9d47469c, "sceJpegCreateMJpeg",
           RET(ARG_S32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 64, 11 },
+          mpeg_pspjpeg_h, 64, 11 },
         { 0xac9e70e6, "sceJpegInitMJpeg",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 64, 12 },
+          mpeg_pspjpeg_h, 64, 12 },
         { 0xa06a75c4, "sceJpegMJpegCscWithColorOption",
           RET(ARG_S32), NO_ARGS,
           unknown_header, 64, 13 }
