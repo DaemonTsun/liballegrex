@@ -230,6 +230,7 @@ const char *kernel_pspkernel_h = "kernel/pspkernel.h";
 const char *kernel_pspmodulemgr_kernel_h = "kernel/pspmodulemgr_kernel.h";
 const char *kernel_pspiofilemgr_kernel_h = "kernel/pspiofilemgr_kernel.h";
 const char *kernel_psploadexec_kernel_h = "kernel/psploadexec_kernel.h";
+const char *kernel_pspsysmem_kernel_h = "kernel/pspsysmem_kernel.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
 const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 const char *display_pspdisplay_h = "display/pspdisplay.h";
@@ -5191,32 +5192,32 @@ const std::array _modules
 
     psp_module{83, "SysMemForKernel", {
         { 0x636c953b, "sceKernelAllocHeapMemory",
-          RET(ARG_U32), ARGS(ARG_S32, ARG_S32), 
-          unknown_header, 83, 0 },
+          RET(ARG_VOID_PTR), ARGS(ARG_SceUID, ARG_SceSize), 
+          kernel_pspsysmem_kernel_h, 83, 0 },
         { 0xc9805775, "sceKernelDeleteHeap",
-          RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 83, 1 },
+          RET(ARG_S32), ARGS(ARG_SceUID), 
+          kernel_pspsysmem_kernel_h, 83, 1 },
         { 0x1c1fbfe7, "sceKernelCreateHeap",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_U32, ARG_CONST_CHAR_PTR), 
-          unknown_header, 83, 2 },
+          RET(ARG_SceUID), ARGS(ARG_SceUID, ARG_SceSize, ARG_S32, ARG_CONST_CHAR_PTR), 
+          kernel_pspsysmem_kernel_h, 83, 2 },
         { 0x237dbd4f, "sceKernelAllocPartitionMemory",
-          RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_S32, ARG_U32, ARG_U32), 
-          unknown_header, 83, 3 },
+          RET(ARG_SceUID), ARGS(ARG_SceUID, ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceSize, ARG_VOID_PTR), 
+          user_pspsysmem_h, 83, 3 },
         { 0xb6d61d02, "sceKernelFreePartitionMemory",
-          RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 83, 4 },
+          RET(ARG_S32), ARGS(ARG_SceUID), 
+          user_pspsysmem_h, 83, 4 },
         { 0x9d9a5ba1, "sceKernelGetBlockHeadAddr",
-          RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 83, 5 },
+          RET(ARG_VOID_PTR), ARGS(ARG_SceUID), 
+          user_pspsysmem_h, 83, 5 },
         { 0x9697cd32, "sceKernelPartitionTotalFreeMemSize",
-          RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 83, 6 },
+          RET(ARG_SceSize), ARGS(ARG_S32), 
+          kernel_pspsysmem_kernel_h, 83, 6 },
         { 0xe6581468, "sceKernelPartitionMaxFreeMemSize",
-          RET(ARG_U32), ARGS(ARG_S32), 
-          unknown_header, 83, 7 },
+          RET(ARG_SceSize), ARGS(ARG_S32), 
+          kernel_pspsysmem_kernel_h, 83, 7 },
         { 0x3fc9ae6a, "sceKernelDevkitVersion",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 83, 8 },
+          RET(ARG_S32), NO_ARGS,
+          user_pspsysmem_h, 83, 8 },
         { 0x536ad5e1, "SysMemForKernel_536AD5E1",
           RET(ARG_S32), ARGS(ARG_S32), 
           unknown_header, 83, 9 }
