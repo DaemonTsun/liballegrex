@@ -197,6 +197,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspDebugPutChar                     \x0167
 #define ARG_SceModule_PTR                       \x0168
 #define ARG_PspIoDrv_PTR                        \x0169
+#define ARG_SceKernelLoadExecVSHParam_PTR       \x016a
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -228,6 +229,7 @@ const char *kernel_psploadcore_h = "kernel/psploadcore.h";
 const char *kernel_pspkernel_h = "kernel/pspkernel.h";
 const char *kernel_pspmodulemgr_kernel_h = "kernel/pspmodulemgr_kernel.h";
 const char *kernel_pspiofilemgr_kernel_h = "kernel/pspiofilemgr_kernel.h";
+const char *kernel_psploadexec_kernel_h = "kernel/psploadexec_kernel.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
 const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 const char *display_pspdisplay_h = "display/pspdisplay.h";
@@ -5175,16 +5177,16 @@ const std::array _modules
     psp_module{82, "LoadExecForKernel", {
         { 0x4ac57943, "sceKernelRegisterExitCallback",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 82, 0 },
+          user_psploadexec_h, 82, 0 },
         { 0xa3d5e142, "sceKernelExitVSHVSH",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 82, 1 },
+          RET(ARG_S32), ARGS(ARG_SceKernelLoadExecVSHParam_PTR), // NO_ARGS,
+          kernel_psploadexec_kernel_h, 82, 1 },
         { 0x28d0d249, "sceKernelLoadExecVSHMs2",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32), 
-          unknown_header, 82, 2 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_SceKernelLoadExecVSHParam_PTR), 
+          kernel_psploadexec_kernel_h, 82, 2 },
         { 0x6d302d3d, "sceKernelExitVSHKernel",
-          RET(ARG_VOID), ARGS(ARG_U32), 
-          unknown_header, 82, 3 }
+          RET(ARG_S32), ARGS(ARG_SceKernelLoadExecVSHParam_PTR), 
+          kernel_psploadexec_kernel_h, 82, 3 }
     }},
 
     psp_module{83, "SysMemForKernel", {
