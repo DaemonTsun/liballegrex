@@ -195,6 +195,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspOpenPSID_PTR                     \x0165
 #define ARG_SceKernelUtilsSha1Context_PTR       \x0166
 #define ARG_PspDebugPutChar                     \x0167
+#define ARG_SceModule_PTR                       \x0168
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -222,6 +223,9 @@ const char *kernel_pspaudiorouting_h = "kernel/pspaudiorouting.h";
 const char *kernel_pspimpose_driver = "kernel/pspimpose_driver.h";
 const char *kernel_pspkdebug_h = "kernel/pspkdebug.h";
 const char *kernel_pspstdio_kernel_h = "kernel/pspstdio_kernel.h";
+const char *kernel_psploadcore_h = "kernel/psploadcore.h";
+const char *kernel_pspkernel_h = "kernel/pspkernel.h";
+const char *kernel_pspmodulemgr_kernel_h = "kernel/pspmodulemgr_kernel.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
 const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 const char *display_pspdisplay_h = "display/pspdisplay.h";
@@ -4991,8 +4995,8 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 80, 6 },
         { 0xd8779ac6, "sceKernelIcacheClearAll",
-          RET(ARG_U32), NO_ARGS,
-          unknown_header, 80, 7 },
+          RET(ARG_VOID), NO_ARGS,
+          kernel_psploadcore_h, 80, 7 },
         { 0x99a695f0, "sceKernelRegisterLibrary",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 80, 8 },
@@ -5045,20 +5049,20 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 80, 24 },
         { 0xfb8ae27d, "sceKernelFindModuleByAddress",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 80, 25 },
+          RET(ARG_SceModule_PTR), ARGS(ARG_U32), // NO_ARGS,
+          kernel_psploadcore_h, 80, 25 },
         { 0xcce4a157, "sceKernelFindModuleByUID",
-          RET(ARG_U32), ARGS(ARG_U32), 
-          unknown_header, 80, 26 },
+          RET(ARG_SceModule_PTR), ARGS(ARG_SceUID), 
+          kernel_psploadcore_h, 80, 26 },
         { 0x82ce54ed, "sceKernelModuleCount",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 80, 27 },
+          RET(ARG_S32), NO_ARGS,
+          kernel_psploadcore_h, 80, 27 },
         { 0xc0584f0c, "sceKernelGetModuleList",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 80, 28 },
+          RET(ARG_S32), ARGS(ARG_S32, ARG_SceUID_PTR), // NO_ARGS,
+          kernel_pspmodulemgr_kernel_h, 80, 28 },
         { 0xcf8a41b1, "sceKernelFindModuleByName",
-          RET(ARG_U32), ARGS(ARG_CONST_CHAR_PTR), 
-          unknown_header, 80, 29 },
+          RET(ARG_SceModule_PTR), ARGS(ARG_CONST_CHAR_PTR), 
+          kernel_psploadcore_h, 80, 29 },
         { 0xb95fa50d, "LoadCoreForKernel_B95FA50D",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 80, 30 }
