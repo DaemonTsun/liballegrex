@@ -221,6 +221,7 @@ const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 const char *kernel_pspaudiorouting_h = "kernel/pspaudiorouting.h";
 const char *kernel_pspimpose_driver = "kernel/pspimpose_driver.h";
 const char *kernel_pspkdebug_h = "kernel/pspkdebug.h";
+const char *kernel_pspstdio_kernel_h = "kernel/pspstdio_kernel.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
 const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 const char *display_pspdisplay_h = "display/pspdisplay.h";
@@ -4942,29 +4943,29 @@ const std::array _modules
 
     psp_module{79, "StdioForKernel", {
         { 0x98220f3e, "sceKernelStdoutReopen",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 79, 0 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceMode), // NO_ARGS,
+          kernel_pspstdio_kernel_h, 79, 0 },
         { 0xfb5380c5, "sceKernelStderrReopen",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 79, 1 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceMode), // NO_ARGS,
+          kernel_pspstdio_kernel_h, 79, 1 },
         { 0xcab439df, "printf",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 79, 2 },
         { 0x2ccf071a, "fdprintf",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 79, 3 },
+          RET(ARG_VOID), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_VA_ARGS), // NO_ARGS,
+          kernel_pspstdio_kernel_h, 79, 3 },
         { 0xd97c8cb9, "puts",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 79, 4 },
         { 0x172d316e, "sceKernelStdin",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 79, 5 },
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 79, 5 },
         { 0xa6bab2e9, "sceKernelStdout",
-          RET(ARG_S32), NO_ARGS,
-          unknown_header, 79, 6 },
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 79, 6 },
         { 0xf78ba90a, "sceKernelStderr",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 79, 7 }
+          RET(ARG_SceUID), NO_ARGS,
+          user_pspstdio_h, 79, 7 }
     }},
 
     psp_module{80, "LoadCoreForKernel", {
