@@ -224,6 +224,7 @@ const char *display_pspdisplay_h = "display/pspdisplay.h";
 const char *display_pspdisplay_kernel_h = "display/pspdisplay_kernel.h";
 const char *audio_pspaudio_h = "audio/pspaudio.h";
 const char *audio_pspaudio_kernel_h = "audio/pspaudio_kernel.h";
+const char *audio_pspaudiocodec_h = "audio/pspaudiocodec.h";
 const char *net_pspnet_h = "net/pspnet.h";
 const char *net_pspnet_resolver_h = "net/pspnet_resolver.h";
 const char *net_pspnet_inet_h = "net/pspnet_inet.h";
@@ -4680,23 +4681,23 @@ const std::array _modules
 
     psp_module{65, "sceAudiocodec", {
         { 0x70a703f8, "sceAudiocodecDecode",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 65, 0 },
+          RET(ARG_S32), ARGS(ARG_U64_PTR, ARG_S32), 
+          audio_pspaudiocodec_h, 65, 0 },
         { 0x5b37eb1d, "sceAudiocodecInit",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 65, 1 },
+          RET(ARG_S32), ARGS(ARG_U64_PTR, ARG_S32), 
+          audio_pspaudiocodec_h, 65, 1 },
         { 0x8aca11d5, "sceAudiocodecGetInfo",
           RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
           unknown_header, 65, 2 },
         { 0x3a20a200, "sceAudiocodecGetEDRAM",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 65, 3 },
+          RET(ARG_S32), ARGS(ARG_U64_PTR, ARG_S32), 
+          audio_pspaudiocodec_h, 65, 3 },
         { 0x29681260, "sceAudiocodecReleaseEDRAM",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 65, 4 },
+          RET(ARG_S32), ARGS(ARG_U64_PTR), // ARGS(ARG_U32, ARG_S32), 
+          audio_pspaudiocodec_h, 65, 4 },
         { 0x9d3f790c, "sceAudiocodecCheckNeedMem",
-          RET(ARG_S32), ARGS(ARG_U32, ARG_S32), 
-          unknown_header, 65, 5 },
+          RET(ARG_S32), ARGS(ARG_U64_PTR, ARG_S32), 
+          audio_pspaudiocodec_h, 65, 5 },
         { 0x59176a0f, "sceAudiocodecAlcExtendParameter",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 65, 6 }
