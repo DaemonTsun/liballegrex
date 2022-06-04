@@ -257,6 +257,7 @@ const char *utility_psputility_usbmodules_h = "utility/psputility_usbmodules.h";
 const char *atrac3_pspatrac3_h = "atrac3/pspatrac3.h";
 const char *openpsid_pspopenpsid_h = "openpsid/pspopenpsid.h";
 const char *usbstor_pspusbstor_h = "usbstor/pspusbstor.h";
+const char *usb_pspusb_h = "usb/pspusb.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -4154,55 +4155,55 @@ const std::array _modules
     psp_module{48, "sceUsbstorBoot", {
         { 0xe58818a8, "sceUsbstorBootSetCapacity",
           RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 48, 0 },
+          usbstor_pspusbstor_h, 48, 0 },
         { 0x594bbf95, "sceUsbstorBootSetLoadAddr",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 48, 1 },
+          RET(ARG_S32), ARGS(ARG_U32),// NO_ARGS,
+          usbstor_pspusbstor_h, 48, 1 },
         { 0x6d865ecd, "sceUsbstorBootGetDataSize",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 48, 2 },
+          RET(ARG_S32), NO_ARGS,
+          usbstor_pspusbstor_h, 48, 2 },
         { 0xa1119f0d, "sceUsbstorBootSetStatus",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 48, 3 },
+          RET(ARG_S32), ARGS(ARG_U32), // NO_ARGS,
+          usbstor_pspusbstor_h, 48, 3 },
         { 0x1f080078, "sceUsbstorBootRegisterNotify",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 48, 4 },
+          RET(ARG_S32), ARGS(ARG_U32), // NO_ARGS,
+          usbstor_pspusbstor_h, 48, 4 },
         { 0xa55c9e16, "sceUsbstorBootUnregisterNotify",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 48, 5 }
+          RET(ARG_S32), ARGS(ARG_U32), // NO_ARGS,
+          usbstor_pspusbstor_h, 48, 5 }
     }},
 
     psp_module{49, "sceUsb", {
         { 0xae5de6af, "sceUsbStart",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
-          unknown_header, 49, 0 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_VOID_PTR), 
+          usb_pspusb_h, 49, 0 },
         { 0xc2464fa0, "sceUsbStop",
-          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32), 
-          unknown_header, 49, 1 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_VOID_PTR), 
+          usb_pspusb_h, 49, 1 },
         { 0xc21645a4, "sceUsbGetState",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 49, 2 },
+          usb_pspusb_h, 49, 2 },
         { 0x4e537366, "sceUsbGetDrvList",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 49, 3 },
+          RET(ARG_S32), ARGS(ARG_U32, ARG_U32_PTR, ARG_U32), // NO_ARGS,
+          usb_pspusb_h, 49, 3 },
         { 0x112cc951, "sceUsbGetDrvState",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 49, 4 },
+          RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR), // NO_ARGS,
+          usb_pspusb_h, 49, 4 },
         { 0x586db82c, "sceUsbActivate",
           RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 49, 5 },
+          usb_pspusb_h, 49, 5 },
         { 0xc572a9c8, "sceUsbDeactivate",
           RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 49, 6 },
+          usb_pspusb_h, 49, 6 },
         { 0x5be0e002, "sceUsbWaitState",
-          RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_PTR), 
-          unknown_header, 49, 7 },
+          RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32_PTR), 
+          usb_pspusb_h, 49, 7 },
         { 0x616f2b61, "sceUsbWaitStateCB",
           RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_PTR), 
           unknown_header, 49, 8 },
         { 0x1c360735, "sceUsbWaitCancel",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 49, 9 }
+          RET(ARG_S32), NO_ARGS,
+          usb_pspusb_h, 49, 9 }
     }},
 
     psp_module{50, "sceChnnlsv", {
