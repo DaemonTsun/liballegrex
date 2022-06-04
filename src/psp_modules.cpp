@@ -252,6 +252,7 @@ const char *rtc_psprtc_h = "rtc/psprtc.h";
 const char *wlan_pspwlan_h = "wlan/pspwlan.h";
 const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
 const char *mpeg_pspjpeg_h = "mpeg/pspjpeg.h";
+const char *mpeg_pspmpegbase_h = "mpeg/pspmpegbase.h";
 const char *mp3_pspmp3_h = "mp3/pspmp3.h";
 const char *power_psppower_h = "power/psppower.h";
 const char *ge_pspge_h = "ge/pspge.h";
@@ -5402,8 +5403,8 @@ const std::array _modules
           RET(ARG_U32), ARGS(ARG_U32), 
           unknown_header, 88, 0 },
         { 0x492b5e4b, "sceMpegBaseCscInit",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 88, 1 },
+          RET(ARG_S32), ARGS(ARG_S32), // NO_ARGS,
+          mpeg_pspmpegbase_h, 88, 1 },
         { 0x0530be4e, "sceMpegbase_0530BE4E",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 88, 2 },
