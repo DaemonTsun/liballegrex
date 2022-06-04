@@ -192,6 +192,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_pspUtilityGameSharingParams_PTR     \x0162
 #define ARG_pspUtilityHtmlViewerParam_PTR       \x0163
 #define ARG_PspBufferInfo_PTR                   \x0164
+#define ARG_PspOpenPSID_PTR                     \x0165
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -253,6 +254,7 @@ const char *utility_psputility_avmodules_h = "utility/psputility_avmodules.h";
 const char *utility_psputility_modules_h = "utility/psputility_modules.h";
 const char *utility_psputility_usbmodules_h = "utility/psputility_usbmodules.h";
 const char *atrac3_pspatrac3_h = "atrac3/pspatrac3.h";
+const char *openpsid_pspopenpsid_h = "openpsid/pspopenpsid.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
@@ -4047,8 +4049,8 @@ const std::array _modules
 
     psp_module{42, "sceOpenPSID", {
         { 0xc69bebce, "sceOpenPSIDGetOpenPSID",
-          RET(ARG_S32), ARGS(ARG_U32), 
-          unknown_header, 42, 0 }
+          RET(ARG_S32), ARGS(ARG_PspOpenPSID_PTR), 
+          openpsid_pspopenpsid_h, 42, 0 }
     }},
 
     psp_module{43, "sceParseUri", {
