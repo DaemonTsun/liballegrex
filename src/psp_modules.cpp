@@ -194,6 +194,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 #define ARG_PspBufferInfo_PTR                   \x0164
 #define ARG_PspOpenPSID_PTR                     \x0165
 #define ARG_SceKernelUtilsSha1Context_PTR       \x0166
+#define ARG_PspDebugPutChar                     \x0167
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
@@ -219,6 +220,7 @@ const char *user_pspsuspend_h = "user/pspsuspend.h";
 const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
 const char *kernel_pspaudiorouting_h = "kernel/pspaudiorouting.h";
 const char *kernel_pspimpose_driver = "kernel/pspimpose_driver.h";
+const char *kernel_pspkdebug_h = "kernel/pspkdebug.h";
 const char *hprm_psphprm_h = "hprm/psphprm.h";
 const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
 const char *display_pspdisplay_h = "display/pspdisplay.h";
@@ -4853,17 +4855,17 @@ const std::array _modules
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 69, 1 },
         { 0x9b868276, "sceKernelGetDebugPutchar",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 69, 2 },
+          RET(ARG_PspDebugPutChar), NO_ARGS,
+          kernel_pspkdebug_h, 69, 2 },
         { 0xe146606d, "sceKernelRegisterDebugPutchar",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 69, 3 },
+          RET(ARG_VOID), ARGS(ARG_PspDebugPutChar), // NO_ARGS,
+          kernel_pspkdebug_h, 69, 3 },
         { 0x7ceb2c09, "sceKernelRegisterKprintfHandler",
           RET(ARG_U32), NO_ARGS,
           unknown_header, 69, 4 },
         { 0x84f370bc, "Kprintf",
-          RET(ARG_UNKNOWN), NO_ARGS,
-          unknown_header, 69, 5 },
+          RET(ARG_VOID), ARGS(ARG_CONST_CHAR_PTR, ARG_VA_ARGS), // NO_ARGS,
+          kernel_pspkdebug_h, 69, 5 },
         { 0x5ce9838b, "sceKernelDebugWrite",
           RET(ARG_UNKNOWN), NO_ARGS,
           unknown_header, 69, 6 },
