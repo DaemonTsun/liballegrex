@@ -5584,13 +5584,13 @@ const std::array _modules
     psp_module{94, "sceAudioRouting", {
         { 0x39240e7d, "sceAudioRoutingGetMode",
           RET(ARG_S32), NO_ARGS,
-          unknown_header, 94, 0 },
+          kernel_pspaudiorouting_h, 94, 0 },
         { 0x28235c56, "sceAudioRoutingGetVolumeMode",
-          RET(ARG_S32), NO_ARGS,
+          RET(ARG_U32), NO_ARGS,
           unknown_header, 94, 1 },
         { 0x36fd8aa9, "sceAudioRoutingSetMode",
           RET(ARG_S32), ARGS(ARG_S32), 
-          unknown_header, 94, 2 },
+          kernel_pspaudiorouting_h, 94, 2 },
         { 0xbb548475, "sceAudioRoutingSetVolumeMode",
           RET(ARG_S32), ARGS(ARG_S32), 
           unknown_header, 94, 3 }
