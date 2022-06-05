@@ -21,20 +21,5 @@ add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
 set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} kirk)
 
-# psp-elfdump
-file(GLOB_RECURSE ELFDUMP_HEADERS "psp-elfdump/*.h" "psp-elfdump/*.hpp" "psp-elfdump/*.tcc")
-file(GLOB_RECURSE ELFDUMP_SOURCES "psp-elfdump/*.c" "psp-elfdump/*.cpp")
-add_executable(psp-elfdump ${HEADERS} ${ELFDUMP_HEADERS} ${ELFDUMP_SOURCES})
-
-# link
-target_link_libraries(psp-elfdump ${PROJECT_NAME} kirk)
-
-
-# tests
-find_package(t1)
-
-if (NOT DEFINED t1_DIR OR t1_DIR)
-    add_test_directory("${CMAKE_SOURCE_DIR}/tests")
-    link_tests(${PROJECT_NAME})
-    register_tests()
-endif()
+add_subdirectory(psp-elfdump)
+add_subdirectory(tests)
