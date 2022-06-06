@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <vector> // TODO: remove
 #include "number_types.hpp"
 
 typedef wchar_t psp_function_arg_t;

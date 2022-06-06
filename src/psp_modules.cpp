@@ -2,6 +2,9 @@
 #include <array>
 #include <vector>
 
+#include "internal/map_macro.hpp"
+#include "internal/psp_module_function_argument_defs.hpp"
+#include "internal/psp_module_function_pspdev_headers.hpp"
 #include "psp_modules.hpp"
 
 #define CONCAT_(X, Y) X##Y
@@ -13,199 +16,11 @@
 #define WC(x) WS(x)[0]
 #define RET(x) WS(x)[0] // same as WC
 
-// https://github.com/swansontec/map-macro/blob/master/map.h
-#define EVAL0(...) __VA_ARGS__
-#define EVAL1(...) EVAL0(EVAL0(EVAL0(__VA_ARGS__)))
-#define EVAL2(...) EVAL1(EVAL1(EVAL1(__VA_ARGS__)))
-#define EVAL3(...) EVAL2(EVAL2(EVAL2(__VA_ARGS__)))
-#define EVAL4(...) EVAL3(EVAL3(EVAL3(__VA_ARGS__)))
-#define EVAL(...)  EVAL4(EVAL4(EVAL4(__VA_ARGS__)))
-
-#define MAP_END(...)
-#define MAP_OUT
-
-#define MAP_GET_END2() 0, MAP_END
-#define MAP_GET_END1(...) MAP_GET_END2
-#define MAP_GET_END(...) MAP_GET_END1
-#define MAP_NEXT0(test, next, ...) next MAP_OUT
-#define MAP_NEXT1(test, next) MAP_NEXT0(test, next, 0)
-#define MAP_NEXT(test, next)  MAP_NEXT1(MAP_GET_END test, next)
-
-#define MAP0(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP1)(f, peek, __VA_ARGS__)
-#define MAP1(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP0)(f, peek, __VA_ARGS__)
-#define MAP(f, ...) EVAL(MAP1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
-
 #define ARGS(...) MAP(WS, __VA_ARGS__)
 
 static_assert(ARGS(a, b, c) == L"abc");
 
 #define NO_ARGS L""
-
-// type of arguments and return value of psp functions
-#define ARG_NONE           \x0000
-#define ARG_VOID           \x0001
-#define ARG_U32            \x0002
-#define ARG_S32            \x0003
-#define ARG_FLOAT          \x0004
-#define ARG_U64            \x0005
-#define ARG_S64            \x0006
-#define ARG_DOUBLE         \x0007
-#define ARG_CONST_CHAR_PTR \x0008
-#define ARG_PTR            \x0009  // u32*
-#define ARG_U32_PTR        \x000a
-#define ARG_S32_PTR        \x000b
-#define ARG_U8             \x000c
-#define ARG_U8_PTR         \x000d
-#define ARG_CONST_U8_PTR   \x000e
-#define ARG_CHAR_PTR       \x000f
-#define ARG_U16            \x0010
-#define ARG_U16_PTR        \x0011
-#define ARG_S16            \x0012
-#define ARG_S16_PTR        \x0013
-#define ARG_U64_PTR        \x0014
-#define ARG_S64_PTR        \x0015
-#define ARG_CONST_U64_PTR  \x0016
-#define ARG_U8_PTR_PTR     \x0017
-#define ARG_S16_PTR_PTR    \x0018
-
-#define ARG_VOID_PTR       \x001d
-#define ARG_CONST_VOID_PTR \x001e
-#define ARG_VOID_PTR_PTR   \x001f
-
-#define ARG_SceUID         \x0020
-#define ARG_SceUID_PTR     \x0021
-#define ARG_SceSize        \x0022
-#define ARG_SceUChar       \x0023
-#define ARG_SceUInt        \x0024
-#define ARG_SceUInt32      \x0025
-#define ARG_SceUInt64      \x0026
-#define ARG_SceUInt_PTR    \x0027
-#define ARG_SceInt         \x0028
-#define ARG_SceInt32       \x0029
-#define ARG_SceInt64       \x002a
-#define ARG_SceInt_PTR     \x002b
-#define ARG_SceInt64_PTR   \x002c
-
-#define ARG_SceMode        \x0030
-#define ARG_SceOff         \x0031
-#define ARG_SceIores       \x0032
-
-#define ARG_SceLwMutexWorkarea_PTR              \x0100
-#define ARG_SceKernelEventFlagOptParam_PTR      \x0101
-#define ARG_SceKernelEventFlagInfo_PTR          \x0102
-#define ARG_SceKernelSemaOptParam_PTR           \x0103
-#define ARG_SceKernelSemaInfo_PTR               \x0104
-#define ARG_SceKernelThreadEntry                \x0105
-#define ARG_SceKernelThreadOptParam_PTR         \x0106
-#define ARG_SceKernelSysClock_PTR               \x0107
-#define ARG_SceKernelThreadRunStatus_PTR        \x0108
-#define ARG_SceKernelThreadInfo_PTR             \x0109
-#define ARG_SceKernelIdListType                 \x010a
-#define ARG_PspDebugProfilerRegs_PTR            \x010b
-#define ARG_SceKernelSystemStatus_PTR           \x010c
-#define ARG_SceKernelAlarmHandler               \x010d
-#define ARG_SceKernelAlarmInfo_PTR              \x010e
-#define ARG_SceKernelThreadEventHandler         \x010f
-#define ARG_SceKernelThreadEventHandlerInfo_PTR \x0110
-#define ARG_SceKernelCallbackFunction           \x0111
-#define ARG_SceKernelCallbackInfo_PTR           \x0112
-#define ARG_SceKernelMbxOptParam_PTR            \x0113
-#define ARG_SceKernelMbxInfo_PTR                \x0114
-#define ARG_SceKernelMppInfo_PTR                \x0115
-#define ARG_SceKernelVplOptParam_PTR            \x0116
-#define ARG_SceKernelVplInfo_PTR                \x0117
-#define ARG_SceKernelFplOptParam_PTR            \x0118
-#define ARG_SceKernelFplInfo_PTR                \x0119
-#define ARG_SceKernelVTimerOptParam_PTR         \x011a
-#define ARG_SceKernelVTimerInfo_PTR             \x011b
-#define ARG_SceKernelVTimerHandler              \x011c
-#define ARG_SceKernelVTimerHandlerWide          \x011d
-#define ARG_SceKernelTimeval_PTR                \x011e
-#define ARG_timezone_PTR                        \x011f
-#define ARG_clock_t                             \x0120
-#define ARG_SceKernelLoadExecParam_PTR          \x0121
-#define ARG_SceKernelUtilsMd5Context_PTR        \x0122
-#define ARG_time_t                              \x0123
-#define ARG_time_t_PTR                          \x0124
-#define ARG_SceKernelUtilsMt19937Context_PTR    \x0125
-#define ARG_PspIntrHandlerOptionParam_PTR       \x0126
-#define ARG_SceIoDirent_PTR                     \x0127
-#define ARG_SceIoStat_PTR                       \x0128
-#define ARG_SceKernelLMOption_PTR               \x0129
-#define ARG_SceKernelSMOption_PTR               \x012a
-#define ARG_SceKernelModuleInfo_PTR             \x012b
-#define ARG_SceCtrlData_PTR                     \x012c
-#define ARG_SceCtrlLatch_PTR                    \x012d
-#define ARG_pspAudioInputParams_PTR             \x012e
-// #define ARG_SceNetMallocStat_PTR                \x012f
-#define ARG_in_addr_PTR                         \x0130
-#define ARG_CONST_in_addr_PTR                   \x0131
-#define ARG_socklen_t                           \x0132
-#define ARG_socklen_t_PTR                       \x0133
-#define ARG_sockaddr_PTR                        \x0134
-#define ARG_CONST_sockaddr_PTR                  \x0135
-#define ARG_fd_set_PTR                          \x0136
-#define ARG_SceNetMallocStat_PTR                \x0137
-#define ARG_msghdr_PTR                          \x0138
-#define ARG_CONST_msghdr_PTR                    \x0138
-#define ARG_in_addr_t                           \x0139
-#define ARG_sceNetApctlHandler                  \x013a
-#define ARG_SceNetApctlInfo_PTR                 \x013b
-#define ARG_pdpStatStruct_PTR                   \x013c
-#define ARG_ptpStatStruct_PTR                   \x013d
-#define ARG_pspAdhocMatchingCallback            \x013e
-#define ARG_pspAdhocPoolStat_PTR                \x013f
-#define ARG_productStruct_PTR                   \x0140
-#define ARG_sceNetAdhocctlHandler               \x0141
-#define ARG_SceNetAdhocctlParams_PTR            \x0142
-#define ARG_SceNetAdhocctlScanInfo_PTR          \x0143
-#define ARG_SceNetAdhocctlPeerInfo_PTR          \x0144
-#define ARG_SceNetAdhocctlGameModeInfo_PTR      \x0145
-#define ARG_pspTime_PTR                         \x0146
-#define ARG_CONST_pspTime_PTR                   \x0147
-#define ARG_CONST_time_t                        \x0148
-#define ARG_SceMpeg_PTR                         \x0149
-#define ARG_SceMpegStream_PTR                   \x014a
-#define ARG_SceMpegAu_PTR                       \x014b
-#define ARG_SceMpegRingbuffer_PTR               \x014c
-#define ARG_SceMpeg                             \x014d // should this exist
-#define ARG_SceMpegAvcMode_PTR                  \x014e
-#define ARG_sceMpegRingbufferCB                 \x014f
-#define ARG_SceMp3InitArg_PTR                   \x0150
-#define ARG_PspHttpMethod                       \x0151
-#define ARG_PspHttpMallocFunction               \x0152
-#define ARG_PspHttpFreeFunction                 \x0153
-#define ARG_PspHttpReallocFunction              \x0154
-#define ARG_PspHttpPasswordCB                   \x0155
-#define ARG_PspGeListArgs_PTR                   \x0156
-#define ARG_PspGeBreakParam_PTR                 \x0157
-#define ARG_PspGeCallbackData_PTR               \x0158
-#define ARG_PspGeContext_PTR                    \x0159
-#define ARG_CONST_PspGeContext_PTR              \x015a
-#define ARG_PspGeStack_PTR                      \x015b
-#define ARG_pspUmdInfo_PTR                      \x015c
-#define ARG_pspUtilityNetConfData_PTR           \x015d
-#define ARG_netData_PTR                         \x015e
-#define ARG_pspUtilityMsgDialogParams_PTR       \x015f
-#define ARG_SceUtilitySaveDataParam_PTR         \x0160
-#define ARG_SceUtilityOskParams_PTR             \x0161
-#define ARG_pspUtilityGameSharingParams_PTR     \x0162
-#define ARG_pspUtilityHtmlViewerParam_PTR       \x0163
-#define ARG_PspBufferInfo_PTR                   \x0164
-#define ARG_PspOpenPSID_PTR                     \x0165
-#define ARG_SceKernelUtilsSha1Context_PTR       \x0166
-#define ARG_PspDebugPutChar                     \x0167
-#define ARG_SceModule_PTR                       \x0168
-#define ARG_PspIoDrv_PTR                        \x0169
-#define ARG_SceKernelLoadExecVSHParam_PTR       \x016a
-#define ARG_PspUsbCamSetupVideoParam_PTR        \x016b
-#define ARG_PspUsbCamSetupVideoExParam_PTR      \x016c
-#define ARG_PspUsbCamSetupStillParam_PTR        \x016d
-#define ARG_PspUsbCamSetupStillExParam_PTR      \x016e
-
-#define ARG_VA_ARGS        \xfffe
-#define ARG_UNKNOWN        \xffff
-
 
 const char *get_psp_function_arg_name(psp_function_arg_t arg)
 {
@@ -213,77 +28,11 @@ const char *get_psp_function_arg_name(psp_function_arg_t arg)
     return nullptr;
 }
 
-// pspdev/pspsdk headers
-const char *unknown_header = "unknown header";
-const char *user_pspintrman_h = "user/pspintrman.h";
-const char *user_pspthreadman_h = "user/pspthreadman.h";
-const char *user_psploadexec_h = "user/psploadexec.h";
-const char *user_psputils_h = "user/psputils.h";
-const char *user_pspsysmem_h = "user/pspsysmem.h";
-const char *user_pspiofilemgr_h = "user/pspiofilemgr.h";
-const char *user_pspmodulemgr_h = "user/pspmodulemgr.h";
-const char *user_pspstdio_h = "user/pspstdio.h";
-const char *user_pspsuspend_h = "user/pspsuspend.h";
-const char *kernel_psputilsforkernel_h = "kernel/psputilsforkernel.h";
-const char *kernel_pspaudiorouting_h = "kernel/pspaudiorouting.h";
-const char *kernel_pspimpose_driver = "kernel/pspimpose_driver.h";
-const char *kernel_pspkdebug_h = "kernel/pspkdebug.h";
-const char *kernel_pspstdio_kernel_h = "kernel/pspstdio_kernel.h";
-const char *kernel_psploadcore_h = "kernel/psploadcore.h";
-const char *kernel_pspkernel_h = "kernel/pspkernel.h";
-const char *kernel_pspmodulemgr_kernel_h = "kernel/pspmodulemgr_kernel.h";
-const char *kernel_pspiofilemgr_kernel_h = "kernel/pspiofilemgr_kernel.h";
-const char *kernel_psploadexec_kernel_h = "kernel/psploadexec_kernel.h";
-const char *kernel_pspsysmem_kernel_h = "kernel/pspsysmem_kernel.h";
-const char *hprm_psphprm_h = "hprm/psphprm.h";
-const char *ctrl_pspctrl_h = "ctrl/pspctrl.h";
-const char *display_pspdisplay_h = "display/pspdisplay.h";
-const char *display_pspdisplay_kernel_h = "display/pspdisplay_kernel.h";
-const char *audio_pspaudio_h = "audio/pspaudio.h";
-const char *audio_pspaudio_kernel_h = "audio/pspaudio_kernel.h";
-const char *audio_pspaudiocodec_h = "audio/pspaudiocodec.h";
-const char *net_pspnet_h = "net/pspnet.h";
-const char *net_pspnet_resolver_h = "net/pspnet_resolver.h";
-const char *net_pspnet_inet_h = "net/pspnet_inet.h";
-const char *net_pspnet_apctl_h = "net/pspnet_apctl.h";
-const char *net_pspnet_adhoc_h = "net/pspnet_adhoc.h";
-const char *net_pspnet_adhocctl_h = "net/pspnet_adhocctl.h";
-const char *net_pspnet_adhocmatching_h = "net/pspnet_adhocmatching.h";
-const char *net_psphttp_h = "net/psphttp.h";
-const char *net_pspssl_h = "net/pspssl.h";
-const char *libcglue_arpa_inet_h = "libcglue/arpa/inet.h";
-const char *rtc_psprtc_h = "rtc/psprtc.h";
-const char *wlan_pspwlan_h = "wlan/pspwlan.h";
-const char *mpeg_pspmpeg_h = "mpeg/pspmpeg.h";
-const char *mpeg_pspjpeg_h = "mpeg/pspjpeg.h";
-const char *mpeg_pspmpegbase_h = "mpeg/pspmpegbase.h";
-const char *mp3_pspmp3_h = "mp3/pspmp3.h";
-const char *power_psppower_h = "power/psppower.h";
-const char *ge_pspge_h = "ge/pspge.h";
-const char *umd_pspumd_h = "umd/pspumd.h";
-const char *dmac_pspdmac_h = "dmac/pspdmac.h";
-const char *utility_psputility_netmodules_h = "utility/psputility_netmodules.h";
-const char *utility_psputility_netconf_h = "utility/psputility_netconf.h";
-const char *utility_psputility_netparam_h = "utility/psputility_netparam.h";
-const char *utility_psputility_msgdialog_h = "utility/psputility_msgdialog.h";
-const char *utility_psputility_savedata_h = "utility/psputility_savedata.h";
-const char *utility_psputility_osk_h = "utility/psputility_osk.h";
-const char *utility_psputility_sysparam_h = "utility/psputility_sysparam.h";
-const char *utility_psputility_gamesharing_h = "utility/psputility_gamesharing.h";
-const char *utility_psputility_htmlviewer_h = "utility/psputility_htmlviewer.h";
-const char *utility_psputility_avmodules_h = "utility/psputility_avmodules.h";
-const char *utility_psputility_modules_h = "utility/psputility_modules.h";
-const char *utility_psputility_usbmodules_h = "utility/psputility_usbmodules.h";
-const char *atrac3_pspatrac3_h = "atrac3/pspatrac3.h";
-const char *openpsid_pspopenpsid_h = "openpsid/pspopenpsid.h";
-const char *usbstor_pspusbstor_h = "usbstor/pspusbstor.h";
-const char *usb_pspusb_h = "usb/pspusb.h";
-const char *usb_pspusbcam_h = "usb/pspusbcam.h";
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
 
-// not auto generated anymore, but using PPSSPPs HLE modules
+// not auto generated anymore, but using PPSSPPs HLE modules.
 // you can generate most of this
 // (just iterating moduleDB & formatting print in HLE.cpp)
 const std::array _modules
