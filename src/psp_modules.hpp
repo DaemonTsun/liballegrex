@@ -17,7 +17,6 @@ struct psp_function
     const char *header_file; // pspsdk header file
     u16 module_num;
     u16 function_num;
-
 };
 
 struct psp_module
@@ -27,8 +26,8 @@ struct psp_module
     std::vector<psp_function> functions;
 };
 
-const psp_module *get_modules();
-size_t get_module_count();
+const psp_module *get_psp_modules();
+size_t get_psp_module_count();
 
 const psp_function *get_psp_function(u16 mod, u16 fun);
 const char *get_psp_module_name(u16 mod);

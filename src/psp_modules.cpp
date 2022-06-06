@@ -24,8 +24,7 @@ static_assert(ARGS(a, b, c) == L"abc");
 
 const char *get_psp_function_arg_name(psp_function_arg_t arg)
 {
-    // TODO: implement once all arguments are known
-    return nullptr;
+    return _get_psp_function_arg_name(arg);
 }
 
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
@@ -1313,7 +1312,7 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_VOID_PTR_PTR, ARG_S32_PTR, ARG_S32_PTR, ARG_S32), 
           display_pspdisplay_h, 14, 2 },
         { 0x36cdfade, "sceDisplayWaitVblank",
-          RET(ARG_s32), NO_ARGS,
+          RET(ARG_S32), NO_ARGS,
           display_pspdisplay_h, 14, 3 },
         { 0x984c27e7, "sceDisplayWaitVblankStart",
           RET(ARG_S32), NO_ARGS,
@@ -2306,7 +2305,7 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_SceMpeg_PTR, ARG_S32_PTR, ARG_S32_PTR), 
           mpeg_pspmpeg_h, 28, 3 },
         { 0xc132e22f, "sceMpegQueryMemSize",
-          RET(ARG_S32), ARGS(SCE_S32), // NO_ARGS,
+          RET(ARG_S32), ARGS(ARG_S32), // NO_ARGS,
           mpeg_pspmpeg_h, 28, 4 },
         { 0x21ff80e4, "sceMpegQueryStreamOffset",
           RET(ARG_S32), ARGS(ARG_SceMpeg_PTR, ARG_VOID_PTR, ARG_S32_PTR), 
@@ -5090,7 +5089,7 @@ const std::array _modules
           RET(ARG_S32), ARGS(ARG_VOID_PTR_PTR, ARG_S32_PTR, ARG_S32_PTR, ARG_S32), 
           display_pspdisplay_h, 87, 2 },
         { 0x36cdfade, "sceDisplayWaitVblank",
-          RET(ARG_s32), NO_ARGS,
+          RET(ARG_S32), NO_ARGS,
           display_pspdisplay_h, 87, 3 },
         { 0x984c27e7, "sceDisplayWaitVblankStart",
           RET(ARG_S32), NO_ARGS,
@@ -5642,12 +5641,12 @@ const psp_module unknown_module{0xffff, "unknown_module", {
     }
 };
 
-const psp_module *get_modules()
+const psp_module *get_psp_modules()
 {
     return _modules.data();
 }
 
-size_t get_module_count()
+size_t get_psp_module_count()
 {
     return _modules.size();
 }

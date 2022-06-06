@@ -1,6 +1,9 @@
 
 #pragma once
 
+typedef wchar_t psp_function_arg_t;
+const char *_get_psp_function_arg_name(psp_function_arg_t arg);
+
 // type of arguments and return value of psp functions
 #define ARG_NONE           \x0000
 #define ARG_VOID           \x0001
@@ -97,17 +100,16 @@
 #define ARG_SceCtrlData_PTR                     \x012c
 #define ARG_SceCtrlLatch_PTR                    \x012d
 #define ARG_pspAudioInputParams_PTR             \x012e
-// #define ARG_SceNetMallocStat_PTR                \x012f
-#define ARG_in_addr_PTR                         \x0130
-#define ARG_CONST_in_addr_PTR                   \x0131
-#define ARG_socklen_t                           \x0132
-#define ARG_socklen_t_PTR                       \x0133
-#define ARG_sockaddr_PTR                        \x0134
-#define ARG_CONST_sockaddr_PTR                  \x0135
-#define ARG_fd_set_PTR                          \x0136
-#define ARG_SceNetMallocStat_PTR                \x0137
-#define ARG_msghdr_PTR                          \x0138
-#define ARG_CONST_msghdr_PTR                    \x0138
+#define ARG_msghdr_PTR                          \x012f
+#define ARG_CONST_msghdr_PTR                    \x0130
+#define ARG_in_addr_PTR                         \x0131
+#define ARG_CONST_in_addr_PTR                   \x0132
+#define ARG_socklen_t                           \x0133
+#define ARG_socklen_t_PTR                       \x0134
+#define ARG_sockaddr_PTR                        \x0135
+#define ARG_CONST_sockaddr_PTR                  \x0136
+#define ARG_fd_set_PTR                          \x0137
+#define ARG_SceNetMallocStat_PTR                \x0138
 #define ARG_in_addr_t                           \x0139
 #define ARG_sceNetApctlHandler                  \x013a
 #define ARG_SceNetApctlInfo_PTR                 \x013b
@@ -147,7 +149,7 @@
 #define ARG_pspUtilityNetConfData_PTR           \x015d
 #define ARG_netData_PTR                         \x015e
 #define ARG_pspUtilityMsgDialogParams_PTR       \x015f
-#define ARG_SceUtilitySaveDataParam_PTR         \x0160
+#define ARG_SceUtilitySavedataParam_PTR         \x0160
 #define ARG_SceUtilityOskParams_PTR             \x0161
 #define ARG_pspUtilityGameSharingParams_PTR     \x0162
 #define ARG_pspUtilityHtmlViewerParam_PTR       \x0163
@@ -162,6 +164,7 @@
 #define ARG_PspUsbCamSetupVideoExParam_PTR      \x016c
 #define ARG_PspUsbCamSetupStillParam_PTR        \x016d
 #define ARG_PspUsbCamSetupStillExParam_PTR      \x016e
+#define ARG_SceNetInetTimeval_PTR               \x016f
 
 #define ARG_VA_ARGS        \xfffe
 #define ARG_UNKNOWN        \xffff
