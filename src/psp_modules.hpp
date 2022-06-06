@@ -27,6 +27,9 @@ struct psp_module
     std::vector<psp_function> functions;
 };
 
+const psp_module *get_modules();
+size_t get_module_count();
+
 const psp_function *get_psp_function(u16 mod, u16 fun);
 const char *get_psp_module_name(u16 mod);
 const char *get_psp_function_name(u16 mod, u16 fun);

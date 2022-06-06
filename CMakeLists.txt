@@ -23,3 +23,6 @@ target_link_libraries(${PROJECT_NAME} kirk)
 
 add_subdirectory(psp-elfdump)
 add_subdirectory(tests)
+
+# etc
+add_subdirectory(psp-module-format)

@@ -28,7 +28,6 @@ const char *get_psp_function_arg_name(psp_function_arg_t arg)
     return nullptr;
 }
 
-
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
 // https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
 
@@ -5642,6 +5641,16 @@ const psp_module unknown_module{0xffff, "unknown_module", {
           unknown_header, 0xffff, 0xffff }
     }
 };
+
+const psp_module *get_modules()
+{
+    return _modules.data();
+}
+
+size_t get_module_count()
+{
+    return _modules.size();
+}
 
 const psp_function *get_psp_function(u16 mod, u16 fun)
 {
