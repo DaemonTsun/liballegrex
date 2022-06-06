@@ -24,11 +24,18 @@ struct psp_module
     u16 module_num;
     const char *name;
     std::vector<psp_function> functions;
+
+    /* TODO:
+    const psp_function *functions;
+    size_t function_count;
+    */
 };
 
 const psp_module *get_psp_modules();
 size_t get_psp_module_count();
 
+// TODO: get function by nid & (optional) module
+// TODO: get function by name & (optional) module
 const psp_function *get_psp_function(u16 mod, u16 fun);
 const char *get_psp_module_name(u16 mod);
 const char *get_psp_function_name(u16 mod, u16 fun);
