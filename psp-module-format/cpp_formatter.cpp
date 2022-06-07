@@ -230,9 +230,10 @@ void print_cpp_modules(FILE *f)
                "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp\n"
                "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp\n"
                "\n"
-               "// not auto generated anymore, but using PPSSPPs HLE modules.\n"
+               "// not auto generated anymore using PPSSPPs HLE modules.\n"
                "// you can generate most of this\n"
                "// (just iterating moduleDB & formatting print in HLE.cpp)\n"
+               "// now it's self-generated.\n"
                "\n");
 
     fprintf(f, "const std::array _modules\n{");
