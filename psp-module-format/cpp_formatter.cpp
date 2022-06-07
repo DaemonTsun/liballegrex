@@ -223,6 +223,18 @@ void print_cpp_modules(FILE *f)
     auto n = get_psp_module_count();
     const psp_module *mods = get_psp_modules();
 
+    fprintf(f, "// the list of modules included by src/psp_modules.cpp.\n"
+               "// see src/psp_modules.hpp for the structure of modules\n"
+               "// and functions.\n"
+               "\n"
+               "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp\n"
+               "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp\n"
+               "\n"
+               "// not auto generated anymore, but using PPSSPPs HLE modules.\n"
+               "// you can generate most of this\n"
+               "// (just iterating moduleDB & formatting print in HLE.cpp)\n"
+               "\n");
+
     fprintf(f, "const std::array _modules\n{");
 
     for (int i = 0; i < n; ++i)
@@ -232,5 +244,5 @@ void print_cpp_modules(FILE *f)
         print_cpp_module(f, mod, i+1 == n);
     }
 
-    fprintf(f, "}\n");
+    fprintf(f, "};\n");
 }
