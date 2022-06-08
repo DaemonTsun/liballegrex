@@ -46,6 +46,9 @@ u32 get_psp_module_count()
 
 const psp_module *get_psp_module_by_name(const char *mod)
 {
+    if (mod == nullptr)
+        return nullptr;
+
     // could be optimized
     for (const psp_module &md : _modules)
         if (strcmp(md.name, mod) == 0)
@@ -56,6 +59,9 @@ const psp_module *get_psp_module_by_name(const char *mod)
 
 const psp_function *get_psp_function_by_nid(const char *mod, u32 nid)
 {
+    if (mod == nullptr)
+        return nullptr;
+
     const psp_module *md = get_psp_module_by_name(mod);
 
     if (md == nullptr)
@@ -75,6 +81,9 @@ const psp_function *get_psp_function_by_nid(const char *mod, u32 nid)
 
 const psp_function *get_psp_function_by_name(const char *mod, const char *name)
 {
+    if (mod == nullptr || name == nullptr)
+        return nullptr;
+
     const psp_module *md = get_psp_module_by_name(mod);
 
     if (md == nullptr)
@@ -91,7 +100,7 @@ const psp_function *get_psp_function_by_name(const char *mod, const char *name)
 
         get_psp_function_nid_name(f, nidname);
 
-        if (strcmp(f->name, nidname) == 0)
+        if (strcmp(nidname, name) == 0)
             return f;
     }
 
@@ -126,6 +135,9 @@ const char *get_psp_function_name(u16 mod, u16 fun)
 
 void get_psp_function_nid_name(const psp_function *fun, char *dst, u32 sz)
 {
+    if (fun == nullptr || dst == nullptr)
+        return;
+
     const psp_module *md = &_modules.at(fun->module_num);
     snprintf(dst, sz, "%s_%08X", md->name, fun->nid);
 }
