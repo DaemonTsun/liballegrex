@@ -32,8 +32,8 @@ void print_module(FILE *f, const psp_module *mod)
 {
     fprintf(f, "%u %s\n", mod->module_num, mod->name);
 
-    for (int i = 0; i < mod->functions.size(); ++i)
-        print_module_function(f, &mod->functions.at(i));
+    for (int i = 0; i < mod->function_count; ++i)
+        print_module_function(f, mod->functions + i);
 }
 
 void print_modules(FILE *f)

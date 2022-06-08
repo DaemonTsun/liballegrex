@@ -29,19 +29,20 @@ const char *get_psp_function_arg_name(psp_function_arg_t arg)
 
 #include "internal/psp_modules.inl"
 
-const psp_module unknown_module{0xffff, "unknown_module", {
-        { 0xffffffff, "unknown function",
-          L'\0', L"",
-          unknown_header, 0xffff, 0xffff }
-    }
+constexpr psp_function unknown_function{
+    0xffffffff, "unknown function",
+    L'\0', L"",
+    unknown_header, 0xffff, 0xffff
 };
+
+constexpr psp_module unknown_module{0xffff, "unknown_module", &unknown_function, 1};
 
 const psp_module *get_psp_modules()
 {
     return _modules.data();
 }
 
-size_t get_psp_module_count()
+u32 get_psp_module_count()
 {
     return _modules.size();
 }
@@ -49,14 +50,14 @@ size_t get_psp_module_count()
 const psp_function *get_psp_function(u16 mod, u16 fun)
 {
     if (mod >= _modules.size())
-        return &unknown_module.functions.at(0);
+        return &unknown_function;
 
     const psp_module &m = _modules.at(mod);
     
-    if (fun >= m.functions.size())
-        return &unknown_module.functions.at(0);
+    if (fun >= m.function_count)
+        return &unknown_function;
 
-    return &m.functions.at(fun);
+    return m.functions + fun;
 }
 
 const char *get_psp_module_name(u16 mod)

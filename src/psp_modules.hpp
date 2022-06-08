@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <vector> // TODO: remove
 #include "number_types.hpp"
 
 typedef wchar_t psp_function_arg_t;
@@ -23,16 +22,13 @@ struct psp_module
 {
     u16 module_num;
     const char *name;
-    std::vector<psp_function> functions;
 
-    /* TODO:
     const psp_function *functions;
-    size_t function_count;
-    */
+    u32 function_count;
 };
 
 const psp_module *get_psp_modules();
-size_t get_psp_module_count();
+u32 get_psp_module_count();
 
 // TODO: get function by nid & (optional) module
 // TODO: get function by name & (optional) module

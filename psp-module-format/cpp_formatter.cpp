@@ -14,6 +14,8 @@
 #include "psp_modules.hpp"
 #include "cpp_formatter.hpp"
 
+// cpp formatter
+
 struct liballegrex_data_t
 {
     std::map<psp_function_arg_t, std::string> function_args;
@@ -198,22 +200,32 @@ const char *get_cpp_pspdev_header_file_var(const char *header_file)
 
 void print_cpp_module_function(FILE *f, const psp_function *func, bool last)
 {
-    fprintf(f, "        { 0x%08x, \"%s\",\n", func->nid, func->name);
-    fprintf(f, "          RET(%s), ", get_cpp_psp_func_argument_name(func->ret));
+    fprintf(f, "    psp_function{ 0x%08x, \"%s\",\n", func->nid, func->name);
+    fprintf(f, "                  RET(%s), ", get_cpp_psp_func_argument_name(func->ret));
     print_cpp_module_function_args(f, func->args);
     fprintf(f, ",\n");
-    fprintf(f, "          %s, %u, %u }%s\n", get_cpp_pspdev_header_file_var(func->header_file), func->module_num, func->function_num, last ? "" : ",");
+    fprintf(f, "                  %s, %u, %u }%s\n", get_cpp_pspdev_header_file_var(func->header_file), func->module_num, func->function_num, last ? "" : ",");
 }
 
-// cpp formatter
+void print_cpp_module_functions(FILE *f, const psp_module *mod)
+{
+    fprintf(f, "// module %s, id %u, %u functions\n", mod->name, mod->module_num, mod->function_count);
+
+    if (mod->function_count == 0)
+        return;
+
+    fprintf(f, "constexpr std::array %s%u_functions\n{\n", mod->name, mod->module_num);
+
+    for (int i = 0; i < mod->function_count; ++i)
+        print_cpp_module_function(f, mod->functions + i, i+1 == mod->function_count);
+
+    fprintf(f, "};\n\n");
+}
+
 void print_cpp_module(FILE *f, const psp_module *mod, bool last)
 {
-    fprintf(f, "\n    psp_module{%u, \"%s\", {\n", mod->module_num, mod->name);
-
-    for (int i = 0; i < mod->functions.size(); ++i)
-        print_cpp_module_function(f, &mod->functions.at(i), i+1 == mod->functions.size());
-
-    fprintf(f, "    }}%s\n", last ? "" : ",");
+    fprintf(f, "    %s", mod->function_count > 0 ? "DEFINE_PSP_MODULE" : "DEFINE_EMPTY_PSP_MODULE");
+    fprintf(f, "(%u, %s)%s\n", mod->module_num, mod->name, last ? "" : ",");
 }
 
 void print_cpp_modules(FILE *f)
@@ -236,12 +248,24 @@ void print_cpp_modules(FILE *f)
                "// now it's self-generated.\n"
                "\n");
 
-    fprintf(f, "const std::array _modules\n{");
 
     for (int i = 0; i < n; ++i)
     {
         const psp_module *mod = &mods[i];
+        print_cpp_module_functions(f, mod);
+    }
 
+    fprintf(f, "\n#define DEFINE_PSP_MODULE(NUM, NAME)\\\n");
+    fprintf(f, "  psp_module{NUM, #NAME, NAME##NUM##_functions.data(), NAME##NUM##_functions.size()}\n\n");
+
+    fprintf(f, "#define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\\\n");
+    fprintf(f, "  psp_module{NUM, #NAME, nullptr, 0}\n\n");
+
+    fprintf(f, "constexpr std::array _modules\n{\n");
+
+    for (int i = 0; i < n; ++i)
+    {
+        const psp_module *mod = &mods[i];
         print_cpp_module(f, mod, i+1 == n);
     }
 
