@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "string.hpp"
+#include "psp_prx.hpp"
 #include "prx_decrypt.hpp"
 #include "psp_elf.hpp"
 
@@ -15,19 +16,43 @@
 #define R_MIPS_HI16  5
 #define R_MIPS_LO16  6
 */
+#define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
+#define ELF_SECTION_PRX_IMPORT ".lib.stub"
+#define ELF_SECTION_PRX_EXPORT ".lib.ent"
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
-#define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
+// #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
+
+template<typename StreamT, typename T>
+void read_section(StreamT *in, const Elf32_Ehdr *ehdr, int index, T *out)
+{
+    in->read_at(out, ehdr->e_shoff + (index) * ehdr->e_shentsize);
+}
 
 template<typename StreamT>
-void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, int section_index, char *string_table_data, symbol_map &symbols)
+struct elf_read_ctx
+{
+    StreamT *in;
+    const psp_elf_read_config *conf;
+    const Elf32_Ehdr *elf_header;
+    const char *string_table_data;
+    u32 min_vaddr;
+    u32 max_vaddr;
+    u32 min_offset;
+    u32 max_offset;
+};
+
+#define file_offset_from_vaddr(ctx, vaddr) ((vaddr - ctx->min_vaddr) + ctx->min_offset)
+
+template<typename StreamT>
+void add_symbols(elf_read_ctx<StreamT> *ctx, int section_index, symbol_map &symbols)
 {
     // there's a good chance symbols don't exist
-    for (int i = 0; i < elf_header.e_shnum; i++)
+    for (int i = 0; i < ctx->elf_header->e_shnum; i++)
     {
         Elf32_Shdr sec_header;
-        read_section(in, elf_header, i, &sec_header);
-        const char *section_name = string_table_data + sec_header.sh_name;
+        read_section(ctx->in, ctx->elf_header, i, &sec_header);
+        const char *section_name = ctx->string_table_data + sec_header.sh_name;
 
         if (sec_header.sh_type != SHT_SYMTAB)
             continue;
@@ -38,19 +63,19 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
             // log empty tables maybe?
             continue;
 
-        log(conf, "found symtab %s\n", section_name);
+        log(ctx->conf, "found symtab %s\n", section_name);
 
         Elf32_Shdr strtab_header;
-        read_section(in, elf_header, sec_header.sh_link, &strtab_header);
+        read_section(ctx->in, ctx->elf_header, sec_header.sh_link, &strtab_header);
 
         std::vector<char> sec_string_table;
         sec_string_table.resize(strtab_header.sh_size);
-        in->read_at(sec_string_table.data(), strtab_header.sh_offset, strtab_header.sh_size);
+        ctx->in->read_at(sec_string_table.data(), strtab_header.sh_offset, strtab_header.sh_size);
 
         for (u32 i = 0; i < sec_header.sh_size; i += sizeof(Elf32_Sym))
         {
             Elf32_Sym sym;
-            in->read_at(&sym, sec_header.sh_offset + i);
+            ctx->in->read_at(&sym, sec_header.sh_offset + i);
 
             const char *name = sec_string_table.data() + sym.st_name;
 
@@ -60,7 +85,7 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
             if (sym.st_shndx != section_index) //|| name[0] == '.')
                 continue;
 
-            log(conf, "  symbol at %08x: '%s'\n", sym.st_value, name);
+            log(ctx->conf, "  symbol at %08x: '%s'\n", sym.st_value, name);
             symbols[sym.st_value] = elf_symbol{sym.st_value, std::string(name)};
         }
     }
@@ -70,19 +95,19 @@ void add_symbols(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_h
 // currently only logs relocations
 // do games have relocations...?
 template<typename StreamT>
-void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &elf_header, char *string_table_data, std::vector<elf_relocation> &out)
+void add_relocations(elf_read_ctx<StreamT> *ctx, std::vector<elf_relocation> &out)
 {
-    for (int i = 0; i < elf_header.e_shnum; ++i)
+    for (int i = 0; i < ctx->elf_header->e_shnum; ++i)
     {
         Elf32_Shdr sec_header;
-        read_section(in, elf_header, i, &sec_header);
+        read_section(ctx->in, ctx->elf_header, i, &sec_header);
 
         if (sec_header.sh_type != SHT_REL
         // || sec_header.sh_info != (u32)section_index
          )
             continue;
 
-        const char *section_name = string_table_data + sec_header.sh_name;
+        const char *section_name = ctx->string_table_data + sec_header.sh_name;
 
         assert(sec_header.sh_entsize == sizeof(Elf32_Rel));
 
@@ -90,18 +115,127 @@ void add_relocations(StreamT *in, const psp_elf_read_config *conf, Elf32_Ehdr &e
             // log empty tables maybe?
             continue;
 
-        log(conf, "got relocation table %s\n", section_name);
+        log(ctx->conf, "got relocation table %s\n", section_name);
 
         for (u32 j = 0; j < sec_header.sh_size; j += sizeof(Elf32_Rel))
         {
             Elf32_Rel rel;
-            in->read_at(&rel, sec_header.sh_offset + j);
+            ctx->in->read_at(&rel, sec_header.sh_offset + j);
             u32 index = ELF32_R_SYM(rel.r_info);
             u32 type = ELF32_R_TYPE(rel.r_info);
 
-            log(conf, "  relocation %08x, %d %d\n", rel.r_offset, index, type);
+            log(ctx->conf, "  relocation %08x, %d %d\n", rel.r_offset, index, type);
         }
     }
+}
+
+template<typename StreamT>
+bool get_section_header_by_name(elf_read_ctx<StreamT> *ctx, const char *name, Elf32_Shdr *out)
+{
+    if (out == nullptr)
+        return false;
+
+    for (int i = 0; i < ctx->elf_header->e_shnum; i++)
+    {
+        read_section(ctx->in, ctx->elf_header, i, out);
+
+        const char *section_name = ctx->string_table_data + out->sh_name;
+
+        if (strcmp(section_name, name) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+template<typename StreamT>
+void read_prx_sce_module_info_section_header(elf_read_ctx<StreamT> *ctx, prx_sce_module_info *out)
+{
+    assert(out != nullptr);
+
+    Elf32_Shdr sceModuleInfo_section_header;
+
+    log(ctx->conf, "\n");
+
+    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_MODULE_INFO, &sceModuleInfo_section_header))
+    {
+        log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_MODULE_INFO);
+        return;
+    }
+
+    log(ctx->conf, "found .rodata.sceModuleInfo section at %08x (size %08x):\n", sceModuleInfo_section_header.sh_offset, sceModuleInfo_section_header.sh_size);
+
+    ctx->in->read_at(out, sceModuleInfo_section_header.sh_offset);
+
+    log(ctx->conf, "  flags:  %08x\n", out->flags);
+    log(ctx->conf, "  name:   %s\n", out->name);
+    log(ctx->conf, "  gp:     %08x\n", out->gp);
+    log(ctx->conf, "  export: %08x - %08x\n", out->export_offset_start, out->export_offset_end);
+    log(ctx->conf, "  import: %08x - %08x\n", out->import_offset_start, out->import_offset_end);
+}
+
+template<typename StreamT>
+void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
+{
+    Elf32_Shdr exports_section_header;
+
+    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_EXPORT, &exports_section_header))
+    {
+        log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_EXPORT);
+        return;
+    }
+
+    u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
+    assert((sz % sizeof(prx_module_export)) == 0);
+
+    u32 count = sz / sizeof(prx_module_export);
+
+    for (u32 i = 0; i < sz; i += sizeof(prx_module_export))
+    {
+        prx_module_export exp;
+        ctx->in->read_at(&exp, exports_section_header.sh_offset + i);
+
+        log(ctx->conf, "export %08x %08x %08x %08x\n", exp.name, exp.flags, exp.count, exp.exports);
+    }
+
+    // TODO: exports
+}
+
+template<typename StreamT>
+void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
+{
+    Elf32_Shdr imports_section_header;
+
+    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_IMPORT, &imports_section_header))
+    {
+        log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_IMPORT);
+        return;
+    }
+
+    u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
+    assert((sz % sizeof(prx_module_import)) == 0);
+
+    for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
+    {
+        prx_module_import imp;
+        ctx->in->read_at(&imp, imports_section_header.sh_offset + i);
+
+        const char *name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name);
+
+        log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n", name, imp.name, imp.flags, imp.entry_size, imp.variable_count, imp.function_count, imp.nids, imp.functions);
+    }
+
+    // TODO: imports
+}
+
+template<typename StreamT>
+void add_prx_imports_exports(elf_read_ctx<StreamT> *ctx /* TODO: output */)
+{
+    prx_sce_module_info mod_info;
+    read_prx_sce_module_info_section_header(ctx, &mod_info);
+
+    add_prx_exports(ctx, &mod_info);
+    add_prx_imports(ctx, &mod_info);
 }
 
 void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
@@ -133,7 +267,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     }
 
     Elf32_Shdr string_table_header;
-    read_section(in, elf_header, elf_header.e_shstrndx, &string_table_header);
+    read_section(in, &elf_header, elf_header.e_shstrndx, &string_table_header);
 
     std::vector<char> string_table;
     string_table.resize(string_table_header.sh_size);
@@ -147,7 +281,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
 
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
-        read_section(in, elf_header, i, &section_header);
+        read_section(in, &elf_header, i, &section_header);
         const char *section_name = string_table.data() + section_header.sh_name;
 
         if (conf->section.empty())
@@ -158,7 +292,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         else if (conf->section != section_name)
             continue;
 
-        log(conf, "found section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
+        log(conf, "found executable section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
         section_indices.push_back(i);
     }
 
@@ -170,11 +304,48 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
             throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
     }
 
-    add_relocations(in, conf, elf_header, string_table.data(), out->relocations);
+    elf_read_ctx<memory_stream> ctx;
+    ctx.in = in;
+    ctx.conf = conf;
+    ctx.elf_header = &elf_header;
+    ctx.string_table_data = string_table.data();
+    ctx.min_vaddr = 0xFFFFFFFF;
+    ctx.max_vaddr = 0;
+    ctx.min_offset = 0xFFFFFFFF;
+    ctx.max_offset = 0;
+
+    // find elf section offsets (need the values for address calculations)
+    for (int i = 0; i < elf_header.e_shnum; ++i)
+    {
+        read_section(in, &elf_header, i, &section_header);
+
+        if ((section_header.sh_type & SHT_NOBITS) == SHT_NOBITS)
+            continue;
+
+        if (section_header.sh_addr == 0 || section_header.sh_offset == 0)
+            continue;
+
+        if (section_header.sh_addr < ctx.min_vaddr)
+            ctx.min_vaddr = section_header.sh_addr;
+
+        if (section_header.sh_addr + section_header.sh_size > ctx.max_offset)
+            ctx.max_vaddr = section_header.sh_addr + section_header.sh_size;
+
+        if (section_header.sh_offset < ctx.min_offset)
+            ctx.min_offset = section_header.sh_offset;
+
+        if (section_header.sh_offset + section_header.sh_size > ctx.max_offset)
+            ctx.max_offset = section_header.sh_offset + section_header.sh_size;
+    }
+    
+    log(conf, "min section vaddr:  %08x, max section vaddr:  %08x\n", ctx.min_vaddr,  ctx.max_vaddr);
+    log(conf, "min section offset: %08x, max section offset: %08x\n", ctx.min_offset, ctx.max_offset);
+
+    add_relocations(&ctx, out->relocations);
 
     for (int i : section_indices)
     {
-        read_section(in, elf_header, i, &section_header);
+        read_section(in, &elf_header, i, &section_header);
         const char *section_name = string_table.data() + section_header.sh_name;
 
         elf_section &esec = out->sections.emplace_back();
@@ -187,12 +358,14 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
 
         esec.vaddr = vaddr;
 
-        add_symbols(in, conf, elf_header, i, string_table.data(), out->symbols);
+        add_symbols(&ctx, i, out->symbols);
 
         esec.content = memory_stream(section_header.sh_size);
         esec.content_offset = section_header.sh_offset;
         in->read_at(esec.content.data(), section_header.sh_offset, section_header.sh_size);
     }
+
+    add_prx_imports_exports(&ctx);
 }
 
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
