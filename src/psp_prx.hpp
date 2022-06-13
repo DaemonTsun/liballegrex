@@ -20,21 +20,22 @@ struct prx_sce_module_info
 
 struct prx_module_export
 {
-	u32 name;
+	u32 name_vaddr;
 	u32 flags;
-	u32 count;
-	u32 exports;
+    u8  entry_size;
+    u8  variable_count;
+    u16 function_count;
+	u32 exports_vaddr;
 };
 
-// #pragma pack(push, 1)
 struct prx_module_import
 {
-    u32 name;
+    u32 name_vaddr;
     u32 flags;
     u8  entry_size;
     u8  variable_count;
     u16 function_count;
-    u32 nids;
-    u32 functions;
-};// __attribute__((packed));
-// #pragma pack(pop)
+    u32 nids_vaddr;
+    u32 functions_vaddr;
+};
+

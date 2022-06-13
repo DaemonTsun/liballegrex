@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "string.hpp"
+#include "psp_modules.hpp"
 #include "psp_prx.hpp"
 #include "prx_decrypt.hpp"
 #include "psp_elf.hpp"
@@ -177,25 +178,15 @@ void read_prx_sce_module_info_section_header(elf_read_ctx<StreamT> *ctx, prx_sce
 template<typename StreamT>
 void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
 {
-    Elf32_Shdr exports_section_header;
-
-    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_EXPORT, &exports_section_header))
-    {
-        log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_EXPORT);
-        return;
-    }
-
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
-
-    u32 count = sz / sizeof(prx_module_export);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_export))
     {
         prx_module_export exp;
-        ctx->in->read_at(&exp, exports_section_header.sh_offset + i);
+        ctx->in->read_at(&exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
 
-        log(ctx->conf, "export %08x %08x %08x %08x\n", exp.name, exp.flags, exp.count, exp.exports);
+        log(ctx->conf, "export %08x %08x %08x %08x\n", exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
     }
 
     // TODO: exports
@@ -204,25 +195,38 @@ void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
 template<typename StreamT>
 void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
 {
-    Elf32_Shdr imports_section_header;
-
-    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_IMPORT, &imports_section_header))
-    {
-        log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_IMPORT);
-        return;
-    }
-
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
     {
         prx_module_import imp;
-        ctx->in->read_at(&imp, imports_section_header.sh_offset + i);
+        ctx->in->read_at(&imp, file_offset_from_vaddr(ctx, mod_info->import_offset_start) + i);
 
-        const char *name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name);
+        const char *name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name_vaddr);
 
-        log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n", name, imp.name, imp.flags, imp.entry_size, imp.variable_count, imp.function_count, imp.nids, imp.functions);
+        log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n", name, imp.name_vaddr, imp.flags, imp.entry_size, imp.variable_count, imp.function_count, imp.nids_vaddr, imp.functions_vaddr);
+
+        for (u32 j = 0; j < imp.function_count; j += sizeof(u32))
+        {
+            u32 f_vaddr = imp.functions_vaddr + j * 2;
+            u32 nid;
+
+            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, imp.nids_vaddr) + j);
+
+            const psp_function *pf = get_psp_function_by_nid(name, nid);
+
+            if (pf == nullptr)
+            {
+                log(ctx->conf, "  could not find function %08x in module %s\n", nid, name);
+            }
+            else
+            {
+                log(ctx->conf, "  import %08x at vaddr %08x: %s\n", nid, f_vaddr, pf->name);
+            }
+        }
+
+        log(ctx->conf, "\n");
     }
 
     // TODO: imports
