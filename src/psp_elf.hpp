@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include "psp_modules.hpp"
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
 #include "number_types.hpp"
@@ -38,11 +39,20 @@ struct elf_section
     std::string name;
 };
 
+struct prx_function_import
+{
+    u32 address;
+    const psp_function *function;
+};
+
 typedef std::map<u32, elf_symbol> symbol_map;
+typedef std::map<u32, prx_function_import> import_map;
 
 struct elf_parse_data
 {
     symbol_map symbols;
+    import_map imports;
+
     std::vector<elf_relocation> relocations;
     std::vector<elf_section> sections;
 };

@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "string.hpp"
-#include "psp_modules.hpp"
 #include "psp_prx.hpp"
 #include "prx_decrypt.hpp"
 #include "psp_elf.hpp"
@@ -193,10 +192,11 @@ void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
 }
 
 template<typename StreamT>
-void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
+void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info, import_map *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
+    assert(out != nullptr);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
     {
@@ -223,23 +223,22 @@ void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
             else
             {
                 log(ctx->conf, "  import %08x at vaddr %08x: %s\n", nid, f_vaddr, pf->name);
+                out->emplace(f_vaddr, prx_function_import{f_vaddr, pf});
             }
         }
 
         log(ctx->conf, "\n");
     }
-
-    // TODO: imports
 }
 
 template<typename StreamT>
-void add_prx_imports_exports(elf_read_ctx<StreamT> *ctx /* TODO: output */)
+void add_prx_imports_exports(elf_read_ctx<StreamT> *ctx, /* TODO: exports */ import_map *imports)
 {
     prx_sce_module_info mod_info;
     read_prx_sce_module_info_section_header(ctx, &mod_info);
 
     add_prx_exports(ctx, &mod_info);
-    add_prx_imports(ctx, &mod_info);
+    add_prx_imports(ctx, &mod_info, imports);
 }
 
 void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
@@ -369,7 +368,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         in->read_at(esec.content.data(), section_header.sh_offset, section_header.sh_size);
     }
 
-    add_prx_imports_exports(&ctx);
+    add_prx_imports_exports(&ctx, &out->imports);
 }
 
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
