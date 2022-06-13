@@ -272,6 +272,12 @@ void add_symbols_to_jumps(jump_destination_array *jumps, symbol_map *syms)
         jumps->push_back(jump_destination{sp.first, jump_type::Jump});
 }
 
+void add_imports_to_jumps(jump_destination_array *jumps, import_map *imps)
+{
+    for (const auto &imp : *imps)
+        jumps->push_back(jump_destination{imp.first, jump_type::Jump});
+}
+
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 {
     psp_elf_read_config rconf;
@@ -291,6 +297,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dump_config dconf;
     dconf.log = log;
     dconf.symbols = &epdata.symbols;
+    dconf.imports = &epdata.imports;
     dconf.format = args.output_format;
     dconf.dump_sections.resize(epdata.sections.size());
 
@@ -315,6 +322,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     }
 
     add_symbols_to_jumps(&jumps, &epdata.symbols);
+    add_imports_to_jumps(&jumps, &epdata.imports);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;

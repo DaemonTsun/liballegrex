@@ -38,6 +38,7 @@ struct dump_config
     file_stream *log;
 
     symbol_map *symbols;
+    import_map *imports;
     // relocations;
     jump_destination_array *jump_destinations;
     std::vector<dump_section> dump_sections;

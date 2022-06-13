@@ -95,12 +95,27 @@ inline void fmt_jump_address_number(file_stream *out, u32 address, const dump_co
     out->format("0x%08x", address);
 }
 
-inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
+const char *lookup_address_name(u32 addr, const dump_config *conf)
 {
-    auto it = conf->symbols->find(address);
+    auto it = conf->symbols->find(addr);
 
     if (it != conf->symbols->end())
-        out->format("%s", it->second.name.c_str());
+        return it->second.name.c_str();
+
+    auto it2 = conf->imports->find(addr);
+
+    if (it2 != conf->imports->end())
+        return it2->second.function->name;
+
+    return nullptr;
+}
+
+inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
+{
+    const char *name = lookup_address_name(address, conf);
+
+    if (name != nullptr)
+        out->format("%s", name);
     else
         out->format("func_%08x", address);
 }
@@ -118,10 +133,10 @@ inline void fmt_branch_address_label(file_stream *out, u32 address, const dump_c
 
 inline void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
-    auto it = conf->symbols->find(address);
+    const char *name = lookup_address_name(address, conf);
 
-    if (it != conf->symbols->end())
-        out->format("glabel %s\n", it->second.name.c_str());
+    if (name != nullptr)
+        out->format("glabel %s\n", name);
     else
         out->format("glabel func_%08x\n", address);
 }
