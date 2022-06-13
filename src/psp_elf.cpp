@@ -207,8 +207,9 @@ void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
 
         log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n", name, imp.name_vaddr, imp.flags, imp.entry_size, imp.variable_count, imp.function_count, imp.nids_vaddr, imp.functions_vaddr);
 
-        for (u32 j = 0; j < imp.function_count; j += sizeof(u32))
+        for (u32 _j = 0; _j < imp.function_count; ++_j)
         {
+            u32 j = _j * sizeof(u32);
             u32 f_vaddr = imp.functions_vaddr + j * 2;
             u32 nid;
 
