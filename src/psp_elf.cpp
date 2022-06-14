@@ -267,6 +267,15 @@ void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf
     }
 }
 
+// returns the pointer to the start of the string table in the memory stream
+const char *get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
+{
+    Elf32_Shdr string_table_header;
+    read_section(in, elf_header, elf_header->e_shstrndx, &string_table_header);
+
+    return in->data() + string_table_header.sh_offset;
+}
+
 void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     Elf32_Ehdr elf_header;
@@ -295,16 +304,13 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         throw std::runtime_error("no section header table index found");
     }
 
-    Elf32_Shdr string_table_header;
-    read_section(in, &elf_header, elf_header.e_shstrndx, &string_table_header);
-
-    const char *string_table = in->data() + string_table_header.sh_offset;
+    const char *string_table = get_string_table(in, &elf_header);
     
+
     Elf32_Shdr section_header;
+    std::vector<int> section_indices;
 
     log(conf, "              %-20s: offset   - size\n", "name");
-
-    std::vector<int> section_indices;
 
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
