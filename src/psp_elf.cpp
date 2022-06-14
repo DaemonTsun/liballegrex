@@ -18,11 +18,9 @@
 */
 #define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
 
-#define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
+#define log(CONF, ...) {if (CONF->verbose && CONF->log != nullptr) {CONF->log->format(__VA_ARGS__);}};
 // #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
-// TODO: simplify this to only use memory stream
-// i mean really do we ever need file streams
 template<typename T>
 void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
 {
@@ -45,7 +43,7 @@ struct elf_read_ctx
 
 void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
 {
-    // there's a good chance symbols don't exist
+    // there's a good chance symbols don't exist, but we add them anyway
     for (int i = 0; i < ctx->elf_header->e_shnum; i++)
     {
         Elf32_Shdr sec_header;
@@ -84,7 +82,7 @@ void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
                 continue;
 
             log(ctx->conf, "  symbol at %08x: '%s'\n", sym.st_value, name);
-            symbols[sym.st_value] = elf_symbol{sym.st_value, std::string(name)};
+            symbols.emplace(sym.st_value, elf_symbol{sym.st_value, std::string(name)});
         }
     }
 }
@@ -235,6 +233,40 @@ void add_prx_imports_exports(elf_read_ctx *ctx, /* TODO: exports */ import_map *
     add_prx_imports(ctx, &mod_info, imports);
 }
 
+void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
+{
+    out->min_vaddr = 0xFFFFFFFF;
+    out->max_vaddr = 0;
+    out->min_offset = 0xFFFFFFFF;
+    out->max_offset = 0;
+
+    Elf32_Shdr section_header;
+
+    // find elf section offsets (need the values for address calculations)
+    for (int i = 0; i < elf_header->e_shnum; ++i)
+    {
+        read_section(in, elf_header, i, &section_header);
+
+        if ((section_header.sh_type & SHT_NOBITS) == SHT_NOBITS)
+            continue;
+
+        if (section_header.sh_addr == 0 || section_header.sh_offset == 0)
+            continue;
+
+        if (section_header.sh_addr < out->min_vaddr)
+            out->min_vaddr = section_header.sh_addr;
+
+        if (section_header.sh_addr + section_header.sh_size > out->max_offset)
+            out->max_vaddr = section_header.sh_addr + section_header.sh_size;
+
+        if (section_header.sh_offset < out->min_offset)
+            out->min_offset = section_header.sh_offset;
+
+        if (section_header.sh_offset + section_header.sh_size > out->max_offset)
+            out->max_offset = section_header.sh_offset + section_header.sh_size;
+    }
+}
+
 void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     Elf32_Ehdr elf_header;
@@ -306,34 +338,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     ctx.conf = conf;
     ctx.elf_header = &elf_header;
     ctx.string_table_data = string_table.data();
-    ctx.min_vaddr = 0xFFFFFFFF;
-    ctx.max_vaddr = 0;
-    ctx.min_offset = 0xFFFFFFFF;
-    ctx.max_offset = 0;
-
-    // find elf section offsets (need the values for address calculations)
-    for (int i = 0; i < elf_header.e_shnum; ++i)
-    {
-        read_section(in, &elf_header, i, &section_header);
-
-        if ((section_header.sh_type & SHT_NOBITS) == SHT_NOBITS)
-            continue;
-
-        if (section_header.sh_addr == 0 || section_header.sh_offset == 0)
-            continue;
-
-        if (section_header.sh_addr < ctx.min_vaddr)
-            ctx.min_vaddr = section_header.sh_addr;
-
-        if (section_header.sh_addr + section_header.sh_size > ctx.max_offset)
-            ctx.max_vaddr = section_header.sh_addr + section_header.sh_size;
-
-        if (section_header.sh_offset < ctx.min_offset)
-            ctx.min_offset = section_header.sh_offset;
-
-        if (section_header.sh_offset + section_header.sh_size > ctx.max_offset)
-            ctx.max_offset = section_header.sh_offset + section_header.sh_size;
-    }
+    get_elf_min_max_offsets_and_vaddrs(in, &elf_header, &ctx);
     
     log(conf, "min section vaddr:  %08x, max section vaddr:  %08x\n", ctx.min_vaddr,  ctx.max_vaddr);
     log(conf, "min section offset: %08x, max section offset: %08x\n", ctx.min_offset, ctx.max_offset);
