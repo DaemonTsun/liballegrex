@@ -17,12 +17,12 @@
 #define R_MIPS_LO16  6
 */
 #define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
-#define ELF_SECTION_PRX_IMPORT ".lib.stub"
-#define ELF_SECTION_PRX_EXPORT ".lib.ent"
 
 #define log(CONF, ...) {if (CONF->verbose) {CONF->log->format(__VA_ARGS__);}};
 // #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
+// TODO: simplify this to only use memory stream
+// i mean really do we ever need file streams
 template<typename StreamT, typename T>
 void read_section(StreamT *in, const Elf32_Ehdr *ehdr, int index, T *out)
 {
@@ -185,9 +185,10 @@ void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
         prx_module_export exp;
         ctx->in->read_at(&exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
 
-        log(ctx->conf, "export %08x %08x %08x %08x\n", exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
+        log(ctx->conf, "export %08x %08x %08x %08x %08x %08x\n", exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
     }
 
+    log(ctx->conf, "\n");
     // TODO: exports
 }
 

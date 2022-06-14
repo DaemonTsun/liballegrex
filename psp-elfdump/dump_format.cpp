@@ -127,7 +127,8 @@ inline void fmt_branch_address_number(file_stream *out, u32 address, const dump_
 
 inline void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
-    // TODO: use symbols for lookup
+    // we could use symbols for lookup, but these are just branch
+    // labels, not jumps usually.
     out->format(".L%08x", address);
 }
 
@@ -147,7 +148,8 @@ inline void fmt_no_jump_glabel(file_stream *out, u32 address, const dump_config 
 
 inline void fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
 {
-    // TODO: use symbols for lookup
+    // same thing as before, these are branches, not jumps.
+    // address name lookup is probably not necessary.
     out->format(".L%08x:\n", address);
 }
 
