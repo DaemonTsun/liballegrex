@@ -298,9 +298,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     Elf32_Shdr string_table_header;
     read_section(in, &elf_header, elf_header.e_shstrndx, &string_table_header);
 
-    std::vector<char> string_table;
-    string_table.resize(string_table_header.sh_size);
-    in->read_at(string_table.data(), string_table_header.sh_offset, string_table_header.sh_size);
+    const char *string_table = in->data() + string_table_header.sh_offset;
     
     Elf32_Shdr section_header;
 
@@ -311,7 +309,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     for (int i = 0; i < elf_header.e_shnum; ++i)
     {
         read_section(in, &elf_header, i, &section_header);
-        const char *section_name = string_table.data() + section_header.sh_name;
+        const char *section_name = string_table + section_header.sh_name;
 
         if (conf->section.empty())
         {
@@ -337,7 +335,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     ctx.in = in;
     ctx.conf = conf;
     ctx.elf_header = &elf_header;
-    ctx.string_table_data = string_table.data();
+    ctx.string_table_data = string_table;
     get_elf_min_max_offsets_and_vaddrs(in, &elf_header, &ctx);
     
     log(conf, "min section vaddr:  %08x, max section vaddr:  %08x\n", ctx.min_vaddr,  ctx.max_vaddr);
@@ -348,7 +346,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     for (int i : section_indices)
     {
         read_section(in, &elf_header, i, &section_header);
-        const char *section_name = string_table.data() + section_header.sh_name;
+        const char *section_name = string_table + section_header.sh_name;
 
         elf_section &esec = out->sections.emplace_back();
         esec.name = std::string(section_name);
