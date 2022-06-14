@@ -23,16 +23,15 @@
 
 // TODO: simplify this to only use memory stream
 // i mean really do we ever need file streams
-template<typename StreamT, typename T>
-void read_section(StreamT *in, const Elf32_Ehdr *ehdr, int index, T *out)
+template<typename T>
+void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
 {
     in->read_at(out, ehdr->e_shoff + (index) * ehdr->e_shentsize);
 }
 
-template<typename StreamT>
 struct elf_read_ctx
 {
-    StreamT *in;
+    memory_stream *in;
     const psp_elf_read_config *conf;
     const Elf32_Ehdr *elf_header;
     const char *string_table_data;
@@ -44,8 +43,7 @@ struct elf_read_ctx
 
 #define file_offset_from_vaddr(ctx, vaddr) ((vaddr - ctx->min_vaddr) + ctx->min_offset)
 
-template<typename StreamT>
-void add_symbols(elf_read_ctx<StreamT> *ctx, int section_index, symbol_map &symbols)
+void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
 {
     // there's a good chance symbols don't exist
     for (int i = 0; i < ctx->elf_header->e_shnum; i++)
@@ -94,8 +92,7 @@ void add_symbols(elf_read_ctx<StreamT> *ctx, int section_index, symbol_map &symb
 // TODO: actually add relocation information
 // currently only logs relocations
 // do games have relocations...?
-template<typename StreamT>
-void add_relocations(elf_read_ctx<StreamT> *ctx, std::vector<elf_relocation> &out)
+void add_relocations(elf_read_ctx *ctx, std::vector<elf_relocation> &out)
 {
     for (int i = 0; i < ctx->elf_header->e_shnum; ++i)
     {
@@ -129,8 +126,7 @@ void add_relocations(elf_read_ctx<StreamT> *ctx, std::vector<elf_relocation> &ou
     }
 }
 
-template<typename StreamT>
-bool get_section_header_by_name(elf_read_ctx<StreamT> *ctx, const char *name, Elf32_Shdr *out)
+bool get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr *out)
 {
     if (out == nullptr)
         return false;
@@ -148,8 +144,7 @@ bool get_section_header_by_name(elf_read_ctx<StreamT> *ctx, const char *name, El
     return false;
 }
 
-template<typename StreamT>
-void read_prx_sce_module_info_section_header(elf_read_ctx<StreamT> *ctx, prx_sce_module_info *out)
+void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_info *out)
 {
     assert(out != nullptr);
 
@@ -174,8 +169,7 @@ void read_prx_sce_module_info_section_header(elf_read_ctx<StreamT> *ctx, prx_sce
     log(ctx->conf, "  import: %08x - %08x\n", out->import_offset_start, out->import_offset_end);
 }
 
-template<typename StreamT>
-void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
+void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
 {
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
@@ -192,8 +186,7 @@ void add_prx_exports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
     // TODO: exports
 }
 
-template<typename StreamT>
-void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_info, import_map *out)
+void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, import_map *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
@@ -233,8 +226,7 @@ void add_prx_imports(elf_read_ctx<StreamT> *ctx, const prx_sce_module_info *mod_
     }
 }
 
-template<typename StreamT>
-void add_prx_imports_exports(elf_read_ctx<StreamT> *ctx, /* TODO: exports */ import_map *imports)
+void add_prx_imports_exports(elf_read_ctx *ctx, /* TODO: exports */ import_map *imports)
 {
     prx_sce_module_info mod_info;
     read_prx_sce_module_info_section_header(ctx, &mod_info);
@@ -309,7 +301,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
             throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
     }
 
-    elf_read_ctx<memory_stream> ctx;
+    elf_read_ctx ctx;
     ctx.in = in;
     ctx.conf = conf;
     ctx.elf_header = &elf_header;
