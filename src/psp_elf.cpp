@@ -184,20 +184,29 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* T
     // TODO: exports
 }
 
-void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, import_map *out)
+void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_parse_data *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
     assert(out != nullptr);
+
+    u32 count = sz / sizeof(prx_module_import);
+    out->imported_modules.reserve(count);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
     {
         prx_module_import imp;
         ctx->in->read_at(&imp, file_offset_from_vaddr(ctx, mod_info->import_offset_start) + i);
 
-        const char *name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name_vaddr);
+        const char *module_name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name_vaddr);
 
-        log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n", name, imp.name_vaddr, imp.flags, imp.entry_size, imp.variable_count, imp.function_count, imp.nids_vaddr, imp.functions_vaddr);
+        log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n",
+                       module_name, imp.name_vaddr, imp.flags,
+                       imp.entry_size, imp.variable_count, imp.function_count,
+                       imp.nids_vaddr, imp.functions_vaddr);
+
+        module_import *mi = &out->imported_modules.emplace_back();
+        mi->module_name = module_name;
 
         for (u32 _j = 0; _j < imp.function_count; ++_j)
         {
@@ -207,16 +216,19 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, imp
 
             ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, imp.nids_vaddr) + j);
 
-            const psp_function *pf = get_psp_function_by_nid(name, nid);
+            const psp_function *pf = get_psp_function_by_nid(module_name, nid);
 
             if (pf == nullptr)
             {
-                log(ctx->conf, "  could not find function %08x in module %s\n", nid, name);
+                log(ctx->conf, "  could not find function %08x in module %s\n", nid, module_name);
             }
             else
             {
                 log(ctx->conf, "  import %08x at vaddr %08x: %s\n", nid, f_vaddr, pf->name);
-                out->emplace(f_vaddr, prx_function_import{f_vaddr, pf});
+
+                function_import imp{f_vaddr, pf};
+                out->imports.emplace(f_vaddr, imp);
+                mi->functions.emplace_back(imp);
             }
         }
 
@@ -224,13 +236,13 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, imp
     }
 }
 
-void add_prx_imports_exports(elf_read_ctx *ctx, /* TODO: exports */ import_map *imports)
+void add_prx_imports_exports(elf_read_ctx *ctx, elf_parse_data *out)
 {
     prx_sce_module_info mod_info;
     read_prx_sce_module_info_section_header(ctx, &mod_info);
 
     add_prx_exports(ctx, &mod_info);
-    add_prx_imports(ctx, &mod_info, imports);
+    add_prx_imports(ctx, &mod_info, out);
 }
 
 void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
@@ -371,7 +383,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         in->read_at(esec.content.data(), section_header.sh_offset, section_header.sh_size);
     }
 
-    add_prx_imports_exports(&ctx, &out->imports);
+    add_prx_imports_exports(&ctx, out);
 }
 
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)

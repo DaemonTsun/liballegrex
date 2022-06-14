@@ -39,24 +39,34 @@ struct elf_section
     std::string name;
 };
 
-struct prx_function_import
+struct function_import
 {
     u32 address;
     const psp_function *function;
 };
 
+struct module_import
+{
+    std::string module_name;
+    std::vector<function_import> functions;
+};
+
 typedef std::map<u32, elf_symbol> symbol_map;
-typedef std::map<u32, prx_function_import> import_map;
+typedef std::map<u32, function_import> import_map;
+typedef std::vector<module_import> module_import_array;
 
 struct elf_parse_data
 {
-    symbol_map symbols;
-    import_map imports;
+    symbol_map symbols; // maps vaddrs to symbols
+    import_map imports; // maps vaddrs to imported functions
+
+    module_import_array imported_modules; // the imported modules with redundant function information
 
     std::vector<elf_relocation> relocations;
     std::vector<elf_section> sections;
 };
 
+// parse all information about the elf file
 // its copied to memory if read from file, sorry
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
 void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
