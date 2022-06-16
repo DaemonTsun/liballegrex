@@ -215,25 +215,31 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
     log(ctx->conf, "\n");
 }
 
-void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
+void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_parse_data *out)
 {
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
+
+    u32 count = sz / sizeof(prx_module_export);
+    out->exported_modules.reserve(count);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_export))
     {
         prx_module_export exp;
         ctx->in->read_at(&exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
 
-        const char *export_name;
+        const char *module_name;
 
         if (exp.name_vaddr == 0)
-            export_name = PRX_SYSTEM_EXPORT;
+            module_name = PRX_SYSTEM_EXPORT;
         else
-            export_name = ctx->in->data() + file_offset_from_vaddr(ctx, exp.name_vaddr);
+            module_name = ctx->in->data() + file_offset_from_vaddr(ctx, exp.name_vaddr);
 
-        log(ctx->conf, "export module %s: %08x %08x %02x %02x %04x %08x\n", export_name, exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
+        log(ctx->conf, "export module %s: %08x %08x %02x %02x %04x %08x\n", module_name, exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
         log(ctx->conf, "  %08x\n", file_offset_from_vaddr(ctx, exp.exports_vaddr));
+
+        module_export *me = &out->exported_modules.emplace_back();
+        me->module_name = module_name;
 
         for (u32 _j = 0; _j < exp.function_count; ++_j)
         {
@@ -243,18 +249,18 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* T
 
             ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
 
-            const psp_function *fn = get_syslib_function(nid);
+            const psp_function *pf = get_syslib_function(nid);
 
-            if (fn != nullptr)
+            if (pf == nullptr)
             {
-                log(ctx->conf, "  export function nid %08x at %08x: %s\n", nid, f_vaddr, fn->name);
-            }
-            else
-            {
+                // TODO: maybe dont ignore these
                 log(ctx->conf, "  export unknown function nid %08x at %08x\n", nid, f_vaddr);
+                continue;
             }
 
-            // TODO: out parameter
+            log(ctx->conf, "  export function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
+
+            me->functions.emplace_back(function_export{f_vaddr, pf});
         }
 
         u32 v_offset = exp.exports_vaddr + exp.function_count * sizeof(u32);
@@ -266,18 +272,18 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* T
 
             ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, v_offset) + j);
 
-            const psp_variable *var = get_syslib_variable(nid);
+            const psp_variable *pv = get_syslib_variable(nid);
 
-            if (var != nullptr)
+            if (pv == nullptr)
             {
-                log(ctx->conf, "  export variable nid %08x at %08x: %s\n", nid, v_vaddr, var->name);
-            }
-            else
-            {
+                // TODO: maybe dont ignore these
                 log(ctx->conf, "  export unknown variable nid %08x at %08x\n", nid, v_vaddr);
+                continue;
             }
 
-            // TODO: out parameter
+            log(ctx->conf, "  export variable nid %08x at %08x: %s\n", nid, v_vaddr, pv->name);
+
+            me->variables.emplace_back(variable_export{v_vaddr, pv});
         }
     }
 
@@ -320,16 +326,16 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
 
             if (pf == nullptr)
             {
-                log(ctx->conf, "  could not find function %08x in module %s\n", nid, module_name);
+                // TODO: maybe dont ignore these
+                log(ctx->conf, "  import unknown function nid %08x at %08x\n", nid, f_vaddr);
+                continue;
             }
-            else
-            {
-                log(ctx->conf, "  import function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
 
-                function_import imp{f_vaddr, pf};
-                out->imports.emplace(f_vaddr, imp);
-                mi->functions.emplace_back(imp);
-            }
+            log(ctx->conf, "  import function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
+
+            function_import impf{f_vaddr, pf};
+            out->imports.emplace(f_vaddr, impf);
+            mi->functions.emplace_back(impf);
         }
 
         // TODO: import variables
@@ -343,7 +349,7 @@ void add_prx_imports_exports(elf_read_ctx *ctx, elf_parse_data *out)
     prx_sce_module_info mod_info;
     read_prx_sce_module_info_section_header(ctx, &mod_info);
 
-    add_prx_exports(ctx, &mod_info);
+    add_prx_exports(ctx, &mod_info, out);
     add_prx_imports(ctx, &mod_info, out);
 }
 

@@ -49,11 +49,32 @@ struct module_import
 {
     std::string module_name;
     std::vector<function_import> functions;
+    // TODO: std::vector<variable_import> variables;
+};
+
+struct function_export
+{
+    u32 address;
+    const psp_function *function;
+};
+
+struct variable_export
+{
+    u32 address;
+    const psp_variable *variable;
+};
+
+struct module_export
+{
+    std::string module_name;
+    std::vector<function_export> functions;
+    std::vector<variable_export> variables;
 };
 
 typedef std::map<u32, elf_symbol> symbol_map;
 typedef std::map<u32, function_import> import_map;
 typedef std::vector<module_import> module_import_array;
+typedef std::vector<module_export> module_export_array;
 
 struct elf_parse_data
 {
@@ -61,6 +82,7 @@ struct elf_parse_data
     import_map imports; // maps vaddrs to imported functions
 
     module_import_array imported_modules; // the imported modules with redundant function information
+    module_export_array exported_modules; // module_start, end, etc.
 
     std::vector<elf_relocation> relocations;
     std::vector<elf_section> sections;
