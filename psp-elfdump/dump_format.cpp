@@ -97,15 +97,25 @@ inline void fmt_jump_address_number(file_stream *out, u32 address, const dump_co
 
 const char *lookup_address_name(u32 addr, const dump_config *conf)
 {
+    // symbols
     auto it = conf->symbols->find(addr);
 
     if (it != conf->symbols->end())
         return it->second.name.c_str();
 
+    // imports
     auto it2 = conf->imports->find(addr);
 
     if (it2 != conf->imports->end())
         return it2->second.function->name;
+
+    // exports (unoptimized, but probably not too common)
+    for (int i = 0; i < conf->exported_modules->size(); ++i)
+    {
+        for (const auto &f : conf->exported_modules->at(i).functions)
+            if (f.address == addr)
+                return f.function->name;
+    }
 
     return nullptr;
 }

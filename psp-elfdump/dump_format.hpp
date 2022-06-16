@@ -39,6 +39,9 @@ struct dump_config
 
     symbol_map *symbols;
     import_map *imports;
+    module_import_array *imported_modules;
+    module_export_array *exported_modules;
+
     // relocations;
     jump_destination_array *jump_destinations;
     std::vector<dump_section> dump_sections;

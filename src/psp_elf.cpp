@@ -244,10 +244,12 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
         for (u32 _j = 0; _j < exp.function_count; ++_j)
         {
             u32 j = _j * sizeof(u32);
-            u32 f_vaddr = exp.exports_vaddr + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 f_vaddr_vaddr = exp.exports_vaddr + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 f_vaddr;
             u32 nid;
 
             ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
+            ctx->in->read_at(&f_vaddr, file_offset_from_vaddr(ctx, f_vaddr_vaddr));
 
             const psp_function *pf = get_syslib_function(nid);
 
@@ -267,10 +269,12 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
         for (u32 _j = 0; _j < exp.variable_count; ++_j)
         {
             u32 j = _j * sizeof(u32);
-            u32 v_vaddr = v_offset + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 v_vaddr_vaddr = v_offset + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 v_vaddr;
             u32 nid;
 
             ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, v_offset) + j);
+            ctx->in->read_at(&v_vaddr, file_offset_from_vaddr(ctx, v_vaddr_vaddr));
 
             const psp_variable *pv = get_syslib_variable(nid);
 

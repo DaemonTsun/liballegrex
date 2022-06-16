@@ -272,10 +272,18 @@ void add_symbols_to_jumps(jump_destination_array *jumps, symbol_map *syms)
         jumps->push_back(jump_destination{sp.first, jump_type::Jump});
 }
 
-void add_imports_to_jumps(jump_destination_array *jumps, import_map *imps)
+void add_imports_to_jumps(jump_destination_array *jumps, module_import_array *mods)
 {
-    for (const auto &imp : *imps)
-        jumps->push_back(jump_destination{imp.first, jump_type::Jump});
+    for (const auto &mod : *mods)
+        for (const auto &f : mod.functions)
+            jumps->push_back(jump_destination{f.address, jump_type::Jump});
+}
+
+void add_exports_to_jumps(jump_destination_array *jumps, module_export_array *mods)
+{
+    for (const auto &mod : *mods)
+        for (const auto &f : mod.functions)
+            jumps->push_back(jump_destination{f.address, jump_type::Jump});
 }
 
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -298,6 +306,8 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.log = log;
     dconf.symbols = &epdata.symbols;
     dconf.imports = &epdata.imports;
+    dconf.imported_modules = &epdata.imported_modules;
+    dconf.exported_modules = &epdata.exported_modules;
     dconf.format = args.output_format;
     dconf.dump_sections.resize(epdata.sections.size());
 
@@ -322,7 +332,8 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     }
 
     add_symbols_to_jumps(&jumps, &epdata.symbols);
-    add_imports_to_jumps(&jumps, &epdata.imports);
+    add_imports_to_jumps(&jumps, &epdata.imported_modules);
+    add_exports_to_jumps(&jumps, &epdata.exported_modules);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
