@@ -1,6 +1,21 @@
 
 #pragma once
 
+#include "internal/map_macro.hpp"
+
+#define CONCAT__(X, Y) X##Y
+#define CONCAT_(X, Y) CONCAT__(X, Y)
+#define S__(x) #x
+#define S_(x) S__(x)
+#define WS_(X) CONCAT_(L, S_(X))
+#define C_(x) S__(x)[0]
+#define WC_(x) WS_(x)[0]
+#define RET(x) WS_(x)[0] // same as WC_
+
+#define ARGS(...) MAP(WS_, __VA_ARGS__)
+
+#define NO_ARGS L""
+
 typedef wchar_t psp_function_arg_t;
 const char *_get_psp_function_arg_name(psp_function_arg_t arg);
 

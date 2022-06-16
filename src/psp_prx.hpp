@@ -3,13 +3,16 @@
 
 #include "number_types.hpp"
 
-// prx structures
+#define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
+#define PRX_SYSTEM_EXPORT "syslib"
 
+// prx structures
 #define PRX_MODULE_NAME_LEN 28
 
 struct prx_sce_module_info
 {
-	u32 flags;
+	u16 attribute; // 0 = user, 0x1000 = kernel
+    u8 version[2];
 	char name[PRX_MODULE_NAME_LEN];
 	u32 gp; // ?
 	u32 export_offset_start;

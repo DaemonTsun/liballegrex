@@ -7,6 +7,9 @@
 #include <string.h>
 
 #include "string.hpp"
+#include "psp_modules.hpp"
+#include "internal/psp_module_function_argument_defs.hpp"
+#include "internal/psp_module_function_pspdev_headers.hpp"
 #include "psp_prx.hpp"
 #include "prx_decrypt.hpp"
 #include "psp_elf.hpp"
@@ -16,7 +19,50 @@
 #define R_MIPS_HI16  5
 #define R_MIPS_LO16  6
 */
-#define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
+
+constexpr std::array syslib_functions
+{
+    psp_function{ 0xd632acdb, "module_start",
+                  RET(ARG_S32), ARGS(ARG_SceSize, ARG_VOID_PTR),
+                  no_header, 0, 0 },
+    psp_function{ 0xcee8593c, "module_stop",
+                  RET(ARG_S32), ARGS(ARG_SceSize, ARG_VOID_PTR),
+                  no_header, 0, 1 }
+};
+
+constexpr std::array syslib_variables
+{
+    psp_variable{ 0x0f7c276c, "module_start_thread_parameter" },
+    psp_variable{ 0xcf0cc697, "module_stop_thread_parameter" },
+    psp_variable{ 0xf01d73a7, "module_info" },
+	psp_variable{ 0x11b97506, "module_sdk_version" }
+};
+
+const psp_function *get_syslib_function(u32 nid)
+{
+    for (int i = 0; i < syslib_functions.size(); ++i)
+    {
+        const psp_function *fn = &syslib_functions.at(i);
+
+        if (fn->nid == nid)
+            return fn;
+    }
+
+    return nullptr;
+}
+
+const psp_variable *get_syslib_variable(u32 nid)
+{
+    for (int i = 0; i < syslib_variables.size(); ++i)
+    {
+        const psp_variable *vr = &syslib_variables.at(i);
+
+        if (vr->nid == nid)
+            return vr;
+    }
+
+    return nullptr;
+}
 
 #define log(CONF, ...) {if (CONF->verbose && CONF->log != nullptr) {CONF->log->format(__VA_ARGS__);}};
 // #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
@@ -160,11 +206,13 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
 
     ctx->in->read_at(out, sceModuleInfo_section_header.sh_offset);
 
-    log(ctx->conf, "  flags:  %08x\n", out->flags);
-    log(ctx->conf, "  name:   %s\n", out->name);
-    log(ctx->conf, "  gp:     %08x\n", out->gp);
-    log(ctx->conf, "  export: %08x - %08x\n", out->export_offset_start, out->export_offset_end);
-    log(ctx->conf, "  import: %08x - %08x\n", out->import_offset_start, out->import_offset_end);
+    log(ctx->conf, "  attribute: %04x\n", out->attribute);
+    log(ctx->conf, "  versions:  %02x %02x\n", out->version[0], out->version[1]);
+    log(ctx->conf, "  name:      %s\n", out->name);
+    log(ctx->conf, "  gp:        %08x\n", out->gp);
+    log(ctx->conf, "  export:    %08x - %08x\n", out->export_offset_start, out->export_offset_end);
+    log(ctx->conf, "  import:    %08x - %08x\n", out->import_offset_start, out->import_offset_end);
+    log(ctx->conf, "\n");
 }
 
 void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* TODO: output */)
@@ -177,11 +225,63 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info /* T
         prx_module_export exp;
         ctx->in->read_at(&exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
 
-        log(ctx->conf, "export %08x %08x %08x %08x %08x %08x\n", exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
+        const char *export_name;
+
+        if (exp.name_vaddr == 0)
+            export_name = PRX_SYSTEM_EXPORT;
+        else
+            export_name = ctx->in->data() + file_offset_from_vaddr(ctx, exp.name_vaddr);
+
+        log(ctx->conf, "export module %s: %08x %08x %02x %02x %04x %08x\n", export_name, exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
+        log(ctx->conf, "  %08x\n", file_offset_from_vaddr(ctx, exp.exports_vaddr));
+
+        for (u32 _j = 0; _j < exp.function_count; ++_j)
+        {
+            u32 j = _j * sizeof(u32);
+            u32 f_vaddr = exp.exports_vaddr + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 nid;
+
+            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
+
+            const psp_function *fn = get_syslib_function(nid);
+
+            if (fn != nullptr)
+            {
+                log(ctx->conf, "  export function nid %08x at %08x: %s\n", nid, f_vaddr, fn->name);
+            }
+            else
+            {
+                log(ctx->conf, "  export unknown function nid %08x at %08x\n", nid, f_vaddr);
+            }
+
+            // TODO: out parameter
+        }
+
+        u32 v_offset = exp.exports_vaddr + exp.function_count * sizeof(u32);
+        for (u32 _j = 0; _j < exp.variable_count; ++_j)
+        {
+            u32 j = _j * sizeof(u32);
+            u32 v_vaddr = v_offset + j + sizeof(u32) * (exp.function_count + exp.variable_count);
+            u32 nid;
+
+            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, v_offset) + j);
+
+            const psp_variable *var = get_syslib_variable(nid);
+
+            if (var != nullptr)
+            {
+                log(ctx->conf, "  export variable nid %08x at %08x: %s\n", nid, v_vaddr, var->name);
+            }
+            else
+            {
+                log(ctx->conf, "  export unknown variable nid %08x at %08x\n", nid, v_vaddr);
+            }
+
+            // TODO: out parameter
+        }
     }
 
     log(ctx->conf, "\n");
-    // TODO: exports
 }
 
 void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_parse_data *out)
@@ -224,13 +324,15 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             }
             else
             {
-                log(ctx->conf, "  import %08x at vaddr %08x: %s\n", nid, f_vaddr, pf->name);
+                log(ctx->conf, "  import function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
 
                 function_import imp{f_vaddr, pf};
                 out->imports.emplace(f_vaddr, imp);
                 mi->functions.emplace_back(imp);
             }
         }
+
+        // TODO: import variables
 
         log(ctx->conf, "\n");
     }

@@ -4,25 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "internal/map_macro.hpp"
 #include "internal/psp_module_function_argument_defs.hpp"
 #include "internal/psp_module_function_pspdev_headers.hpp"
 #include "psp_modules.hpp"
 
-#define CONCAT_(X, Y) X##Y
-#define CONCAT(X, Y) CONCAT_(X, Y)
-#define S_(x) #x
-#define S(x) S_(x)
-#define WS(X) CONCAT(L, S(X))
-#define C(x) S_(x)[0]
-#define WC(x) WS(x)[0]
-#define RET(x) WS(x)[0] // same as WC
-
-#define ARGS(...) MAP(WS, __VA_ARGS__)
-
 static_assert(ARGS(a, b, c) == L"abc");
-
-#define NO_ARGS L""
 
 #include "internal/psp_modules.inl"
 

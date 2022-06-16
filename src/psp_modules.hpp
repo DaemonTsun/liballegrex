@@ -18,6 +18,12 @@ struct psp_function
     u16 function_num;
 };
 
+struct psp_variable
+{
+    u32 nid;
+    const char *name;
+};
+
 struct psp_module
 {
     u16 module_num;

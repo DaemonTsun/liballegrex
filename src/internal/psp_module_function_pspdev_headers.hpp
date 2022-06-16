@@ -2,6 +2,7 @@
 #pragma once
 
 // pspdev/pspsdk headers
+const char * const no_header = "";
 const char * const unknown_header = "unknown header";
 const char * const atrac3_pspatrac3_h = "atrac3/pspatrac3.h";
 const char * const audio_pspaudio_h = "audio/pspaudio.h";
