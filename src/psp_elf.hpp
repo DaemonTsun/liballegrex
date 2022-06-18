@@ -13,7 +13,7 @@
 
 struct psp_elf_read_config
 {
-    std::string section;
+    std::string section; // leave empty to read all executable sections
     u32 vaddr;
     bool verbose;
     file_stream *log;
