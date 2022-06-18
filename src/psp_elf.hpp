@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "psp_modules.hpp"
+#include "psp_prx.hpp"
 #include "file_stream.hpp"
 #include "memory_stream.hpp"
 #include "number_types.hpp"
@@ -86,6 +87,8 @@ struct elf_parse_data
 
     std::vector<elf_relocation> relocations;
     std::vector<elf_section> sections;
+
+    prx_sce_module_info module_info;
 };
 
 // parse all information about the elf file

@@ -350,11 +350,11 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
 
 void add_prx_imports_exports(elf_read_ctx *ctx, elf_parse_data *out)
 {
-    prx_sce_module_info mod_info;
-    read_prx_sce_module_info_section_header(ctx, &mod_info);
+    prx_sce_module_info *mod_info = &out->module_info;
+    read_prx_sce_module_info_section_header(ctx, mod_info);
 
-    add_prx_exports(ctx, &mod_info, out);
-    add_prx_imports(ctx, &mod_info, out);
+    add_prx_exports(ctx, mod_info, out);
+    add_prx_imports(ctx, mod_info, out);
 }
 
 void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
