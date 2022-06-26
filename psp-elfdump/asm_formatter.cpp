@@ -36,12 +36,11 @@ void format_name(file_stream *out, const instruction *inst)
 // thanks for those c++ function aliases
 #define holds_type std::holds_alternative
 
-void dump_format_section(dump_config *conf, dump_section *dsec)
+void asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
 {
     assert(dsec != nullptr);
     assert(dsec->pdata != nullptr);
 
-    auto *out = conf->out;
     auto *sec = dsec->section;
     auto *jumps = conf->jump_destinations;
     u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
@@ -255,16 +254,16 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
         }
         
         // end
-        conf->out->write("\n");
+        out->write("\n");
         pos += sizeof(u32);
     }
 }
 
-void asm_format(dump_config *conf)
+void asm_format(const dump_config *conf, file_stream *out)
 {
     assert(conf != nullptr);
-    assert(conf->out != nullptr);
+    assert(out != nullptr);
 
-    for (dump_section &dsec : conf->dump_sections)
-        dump_format_section(conf, &dsec);
+    for (const dump_section &dsec : conf->dump_sections)
+        asm_format_section(conf, &dsec, out);
 }

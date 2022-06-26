@@ -40,7 +40,6 @@ struct dump_section
 
 struct dump_config
 {
-    file_stream *out;
     file_stream *log;
 
     symbol_map *symbols;

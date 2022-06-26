@@ -347,10 +347,9 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     if (!out)
         throw std::runtime_error("could not open output file");
 
-    dconf.out = &out;
     dconf.jump_destinations = &jumps;
 
-    asm_format(&dconf);
+    asm_format(&dconf, &out);
 }
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -420,7 +419,6 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
 
     dump_config dconf;
     dconf.jump_destinations = &jumps;
-    dconf.out = &out;
     dconf.log = log;
     dconf.format = args.output_format;
 
@@ -429,7 +427,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dsec.pdata = &pdata;
     dsec.first_instruction_offset = from;
 
-    asm_format(&dconf);
+    asm_format(&dconf, &out);
 
     if (args.verbose)
         log->write("\n");
