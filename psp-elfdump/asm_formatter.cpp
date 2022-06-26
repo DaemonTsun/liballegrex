@@ -3,7 +3,7 @@
 
 #include "string.hpp"
 #include "instruction.hpp"
-#include "psp-elfdump/dump_format.hpp"
+#include "psp-elfdump/asm_formatter.hpp"
 
 // asm-specific formatting functions
 inline void asm_fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)

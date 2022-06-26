@@ -14,6 +14,7 @@
 
 #include "psp-elfdump/dump_format.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
+#include "psp-elfdump/html_formatter.hpp"
 #include "psp-elfdump/config.hpp"
 
 #define INFER_SIZE UINT32_MAX
@@ -41,6 +42,9 @@ struct arguments
     // --no-labels
     // --no-pseudoinstructions
     format_options output_format;
+    // --asm (default)
+    // --html
+    format_type output_type;
 
     std::string input_file;
 };
@@ -54,6 +58,7 @@ const arguments default_arguments{
     .ranges = {},
     .verbose = false,
     .output_format = default_format_options,
+    .output_type = format_type::Asm,
     .input_file = ""
 };
 
@@ -91,6 +96,9 @@ void print_usage()
          "--no-glabels                  omit glabel definitions and in jumps\n"
          "--no-labels                   omit label definitions and in branches\n"
          "--no-pseudoinstructions       don't emit pseudoinstructions\n"
+         "\n"
+         "--asm                         output assembly (default)\n"
+         "--html                        output HTML\n"
          "\n"
          "Arguments:\n"
          "  OBJFILE      ELF object file to disassemble the given section for\n"
@@ -251,6 +259,21 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
 
+        // type
+        if (arg == "--asm")
+        {
+            out->output_type = format_type::Asm;
+            ++i;
+            continue;
+        }
+
+        if (arg == "--html")
+        {
+            out->output_type = format_type::Html;
+            ++i;
+            continue;
+        }
+
         // etc
         if (begins_with(arg, str("-")))
             throw std::runtime_error(str("unknown argument '", arg, "'"));
@@ -285,6 +308,19 @@ void add_exports_to_jumps(jump_destination_array *jumps, module_export_array *mo
     for (const auto &mod : *mods)
         for (const auto &f : mod.functions)
             jumps->push_back(jump_destination{f.address, jump_type::Jump});
+}
+
+void format_dump(format_type type, const dump_config *dconf, file_stream *out)
+{
+    switch (type)
+    {
+    case format_type::Asm:
+        asm_format(dconf, out);
+        break;
+    case format_type::Html:
+        html_format(dconf, out);
+        break;
+    }
 }
 
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -349,7 +385,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
     dconf.jump_destinations = &jumps;
 
-    asm_format(&dconf, &out);
+    format_dump(args.output_type, &dconf, &out);
 }
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -427,7 +463,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dsec.pdata = &pdata;
     dsec.first_instruction_offset = from;
 
-    asm_format(&dconf, &out);
+    format_dump(args.output_type, &dconf, &out);
 
     if (args.verbose)
         log->write("\n");
