@@ -25,6 +25,12 @@ constexpr format_options default_format_options =
     format_options::labels |
     format_options::pseudoinstructions;
 
+enum class format_type
+{
+    Asm,
+    Html
+};
+
 struct dump_section
 {
     elf_section *section;
@@ -50,4 +56,18 @@ struct dump_config
     format_options format;
 };
 
-void dump_format(dump_config *conf);
+// etc
+template<typename T>
+constexpr inline T hex_digits(T x)
+{
+    T i = 0;
+
+    while (x > 0)
+    {
+        x = x >> 4;
+        ++i;
+    }
+
+    return i;
+}
+

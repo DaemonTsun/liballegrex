@@ -13,6 +13,7 @@
 #include "number_types.hpp"
 
 #include "psp-elfdump/dump_format.hpp"
+#include "psp-elfdump/asm_formatter.hpp"
 #include "psp-elfdump/config.hpp"
 
 #define INFER_SIZE UINT32_MAX
@@ -349,7 +350,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.out = &out;
     dconf.jump_destinations = &jumps;
 
-    dump_format(&dconf);
+    asm_format(&dconf);
 }
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -428,7 +429,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dsec.pdata = &pdata;
     dsec.first_instruction_offset = from;
 
-    dump_format(&dconf);
+    asm_format(&dconf);
 
     if (args.verbose)
         log->write("\n");
