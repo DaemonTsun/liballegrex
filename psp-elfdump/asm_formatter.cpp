@@ -5,140 +5,10 @@
 #include "instruction.hpp"
 #include "psp-elfdump/dump_format.hpp"
 
-inline void fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
+// asm-specific formatting functions
+inline void asm_fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
 {
     out->format(format_string, pos, inst->address, inst->opcode);
-}
-
-inline void fmt_no_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
-{
-}
-
-inline void fmt_mips_register_name(file_stream *out, mips_register reg)
-{
-    out->format("%s", register_name(reg));
-}
-
-inline void fmt_dollar_mips_register_name(file_stream *out, mips_register reg)
-{
-    out->format("$%s", register_name(reg));
-}
-
-inline void fmt_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
-{
-    out->format("%s", register_name(reg));
-}
-
-inline void fmt_dollar_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
-{
-    out->format("$%s", register_name(reg));
-}
-
-inline void fmt_vfpu_register_name(file_stream *out, vfpu_register reg)
-{
-    out->format("%s%s", register_name(reg), size_suffix(reg.size));
-}
-
-inline void fmt_dollar_vfpu_register_name(file_stream *out, vfpu_register reg)
-{
-    out->format("$%s%s", register_name(reg), size_suffix(reg.size));
-}
-
-inline void fmt_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
-{
-    out->format("%s%s", matrix_name(mtx), size_suffix(mtx.size));
-}
-
-inline void fmt_dollar_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
-{
-    out->format("$%s%s", matrix_name(mtx), size_suffix(mtx.size));
-}
-
-inline void fmt_argument_space(file_stream *out)
-{
-    out->write(" ");
-}
-
-inline void fmt_argument_comma_space(file_stream *out)
-{
-    out->write(", ");
-}
-
-inline void fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
-{
-    out->format("0x%08x", address);
-}
-
-const char *lookup_address_name(u32 addr, const dump_config *conf)
-{
-    // symbols
-    auto it = conf->symbols->find(addr);
-
-    if (it != conf->symbols->end())
-        return it->second.name.c_str();
-
-    // imports
-    auto it2 = conf->imports->find(addr);
-
-    if (it2 != conf->imports->end())
-        return it2->second.function->name;
-
-    // exports (unoptimized, but probably not too common)
-    for (int i = 0; i < conf->exported_modules->size(); ++i)
-    {
-        for (const auto &f : conf->exported_modules->at(i).functions)
-            if (f.address == addr)
-                return f.function->name;
-    }
-
-    return nullptr;
-}
-
-inline void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
-{
-    const char *name = lookup_address_name(address, conf);
-
-    if (name != nullptr)
-        out->format("%s", name);
-    else
-        out->format("func_%08x", address);
-}
-
-inline void fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
-{
-    out->format("0x%08x", address);
-}
-
-inline void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
-{
-    // we could use symbols for lookup, but these are just branch
-    // labels, not jumps usually.
-    out->format(".L%08x", address);
-}
-
-inline void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
-{
-    const char *name = lookup_address_name(address, conf);
-
-    if (name != nullptr)
-        out->format("glabel %s\n", name);
-    else
-        out->format("glabel func_%08x\n", address);
-}
-
-inline void fmt_no_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
-{
-}
-
-inline void fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
-{
-    // same thing as before, these are branches, not jumps.
-    // address name lookup is probably not necessary.
-    out->format(".L%08x:\n", address);
-}
-
-inline void fmt_no_branch_label(file_stream *out, u32 address, const dump_config *conf)
-{
 }
 
 void format_name(file_stream *out, const instruction *inst)
@@ -177,7 +47,7 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
     u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
 
     // format functions
-    auto f_comment_pos_addr_instr = fmt_no_comment_pos_addr_instr;
+    auto f_comment_pos_addr_instr = asm_fmt_comment_pos_addr_instr;
     auto f_mips_register_name = fmt_mips_register_name;
     auto f_mips_fpu_register_name = fmt_mips_fpu_register_name;
     auto f_vfpu_register_name = fmt_vfpu_register_name;
@@ -185,8 +55,8 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
     auto f_argument_sep = fmt_argument_space;
     auto f_jump_argument = fmt_jump_address_number;
     auto f_branch_argument = fmt_branch_address_number;
-    auto f_jump_glabel = fmt_no_jump_glabel;
-    auto f_branch_label = fmt_no_branch_label;
+    auto f_jump_glabel = fmt_jump_glabel;
+    auto f_branch_label = fmt_branch_label;
 
     // prepare
     char comment_format_string[32] = {0};
@@ -197,7 +67,10 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);
-        f_comment_pos_addr_instr = fmt_comment_pos_addr_instr;
+    }
+    else
+    {
+        f_comment_pos_addr_instr = nullptr;
     }
 
     if (is_set(conf->format, format_options::dollar_registers))
@@ -212,16 +85,14 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
         f_argument_sep = fmt_argument_comma_space;
 
     if (is_set(conf->format, format_options::function_glabels))
-    {
         f_jump_argument = fmt_jump_address_label;
-        f_jump_glabel = fmt_jump_glabel;
-    }
+    else
+        f_jump_glabel = nullptr;
 
     if (is_set(conf->format, format_options::labels))
-    {
         f_branch_argument = fmt_branch_address_label;
-        f_branch_label = fmt_branch_label;
-    }
+    else
+        f_branch_label = nullptr;
 
     u32 pos = dsec->first_instruction_offset;
     u32 jmp_i = 0;
@@ -251,15 +122,23 @@ void dump_format_section(dump_config *conf, dump_section *dsec)
             auto &jmp = jumps->at(jmp_i);
 
             if (jmp.type == jump_type::Jump)
-                f_jump_glabel(out, jmp.address, conf);
+            {
+                if (f_jump_glabel != nullptr)
+                    f_jump_glabel(out, jmp.address, conf);
+            }
             else
-                f_branch_label(out, jmp.address, conf);
+            {
+                if (f_branch_label != nullptr)
+                    f_branch_label(out, jmp.address, conf);
+            }
 
             jmp_i++;
             write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
         }
 
-        f_comment_pos_addr_instr(out, pos, &inst, comment_format_string);
+        if (f_comment_pos_addr_instr != nullptr)
+            f_comment_pos_addr_instr(out, pos, &inst, comment_format_string);
+
         format_name(out, &inst);
 
         bool first = true;

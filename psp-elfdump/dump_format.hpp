@@ -56,6 +56,32 @@ struct dump_config
     format_options format;
 };
 
+const char *lookup_address_name(u32 addr, const dump_config *conf);
+
+// some default formatting functions
+void fmt_mips_register_name(file_stream *out, mips_register reg);
+void fmt_dollar_mips_register_name(file_stream *out, mips_register reg);
+
+void fmt_mips_fpu_register_name(file_stream *out, mips_fpu_register reg);
+void fmt_dollar_mips_fpu_register_name(file_stream *out, mips_fpu_register reg);
+
+void fmt_vfpu_register_name(file_stream *out, vfpu_register reg);
+void fmt_dollar_vfpu_register_name(file_stream *out, vfpu_register reg);
+void fmt_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx);
+void fmt_dollar_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx);
+
+void fmt_argument_space(file_stream *out);
+void fmt_argument_comma_space(file_stream *out);
+
+void fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf);
+void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf);
+
+void fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf);
+void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf);
+
+void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf);
+void fmt_branch_label(file_stream *out, u32 address, const dump_config *conf);
+
 // etc
 template<typename T>
 constexpr inline T hex_digits(T x)
@@ -70,4 +96,3 @@ constexpr inline T hex_digits(T x)
 
     return i;
 }
-
