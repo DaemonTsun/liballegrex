@@ -51,6 +51,8 @@ struct dump_config
     jump_destination_array *jump_destinations;
     std::vector<dump_section> dump_sections;
 
+    prx_sce_module_info *module_info;
+
     bool verbose;
     format_options format;
 };

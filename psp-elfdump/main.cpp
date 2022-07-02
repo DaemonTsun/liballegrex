@@ -345,6 +345,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.imports = &epdata.imports;
     dconf.imported_modules = &epdata.imported_modules;
     dconf.exported_modules = &epdata.exported_modules;
+    dconf.module_info = &epdata.module_info;
     dconf.format = args.output_format;
     dconf.dump_sections.resize(epdata.sections.size());
 
@@ -457,6 +458,9 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dconf.jump_destinations = &jumps;
     dconf.log = log;
     dconf.format = args.output_format;
+    dconf.module_info = nullptr;
+    dconf.imported_modules = nullptr;
+    dconf.exported_modules = nullptr;
 
     dump_section &dsec = dconf.dump_sections.emplace_back();
     dsec.section = nullptr;
