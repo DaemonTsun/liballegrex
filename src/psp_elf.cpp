@@ -429,7 +429,6 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     }
 
     const char *string_table = get_string_table(in, &elf_header);
-    
 
     Elf32_Shdr section_header;
     std::vector<int> section_indices;
@@ -488,6 +487,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
 
         esec.vaddr = vaddr;
 
+        out->symbols.emplace(vaddr, elf_symbol{vaddr, section_name});
         add_symbols(&ctx, i, out->symbols);
 
         esec.content = memory_stream(section_header.sh_size);
