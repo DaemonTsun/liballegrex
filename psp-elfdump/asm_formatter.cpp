@@ -41,9 +41,8 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     assert(dsec != nullptr);
     assert(dsec->pdata != nullptr);
 
-    auto *sec = dsec->section;
-    auto *jumps = conf->jump_destinations;
-    u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
+    const elf_section *sec = dsec->section;
+    const jump_destination_array *jumps = conf->jump_destinations;
 
     // format functions
     auto f_comment_pos_addr_instr = asm_fmt_comment_pos_addr_instr;
@@ -63,6 +62,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     if (is_set(conf->format, format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
+        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);

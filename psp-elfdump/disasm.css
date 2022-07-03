@@ -3,22 +3,38 @@ body{
     font-family: monospace;
 }
 
+pre{
+    display: inline;
+}
+
 .block
 {
     border: 1px solid #000;
-    padding: 4px;
-    display: inline-block;
-    margin-bottom: 12px;
+    padding: 0.5em;
+    width: max-content;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 
 .module_info
 {
-    background-color: #CCF;
+    background-color: #CFC;
 }
 
 .section
 {
-    background-color: #CFC;
+    background-color: #CDE;
 }
+
+.function
+{
+    background-color: #DEF;
+}
+
+.opcode_data
+{
+    color: #555;
+}
+
   </style>
 )="
