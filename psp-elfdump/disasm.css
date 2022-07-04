@@ -65,5 +65,21 @@ pre{
     font-style: italic;
 }
 
+.addr
+{
+    color: #444;
+}
+
+.blabel
+{
+    color: #C0B;
+}
+
+.jlabel
+{
+    color: #F0C;
+    font-weight: bold;
+}
+
   </style>
 )="

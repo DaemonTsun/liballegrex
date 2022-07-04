@@ -8,6 +8,50 @@
 #define html_fmt_number(out, num, FMT) \
     out->format("<a class=\"num\">" FMT "</a>", num);
 
+void html_fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
+{
+    out->format("<a class=\"addr\">0x%08x</a>", address);
+}
+
+void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
+{
+    const char *name = lookup_address_name(address, conf);
+
+    // TODO: differentiate between functions, imports, exports
+    if (name != nullptr)
+        out->format("<a class=\"jlabel\">%s</a>", name);
+    else
+        out->format("<a class=\"jlabel\">func_%08x</a>", address);
+}
+
+void html_fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
+{
+    out->format("<a class=\"addr\">0x%08x</a>", address);
+}
+
+void html_fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
+{
+    // we could use symbols for lookup, but these are just branch
+    // labels, not jumps usually.
+    out->format("<a class=\"blabel\">.L%08x</a>", address);
+}
+
+void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
+{
+    const char *name = lookup_address_name(address, conf);
+
+    // TODO: differentiate between functions, imports, exports
+    if (name != nullptr)
+        out->format("glabel <a class=\"jlabel\">%s</a>", name);
+    else
+        out->format("glabel <a class=\"jlabel\">func_%08x</a>", address);
+}
+
+void html_fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
+{
+    out->format("<a class=\"blabel\">.L%08x</a>:", address);
+}
+
 void html_fmt_mips_register_name(file_stream *out, mips_register reg)
 {
     out->format("<a class=\"reg\">%s</a>", register_name(reg));
@@ -131,10 +175,10 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
     auto f_vfpu_register_name = html_fmt_vfpu_register_name;
     auto f_vfpu_matrix_name = html_fmt_vfpu_matrix_name;
     auto f_argument_sep = fmt_argument_space;
-    auto f_jump_argument = fmt_jump_address_number;
-    auto f_branch_argument = fmt_branch_address_number;
-    auto f_jump_glabel = fmt_jump_glabel;
-    auto f_branch_label = fmt_branch_label;
+    auto f_jump_argument = html_fmt_jump_address_number;
+    auto f_branch_argument = html_fmt_branch_address_number;
+    auto f_jump_glabel = html_fmt_jump_glabel;
+    auto f_branch_label = html_fmt_branch_label;
 
     if (is_set(conf->format, format_options::dollar_registers))
     {
@@ -148,12 +192,12 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
         f_argument_sep = fmt_argument_comma_space;
 
     if (is_set(conf->format, format_options::function_glabels))
-        f_jump_argument = fmt_jump_address_label;
+        f_jump_argument = html_fmt_jump_address_label;
     else
         f_jump_glabel = nullptr;
 
     if (is_set(conf->format, format_options::labels))
-        f_branch_argument = fmt_branch_address_label;
+        f_branch_argument = html_fmt_branch_address_label;
     else
         f_branch_label = nullptr;
 
