@@ -36,5 +36,34 @@ pre{
     color: #555;
 }
 
+.num
+{
+    color: #00F;
+}
+
+.reg
+{
+    color: #0A0;
+}
+
+.reg_fpu
+{
+    color: #0A0;
+    font-weight: bold;
+}
+
+.reg_vfpu
+{
+    color: #0A5;
+    font-weight: bold;
+}
+
+.mat_vfpu
+{
+    color: #0A5;
+    font-weight: bold;
+    font-style: italic;
+}
+
   </style>
 )="

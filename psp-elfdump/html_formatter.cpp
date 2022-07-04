@@ -5,6 +5,49 @@
 #include "instruction.hpp"
 #include "psp-elfdump/html_formatter.hpp"
 
+#define html_fmt_number(out, num, FMT) \
+    out->format("<a class=\"num\">" FMT "</a>", num);
+
+void html_fmt_mips_register_name(file_stream *out, mips_register reg)
+{
+    out->format("<a class=\"reg\">%s</a>", register_name(reg));
+}
+
+void html_fmt_dollar_mips_register_name(file_stream *out, mips_register reg)
+{
+    out->format("<a class=\"reg\">$%s</a>", register_name(reg));
+}
+
+void html_fmt_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
+{
+    out->format("<a class=\"reg_fpu\">%s</a>", register_name(reg));
+}
+
+void html_fmt_dollar_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
+{
+    out->format("<a class=\"reg_fpu\">$%s</a>", register_name(reg));
+}
+
+void html_fmt_vfpu_register_name(file_stream *out, vfpu_register reg)
+{
+    out->format("<a class=\"reg_vfpu\">%s%s</a>", register_name(reg), size_suffix(reg.size));
+}
+
+void html_fmt_dollar_vfpu_register_name(file_stream *out, vfpu_register reg)
+{
+    out->format("<a class=\"reg_vfpu\">$%s%s</a>", register_name(reg), size_suffix(reg.size));
+}
+
+void html_fmt_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
+{
+    out->format("<a class=\"mat_vfpu\">%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
+}
+
+void html_fmt_dollar_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
+{
+    out->format("<a class=\"mat_vfpu\">$%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
+}
+
 void html_format_instruction_name(file_stream *out, const instruction *inst)
 {
     const char *name = get_mnemonic_name(inst->mnemonic);
@@ -62,6 +105,12 @@ void html_format_module_info(const dump_config *conf, const prx_sce_module_info 
         out->format(FMT, std::get<T>(arg).data); \
     }
 
+#define ARG_HOLDS_NUMBER_FORMAT(out, arg, T, FMT) \
+    (std::holds_alternative<T>(arg)) \
+    { \
+        html_fmt_number(out, std::get<T>(arg).data, FMT); \
+    }
+
 #define holds_type std::holds_alternative
 
 void html_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
@@ -77,10 +126,10 @@ void html_format_section(const dump_config *conf, const dump_section *dsec, file
 R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
 
     // format functions
-    auto f_mips_register_name = fmt_mips_register_name;
-    auto f_mips_fpu_register_name = fmt_mips_fpu_register_name;
-    auto f_vfpu_register_name = fmt_vfpu_register_name;
-    auto f_vfpu_matrix_name = fmt_vfpu_matrix_name;
+    auto f_mips_register_name = html_fmt_mips_register_name;
+    auto f_mips_fpu_register_name = html_fmt_mips_fpu_register_name;
+    auto f_vfpu_register_name = html_fmt_vfpu_register_name;
+    auto f_vfpu_matrix_name = html_fmt_vfpu_matrix_name;
     auto f_argument_sep = fmt_argument_space;
     auto f_jump_argument = fmt_jump_address_number;
     auto f_branch_argument = fmt_branch_address_number;
@@ -89,10 +138,10 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
 
     if (is_set(conf->format, format_options::dollar_registers))
     {
-        f_mips_register_name = fmt_dollar_mips_register_name;
-        f_mips_fpu_register_name = fmt_dollar_mips_fpu_register_name;
-        f_vfpu_register_name = fmt_dollar_vfpu_register_name;
-        f_vfpu_matrix_name = fmt_dollar_vfpu_matrix_name;
+        f_mips_register_name = html_fmt_dollar_mips_register_name;
+        f_mips_fpu_register_name = html_fmt_dollar_mips_fpu_register_name;
+        f_vfpu_register_name = html_fmt_dollar_vfpu_register_name;
+        f_vfpu_matrix_name = html_fmt_dollar_vfpu_matrix_name;
     }
 
     if (is_set(conf->format, format_options::comma_separate_args))
@@ -150,7 +199,7 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
                     f_jump_glabel(out, jmp.address, conf);
                     out->format("</a><br/>\n");
 
-                    if (++n_blocks > 10) // TODO: remove
+                    if (++n_blocks > 20) // TODO: remove
                         goto outer_loop_end;
                 }
             }
@@ -194,11 +243,8 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
                 f_vfpu_register_name(out, std::get<vfpu_register>(arg));
 
             else if (holds_type<vfpu_matrix>(arg))
-            {
-                auto &mtx = std::get<vfpu_matrix>(arg);
-                out->format("%s%s", matrix_name(mtx)
-                                  , size_suffix(mtx.size));
-            }
+                f_vfpu_matrix_name(out, std::get<vfpu_matrix>(arg));
+
             else if (holds_type<vfpu_condition>(arg))
                 out->format("%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
 
@@ -255,26 +301,34 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             {
                 s32 d = std::get<immediate<s32>>(arg).data;
                 if (d < 0)
-                    out->format("-%#x", -d);
+                {
+                    html_fmt_number(out, -d, "-%#x");
+                }
                 else
-                    out->format("%#x", d);
+                {
+                    html_fmt_number(out, d, "%#x");
+                }
             }
 
             else if (holds_type<immediate<s16>>(arg))
             {
                 s16 d = std::get<immediate<s16>>(arg).data;
                 if (d < 0)
-                    out->format("-%#x", -d);
+                {
+                    html_fmt_number(out, -d, "-%#x");
+                }
                 else
-                    out->format("%#x", d);
+                {
+                    html_fmt_number(out, d, "%#x");
+                }
             }
 
-            else if ARG_HOLDS_T_FORMAT(out, arg, shift,            "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, memory_offset,    "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u32>,   "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u16>,   "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u8>,    "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<float>, "%f")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, shift,            "%#x")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, memory_offset,    "%#x")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, immediate<u32>,   "%#x")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, immediate<u16>,   "%#x")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, immediate<u8>,    "%#x")
+            else if ARG_HOLDS_NUMBER_FORMAT(out, arg, immediate<float>, "%f")
             else if ARG_HOLDS_T_FORMAT(out, arg, condition_code,   "(CC[%#x])")
             else if ARG_HOLDS_T_FORMAT(out, arg, bitfield_pos,     "%#x")
             else if ARG_HOLDS_T_FORMAT(out, arg, bitfield_size,    "%#x")
