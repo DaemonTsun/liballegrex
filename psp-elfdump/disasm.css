@@ -81,5 +81,30 @@ pre{
     font-weight: bold;
 }
 
+.symbol
+{
+    color: #F2F;
+    font-weight: bold;
+}
+
+.export
+{
+    color: #FC0;
+    font-weight: bold;
+}
+
+.import
+{
+    color: #F33;
+    font-weight: bold;
+}
+
+.uimport
+{
+    color: #F00;
+    font-weight: bold;
+    font-style: italic;
+}
+
   </style>
 )="

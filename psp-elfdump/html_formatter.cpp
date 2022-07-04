@@ -1,9 +1,13 @@
 
 #include <assert.h>
+#include <string.h>
 
 #include "string.hpp"
 #include "instruction.hpp"
+#include "internal/psp_module_function_pspdev_headers.hpp"
 #include "psp-elfdump/html_formatter.hpp"
+
+const char *pspsdk_github_base_src_url = "https://github.com/pspdev/pspsdk/tree/master/src/";
 
 #define html_fmt_number(out, num, FMT) \
     out->format("<a class=\"num\">" FMT "</a>", num);
@@ -15,13 +19,63 @@ void html_fmt_jump_address_number(file_stream *out, u32 address, const dump_conf
 
 void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
-    const char *name = lookup_address_name(address, conf);
+    // exports (unoptimized, but probably not too common)
+    const char *name = nullptr;
 
-    // TODO: differentiate between functions, imports, exports
+    for (int i = 0; i < conf->exported_modules->size(); ++i)
+    {
+        for (const auto &f : conf->exported_modules->at(i).functions)
+            if (f.address == address)
+            {
+                name = f.function->name;
+                break;
+            }
+
+        if (name)
+            break;
+    }
+
     if (name != nullptr)
-        out->format("<a class=\"jlabel\">%s</a>", name);
-    else
-        out->format("<a class=\"jlabel\">func_%08x</a>", address);
+    {
+        out->format("<a class=\"export\">%s</a>", name);
+        return;
+    }
+
+    // imports
+    auto it2 = conf->imports->find(address);
+
+    if (it2 != conf->imports->end())
+    {
+        auto *_import = it2->second.function;
+        const char *header = _import->header_file;
+        name = _import->name;
+
+        if (strlen(header) == 0
+         || strcmp(header, unknown_header) == 0)
+        {
+            out->format("<a class=\"uimport\">%s</a>", name);
+        }
+        else
+        {
+            out->format("<a class=\"import\" href=\"%s%s\">%s</a>", pspsdk_github_base_src_url, header, name);
+        }
+
+        return;
+    }
+
+    // symbols
+    auto it = conf->symbols->find(address);
+
+    if (it != conf->symbols->end())
+    {
+        name = it->second.name.c_str();
+        // symbol name
+        out->format("<a class=\"symbol\">%s</a>", name);
+        
+        return;
+    }
+
+    out->format("<a class=\"jlabel\">func_%08x</a>", address);
 }
 
 void html_fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
@@ -38,13 +92,9 @@ void html_fmt_branch_address_label(file_stream *out, u32 address, const dump_con
 
 void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
-    const char *name = lookup_address_name(address, conf);
+    out->format("glabel ");
 
-    // TODO: differentiate between functions, imports, exports
-    if (name != nullptr)
-        out->format("glabel <a class=\"jlabel\">%s</a>", name);
-    else
-        out->format("glabel <a class=\"jlabel\">func_%08x</a>", address);
+    html_fmt_jump_address_label(out, address, conf);
 }
 
 void html_fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
