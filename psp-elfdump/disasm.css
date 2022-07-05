@@ -7,6 +7,10 @@ pre{
     display: inline;
 }
 
+a{
+    text-decoration: none;
+}
+
 .block
 {
     border: 1px solid #000;
@@ -89,7 +93,7 @@ pre{
 
 .export
 {
-    color: #FC0;
+    color: #F90;
     font-weight: bold;
 }
 

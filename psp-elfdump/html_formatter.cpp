@@ -7,19 +7,29 @@
 #include "internal/psp_module_function_pspdev_headers.hpp"
 #include "psp-elfdump/html_formatter.hpp"
 
-const char *pspsdk_github_base_src_url = "https://github.com/pspdev/pspsdk/tree/master/src/";
-
-#define html_fmt_number(out, num, FMT) \
-    out->format("<a class=\"num\">" FMT "</a>", num);
-
-void html_fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
+enum class jump_address_type
 {
-    out->format("<a class=\"addr\">0x%08x</a>", address);
-}
+    Jump, // unknown
+    Symbol,
+    Import,
+    Export
+};
 
-void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
+struct jump_address_info
 {
-    // exports (unoptimized, but probably not too common)
+    jump_address_type type;
+    u32 address;
+    const char *name;
+
+    const char *import_header_file;
+};
+
+void get_jump_address_info(const dump_config *conf, u32 address, jump_address_info *out)
+{
+    out->address = address;
+    out->import_header_file = nullptr;
+
+    // exports (unoptimized)
     const char *name = nullptr;
 
     for (int i = 0; i < conf->exported_modules->size(); ++i)
@@ -37,7 +47,8 @@ void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_confi
 
     if (name != nullptr)
     {
-        out->format("<a class=\"export\">%s</a>", name);
+        out->type = jump_address_type::Export;
+        out->name = name;
         return;
     }
 
@@ -47,19 +58,11 @@ void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_confi
     if (it2 != conf->imports->end())
     {
         auto *_import = it2->second.function;
-        const char *header = _import->header_file;
         name = _import->name;
 
-        if (strlen(header) == 0
-         || strcmp(header, unknown_header) == 0)
-        {
-            out->format("<a class=\"uimport\">%s</a>", name);
-        }
-        else
-        {
-            out->format("<a class=\"import\" href=\"%s%s\">%s</a>", pspsdk_github_base_src_url, header, name);
-        }
-
+        out->type = jump_address_type::Import;
+        out->name = name;
+        out->import_header_file = _import->header_file;
         return;
     }
 
@@ -69,37 +72,163 @@ void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_confi
     if (it != conf->symbols->end())
     {
         name = it->second.name.c_str();
-        // symbol name
-        out->format("<a class=\"symbol\">%s</a>", name);
         
+        out->type = jump_address_type::Symbol;
+        out->name = name;
         return;
     }
 
-    out->format("<a class=\"jlabel\">func_%08x</a>", address);
+    out->type = jump_address_type::Jump;
+    out->name = nullptr;
+}
+
+const char *pspsdk_github_base_src_url = "https://github.com/pspdev/pspsdk/tree/master/src/";
+
+#define html_fmt_number(out, num, FMT) \
+    out->format("<a class=\"num\">" FMT "</a>", num);
+
+void html_fmt_pos_anchor(char *out, u32 address)
+{
+    sprintf(out, "P%08x", address);
+}
+
+void html_fmt_vaddr_anchor(char *out, u32 address)
+{
+    sprintf(out, "V%08x", address);
+}
+
+void html_fmt_symbol_anchor(char *out, const char *name)
+{
+    sprintf(out, "S_%s", name);
+}
+
+void html_fmt_import_anchor(char *out, const char *name)
+{
+    sprintf(out, "I_%s", name);
+}
+
+void html_fmt_export_anchor(char *out, const char *name)
+{
+    sprintf(out, "E_%s", name);
+}
+
+void html_fmt_jump_anchor(char *out, u32 address)
+{
+    sprintf(out, "func_%08x", address);
+}
+
+void html_fmt_branch_anchor(char *out, u32 address)
+{
+    sprintf(out, "L%08x", address);
+}
+
+void html_fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
+{
+    out->format("<a class=\"addr\">0x%08x</a>", address);
+}
+
+void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
+{
+    char anchor[256] = {0};
+    jump_address_info info;
+
+    get_jump_address_info(conf, address, &info);
+
+    switch (info.type)
+    {
+    case jump_address_type::Jump:
+        html_fmt_jump_anchor(anchor, info.address);
+        out->format(R"(<a class="jlabel" href="#%s">func_%08x</a>)", anchor, info.address);
+        break;
+
+    case jump_address_type::Symbol:
+        html_fmt_symbol_anchor(anchor, info.name);
+        out->format(R"(<a class="symbol" href="#%s">%s</a>)", anchor, info.name);
+        break;
+
+    case jump_address_type::Import:
+        html_fmt_import_anchor(anchor, info.name);
+
+        if (info.import_header_file == nullptr
+         || strlen(info.import_header_file) == 0
+         || strcmp(info.import_header_file, unknown_header) == 0)
+            out->format(R"(<a class="uimport">%s</a>)", info.name);
+        else
+            out->format(R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
+
+        break;
+
+    case jump_address_type::Export:
+        html_fmt_export_anchor(anchor, info.name);
+        out->format(R"(<a class="export" href="#%s">%s</a>)", anchor, info.name);
+        break;
+    };
 }
 
 void html_fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("<a class=\"addr\">0x%08x</a>", address);
+    char anchor[32] = {0};
+
+    html_fmt_vaddr_anchor(anchor, address);
+    out->format(R"(<a class="addr" href="#%s">0x%08x</a>)", anchor, address);
 }
 
 void html_fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
     // we could use symbols for lookup, but these are just branch
     // labels, not jumps usually.
-    out->format("<a class=\"blabel\">.L%08x</a>", address);
+    char anchor[32] = {0};
+
+    html_fmt_branch_anchor(anchor, address);
+    out->format(R"(<a class="blabel" href="#%s">.L%08x</a>)", anchor, address);
 }
 
 void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
     out->format("glabel ");
 
-    html_fmt_jump_address_label(out, address, conf);
+    char anchor[256] = {0};
+    jump_address_info info;
+
+    get_jump_address_info(conf, address, &info);
+
+    switch (info.type)
+    {
+    case jump_address_type::Jump:
+        html_fmt_jump_anchor(anchor, info.address);
+        out->format(R"(<a class="jlabel" id="%s">func_%08x</a>)", anchor, info.address);
+        break;
+
+    case jump_address_type::Symbol:
+        html_fmt_symbol_anchor(anchor, info.name);
+        out->format(R"(<a class="symbol" id="%s">%s</a>)", anchor, info.name);
+        break;
+
+    case jump_address_type::Import:
+        html_fmt_import_anchor(anchor, info.name);
+
+        if (info.import_header_file == nullptr
+         || strlen(info.import_header_file) == 0
+         || strcmp(info.import_header_file, unknown_header) == 0)
+            out->format(R"(<a class="uimport">%s</a>)", info.name);
+        else
+            out->format(R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
+
+        break;
+
+    case jump_address_type::Export:
+        html_fmt_export_anchor(anchor, info.name);
+        out->format(R"(<a class="export" id="%s">%s</a>)", anchor, info.name);
+        break;
+    };
 }
 
 void html_fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("<a class=\"blabel\">.L%08x</a>:", address);
+    char anchor[32] = {0};
+
+    html_fmt_branch_anchor(anchor, address);
+    out->format(R"(<a class="blabel" id="%s">.L%08x</a>:)", anchor, address);
 }
 
 void html_fmt_mips_register_name(file_stream *out, mips_register reg)
