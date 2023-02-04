@@ -24,7 +24,7 @@ add_subdirectory(ext/shl)
 
 # target lib
 add_library(${allegrex_TARGET} SHARED)
-target_sources(${allegrex_TARGET} PRIVATE ${allegrex_SOURCES} ${allegrex_HEADERS})
+target_sources(${allegrex_TARGET} PUBLIC ${allegrex_SOURCES} ${allegrex_HEADERS})
 target_include_directories(${allegrex_TARGET} PRIVATE "${CMAKE_SOURCE_DIR}" "${allegrex_SOURCES_DIR}" "${shl_SOURCES_DIR}")
 set_property(TARGET ${allegrex_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
