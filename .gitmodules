@@ -1,0 +1,6 @@
+[submodule "ext/shl"]
+	path = ext/shl
+	url = https://github.com/daemontsun/shl.git
+[submodule "ext/better-cmake"]
+	path = ext/better-cmake
+	url = https://github.com/daemontsun/better-cmake.git

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "internal/map_macro.hpp"
+#include "allegrex/internal/map_macro.hpp"
 
 #define CONCAT__(X, Y) X##Y
 #define CONCAT_(X, Y) CONCAT__(X, Y)

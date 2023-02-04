@@ -86,7 +86,7 @@ define_test(vcmovt_5)
     assert_mnemonic(VCMOVT);
     assert_argument_count(1);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
     /*
     assert_argument_equals(0, vfpu_register{1, vfpu_size::Single});
     assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
@@ -178,7 +178,7 @@ define_test(vcmovf_5)
     assert_mnemonic(VCMOVF);
     assert_argument_count(1);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
     /*
     assert_argument_equals(0, vfpu_register{1, vfpu_size::Single});
     assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});

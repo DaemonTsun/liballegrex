@@ -3,11 +3,14 @@
 
 #include <map>
 #include <vector>
-#include "psp_modules.hpp"
-#include "psp_prx.hpp"
-#include "file_stream.hpp"
-#include "memory_stream.hpp"
-#include "number_types.hpp"
+#include <string>
+
+#include "shl/file_stream.hpp"
+#include "shl/memory_stream.hpp"
+#include "shl/number_types.hpp"
+
+#include "allegrex/psp_modules.hpp"
+#include "allegrex/psp_prx.hpp"
 
 #define INFER_VADDR UINT32_MAX
 
@@ -34,7 +37,7 @@ struct elf_relocation
 
 struct elf_section
 {
-    memory_stream content;
+    std::vector<u8> content;
     u32 content_offset;
     u32 vaddr;
     std::string name;

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "number_types.hpp"
+#include "shl/number_types.hpp"
 
 typedef wchar_t psp_function_arg_t;
 

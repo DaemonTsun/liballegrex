@@ -1,7 +1,9 @@
 
 #include <assert.h>
 
-#include "parse_instruction_arguments.hpp"
+#include "shl/bits.hpp"
+
+#include "allegrex/parse_instruction_arguments.hpp"
 
 #define RS(opcode) bitrange(opcode, 21u, 25u)
 #define RT(opcode) bitrange(opcode, 16u, 20u)
@@ -16,15 +18,6 @@
 #define VS(opcode) bitrange(opcode, 8u, 14u)
 #define VT(opcode) bitrange(opcode, 16u, 22u)
 
-static_assert(bitrange(0x00ff, 0, 0) == 0x1);
-static_assert(bitrange(0x00ff, 0, 1) == 0x3);
-static_assert(bitrange(0x00ff, 0, 3) == 0xf);
-static_assert(bitrange(0x00ff, 0, 7) == 0xff);
-static_assert(bitrange(0x01ff, 0, 7) == 0xff);
-static_assert(bitrange(0x00ff, 0, 8) == 0xff);
-static_assert(bitrange(0x01ff, 1, 8) == 0xff);
-static_assert(bitrange(0x0ff0, 4, 11) == 0xff);
-static_assert(bitrange(0xff00, 8, 15) == 0xff);
 
 constexpr s32 sign_extend_16_to_s32(u32 value)
 {
@@ -669,7 +662,7 @@ void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_config *conf
     u32 vt = VT(opcode);
 
     if (sz != vfpu_size::Triple)
-        add_argument(error{"vector size not triple"}, inst);
+        add_argument(invalid_argument{"vector size not triple"}, inst);
     else
     {
         add_vfpu_register_argument(vd, sz, inst);
@@ -831,7 +824,7 @@ void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_config *con
 
     if (imm > 6)
     {
-        add_argument(error{"invalid immediate"}, inst);
+        add_argument(invalid_argument{"invalid immediate"}, inst);
         return;
     }
 

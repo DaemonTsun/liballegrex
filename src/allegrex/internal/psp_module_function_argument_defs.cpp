@@ -1,5 +1,5 @@
 
-#include "internal/psp_module_function_argument_defs.hpp"
+#include "allegrex/internal/psp_module_function_argument_defs.hpp"
 
 const char *_get_psp_function_arg_name(psp_function_arg_t arg)
 {

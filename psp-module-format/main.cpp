@@ -1,9 +1,10 @@
 
-#include <stdexcept>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
+#include "shl/error.hpp"
 #include "default_formatter.hpp"
 #include "cpp_formatter.hpp"
 
@@ -76,8 +77,8 @@ try
 
     return 0;
 }
-catch (std::runtime_error &e)
+catch (error &e)
 {
-    fprintf(stderr, "error: %s\n", e.what());
+    fprintf(stderr, "error: %s\n", e.what);
     return 1;
 }

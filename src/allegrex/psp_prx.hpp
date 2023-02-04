@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "number_types.hpp"
+#include "shl/number_types.hpp"
 
 #define ELF_SECTION_PRX_MODULE_INFO ".rodata.sceModuleInfo"
 #define PRX_SYSTEM_EXPORT "syslib"

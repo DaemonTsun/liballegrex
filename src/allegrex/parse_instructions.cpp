@@ -1,11 +1,9 @@
 
 #include <array>
-#include <stdexcept>
 #include <assert.h>
 
-#include "string.hpp"
-#include "parse_instruction_arguments.hpp"
-#include "parse_instructions.hpp"
+#include "allegrex/parse_instruction_arguments.hpp"
+#include "allegrex/parse_instructions.hpp"
 
 struct instruction_info
 {
@@ -832,7 +830,7 @@ void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, p
 
 void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out)
 {
-    size_t sz = in->size();
+    size_t sz = in->size;
 
     assert(sz % sizeof(u32) == 0);
     assert(sz <= UINT32_MAX);
@@ -848,13 +846,16 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
 
         // because all instructions are 32 bit wide, we simply read
         // instead of adjusting stream position to read from.
-        in->read(&inst.opcode);
+        read(in, &inst.opcode);
 
         inst.address = conf->vaddr + addr;
 
         parse_instruction(inst.opcode, &inst, conf, out);
     }
 }
+
+// desgustang
+#include <algorithm>
 
 void cleanup_jumps(jump_destination_array *jumps)
 {

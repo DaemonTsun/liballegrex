@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "string.hpp"
-#include "parse_instructions.hpp"
+#include "shl/number_types.hpp"
+#include "allegrex/parse_instructions.hpp"
 
 typedef void(*argument_parse_function_t)(u32 opcode, instruction*, const parse_config *conf, parse_data *pdata);
 

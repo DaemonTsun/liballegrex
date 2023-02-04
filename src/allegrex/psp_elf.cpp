@@ -1,18 +1,18 @@
 
-#include <stdexcept>
 #include <vector>
 
 #include <elf.h>
 #include <assert.h>
 #include <string.h>
 
-#include "string.hpp"
-#include "psp_modules.hpp"
-#include "internal/psp_module_function_argument_defs.hpp"
-#include "internal/psp_module_function_pspdev_headers.hpp"
-#include "psp_prx.hpp"
-#include "prx_decrypt.hpp"
-#include "psp_elf.hpp"
+#include "shl/error.hpp"
+
+#include "allegrex/psp_modules.hpp"
+#include "allegrex/internal/psp_module_function_argument_defs.hpp"
+#include "allegrex/internal/psp_module_function_pspdev_headers.hpp"
+#include "allegrex/psp_prx.hpp"
+#include "allegrex/prx_decrypt.hpp"
+#include "allegrex/psp_elf.hpp"
 
 /*
 #define R_MIPS_26    4
@@ -64,13 +64,13 @@ const psp_variable *get_syslib_variable(u32 nid)
     return nullptr;
 }
 
-#define log(CONF, ...) {if (CONF->verbose && CONF->log != nullptr) {CONF->log->format(__VA_ARGS__);}};
+#define log(CONF, ...) {if (CONF->verbose && CONF->log != nullptr) {format(CONF->log,__VA_ARGS__);}};
 // #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
 template<typename T>
 void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
 {
-    in->read_at(out, ehdr->e_shoff + (index) * ehdr->e_shentsize);
+    read_at(in, out, ehdr->e_shoff + (index) * ehdr->e_shentsize);
 }
 
 struct elf_read_ctx
@@ -112,12 +112,12 @@ void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
 
         std::vector<char> sec_string_table;
         sec_string_table.resize(strtab_header.sh_size);
-        ctx->in->read_at(sec_string_table.data(), strtab_header.sh_offset, strtab_header.sh_size);
+        read_at(ctx->in, sec_string_table.data(), strtab_header.sh_offset, strtab_header.sh_size);
 
         for (u32 i = 0; i < sec_header.sh_size; i += sizeof(Elf32_Sym))
         {
             Elf32_Sym sym;
-            ctx->in->read_at(&sym, sec_header.sh_offset + i);
+            read_at(ctx->in, &sym, sec_header.sh_offset + i);
 
             const char *name = sec_string_table.data() + sym.st_name;
 
@@ -161,7 +161,7 @@ void add_relocations(elf_read_ctx *ctx, std::vector<elf_relocation> &out)
         for (u32 j = 0; j < sec_header.sh_size; j += sizeof(Elf32_Rel))
         {
             Elf32_Rel rel;
-            ctx->in->read_at(&rel, sec_header.sh_offset + j);
+            read_at(ctx->in, &rel, sec_header.sh_offset + j);
             u32 index = ELF32_R_SYM(rel.r_info);
             u32 type = ELF32_R_TYPE(rel.r_info);
 
@@ -204,7 +204,7 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
 
     log(ctx->conf, "found .rodata.sceModuleInfo section at %08x (size %08x):\n", sceModuleInfo_section_header.sh_offset, sceModuleInfo_section_header.sh_size);
 
-    ctx->in->read_at(out, sceModuleInfo_section_header.sh_offset);
+    read_at(ctx->in, out, sceModuleInfo_section_header.sh_offset);
 
     log(ctx->conf, "  attribute: %04x\n", out->attribute);
     log(ctx->conf, "  versions:  %02x %02x\n", out->version[0], out->version[1]);
@@ -226,14 +226,14 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
     for (u32 i = 0; i < sz; i += sizeof(prx_module_export))
     {
         prx_module_export exp;
-        ctx->in->read_at(&exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
+        read_at(ctx->in, &exp, file_offset_from_vaddr(ctx, mod_info->export_offset_start) + i);
 
         const char *module_name;
 
         if (exp.name_vaddr == 0)
             module_name = PRX_SYSTEM_EXPORT;
         else
-            module_name = ctx->in->data() + file_offset_from_vaddr(ctx, exp.name_vaddr);
+            module_name = ctx->in->data + file_offset_from_vaddr(ctx, exp.name_vaddr);
 
         log(ctx->conf, "export module %s: %08x %08x %02x %02x %04x %08x\n", module_name, exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
         log(ctx->conf, "  %08x\n", file_offset_from_vaddr(ctx, exp.exports_vaddr));
@@ -248,8 +248,8 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             u32 f_vaddr;
             u32 nid;
 
-            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
-            ctx->in->read_at(&f_vaddr, file_offset_from_vaddr(ctx, f_vaddr_vaddr));
+            read_at(ctx->in, &nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
+            read_at(ctx->in, &f_vaddr, file_offset_from_vaddr(ctx, f_vaddr_vaddr));
 
             const psp_function *pf = get_syslib_function(nid);
 
@@ -273,8 +273,8 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             u32 v_vaddr;
             u32 nid;
 
-            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, v_offset) + j);
-            ctx->in->read_at(&v_vaddr, file_offset_from_vaddr(ctx, v_vaddr_vaddr));
+            read_at(ctx->in, &nid, file_offset_from_vaddr(ctx, v_offset) + j);
+            read_at(ctx->in, &v_vaddr, file_offset_from_vaddr(ctx, v_vaddr_vaddr));
 
             const psp_variable *pv = get_syslib_variable(nid);
 
@@ -306,9 +306,9 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
     for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
     {
         prx_module_import imp;
-        ctx->in->read_at(&imp, file_offset_from_vaddr(ctx, mod_info->import_offset_start) + i);
+        read_at(ctx->in, &imp, file_offset_from_vaddr(ctx, mod_info->import_offset_start) + i);
 
-        const char *module_name = ctx->in->data() + file_offset_from_vaddr(ctx, imp.name_vaddr);
+        const char *module_name = ctx->in->data + file_offset_from_vaddr(ctx, imp.name_vaddr);
 
         log(ctx->conf, "import %s: %08x %08x %02x %02x %04x %08x %08x\n",
                        module_name, imp.name_vaddr, imp.flags,
@@ -324,7 +324,7 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             u32 f_vaddr = imp.functions_vaddr + j * 2;
             u32 nid;
 
-            ctx->in->read_at(&nid, file_offset_from_vaddr(ctx, imp.nids_vaddr) + j);
+            read_at(ctx->in, &nid, file_offset_from_vaddr(ctx, imp.nids_vaddr) + j);
 
             const psp_function *pf = get_psp_function_by_nid(module_name, nid);
 
@@ -397,25 +397,25 @@ const char *get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
     Elf32_Shdr string_table_header;
     read_section(in, elf_header, elf_header->e_shstrndx, &string_table_header);
 
-    return in->data() + string_table_header.sh_offset;
+    return in->data + string_table_header.sh_offset;
 }
 
 void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
     Elf32_Ehdr elf_header;
 
-    if (in->size() < sizeof(Elf32_Ehdr))
-        throw std::runtime_error("input is not an ELF file");
+    if (in->size < sizeof(Elf32_Ehdr))
+        throw_error("input is not an ELF file");
 
-    in->read(&elf_header);
+    read(in, &elf_header);
 
     if (strncmp((const char*)elf_header.e_ident, "\x7f" "ELF", 4))
-        throw std::runtime_error("input is not an ELF file");
+        throw_error("input is not an ELF file");
 
     // we want little endian
     if (elf_header.e_ident[EI_DATA] != ELFDATA2LSB
      || elf_header.e_machine != EM_MIPS)
-        throw std::runtime_error("input is not little-endian MIPS");
+        throw_error("input is not little-endian MIPS");
 
     log(conf, "%s\n", "got little-endian mips");
 
@@ -425,7 +425,7 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         // can have strange sections (e.g. MHFU has ~600 sections, a lot of them empty)
         // so we usually rely on the name given by command line args, or disassemble
         // all executable sections instead.
-        throw std::runtime_error("no section header table index found");
+        throw_error("no section header table index found");
     }
 
     const char *string_table = get_string_table(in, &elf_header);
@@ -455,9 +455,9 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     if (section_indices.empty())
     {
         if (conf->section.empty())
-            throw std::runtime_error(str("no executable sections found in input file"));
+            throw_error("no executable sections found in input file");
         else
-            throw std::runtime_error(str("section '", conf->section, "' not found in input file"));
+            throw_error("section '%s' not found in input file", conf->section.c_str());
     }
 
     elf_read_ctx ctx;
@@ -490,9 +490,11 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
         out->symbols.emplace(vaddr, elf_symbol{vaddr, section_name});
         add_symbols(&ctx, i, out->symbols);
 
-        esec.content = memory_stream(section_header.sh_size);
+        esec.content.resize(section_header.sh_size);
         esec.content_offset = section_header.sh_offset;
-        in->read_at(esec.content.data(), section_header.sh_offset, section_header.sh_size);
+
+        if (section_header.sh_size > 0)
+            read_at(in, esec.content.data(), section_header.sh_offset, section_header.sh_size);
     }
 
     add_prx_imports_exports(&ctx, out);
@@ -500,10 +502,13 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
 
 void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
 {
-    memory_stream memstr = memory_stream(in->size());
-    in->read_at(memstr.data(), 0, in->size());
+    memory_stream memstr;
+    open(&memstr, in->size);
 
+    read_at(in, memstr.data, 0, in->size);
     read_elf(&memstr, conf, out);
+
+    close(&memstr);
 }
 
 void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
@@ -513,13 +518,14 @@ void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data
     if (decrypt_elf(in, &decrypted_elf))
     {
         log(conf, "ELF is encrypted and has been decrypted.\n");
-        memory_stream delf = memory_stream(reinterpret_cast<char*>(decrypted_elf.data()),
-                                           decrypted_elf.size());
+        memory_stream delf;
+        open(&delf, reinterpret_cast<char*>(decrypted_elf.data()),
+                                            decrypted_elf.size());
         _read_elf(&delf, conf, out);
         return;
     }
 
-    in->seek(0);
+    seek(in, 0);
 
     // simply parse from memory if not encrypted
     _read_elf(in, conf, out);
@@ -527,21 +533,27 @@ void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data
 
 size_t decrypt_elf(file_stream *in, std::vector<u8> *out)
 {
-    memory_stream memstr = memory_stream(in->size());
-    in->read_at(memstr.data(), 0, in->size());
+    memory_stream memstr;
+    open(&memstr, in->size);
 
-    return decrypt_elf(&memstr, out);
+    read_at(in, memstr.data, 0, in->size);
+
+    size_t ret = decrypt_elf(&memstr, out);
+
+    close(&memstr);
+
+    return ret;
 }
 
 size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
 {
     Elf32_Ehdr elf_header;
 
-    if (in->size() < sizeof(Elf32_Ehdr))
-        throw std::runtime_error("input is not an ELF file");
+    if (in->size < sizeof(Elf32_Ehdr))
+        throw_error("input is not an ELF file");
 
     char magic[4];
-    in->read(magic, 4);
+    read(in, magic, 4);
 
     if (strncmp(magic, "\x7f" "ELF", 4))
     {
@@ -549,21 +561,21 @@ size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
         
         if (strncmp(magic, "~PSP", 4))
             // not encrypted either
-            throw std::runtime_error("input is not an ELF file and is not encrypted");
+            throw_error("input is not an ELF file and is not encrypted");
 
         // ok its encrypted, attempt decrypt
         PSP_Header phead;
-        in->read_at(&phead, 0);
+        read_at(in, &phead, 0);
 
         size_t nsize = std::max(phead.elf_size, phead.psp_size);
         out->resize(nsize);
 
-        int decrypted_size = pspDecryptPRX(reinterpret_cast<const u8*>(in->data()),
+        int decrypted_size = pspDecryptPRX(reinterpret_cast<const u8*>(in->data),
                                            out->data(),
                                            phead.psp_size);
 
         if (decrypted_size < 0)
-            throw std::runtime_error("could not decrypt input file");
+            throw_error("could not decrypt input file");
 
         /* TODO: implement gzip
         const auto isGzip = phead.comp_attribute & 1;

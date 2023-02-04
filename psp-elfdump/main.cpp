@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "psp_elf.hpp"
-#include "parse_instructions.hpp"
+#include "shl/file_stream.hpp"
+#include "shl/memory_stream.hpp"
+#include "shl/number_types.hpp"
+#include "shl/string.hpp"
+#include "shl/error.hpp"
 
-#include "file_stream.hpp"
-#include "memory_stream.hpp"
-#include "string.hpp"
-#include "number_types.hpp"
+#include "allegrex/psp_elf.hpp"
+#include "allegrex/parse_instructions.hpp"
 
 #include "psp-elfdump/dump_format.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
@@ -126,7 +127,7 @@ void parse_range(disasm_range *r, const char *arg)
     {
         u32 endpos = strtoul(minus + 1, nullptr, 0);
         if (endpos < r->start)
-            throw std::runtime_error(str("start offset 0x", std::hex, r->start, " is larger than end offset 0x", std::hex, endpos));
+            throw_error("start offset %x is larger than end offset %x", r->start, endpos);
 
         r->size = endpos - r->start;
     }
@@ -151,7 +152,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "-o" || arg == "--output")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the output file"));
+                throw_error("%s expects a positional argument: the output file", arg.c_str());
 
             out->output_file = argv[i+1];
             i += 2;
@@ -161,7 +162,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "--log")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the log file"));
+                throw_error("%s expects a positional argument: the log file", arg.c_str());
 
             out->log_file = argv[i+1];
             i += 2;
@@ -171,7 +172,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "-s" || arg == "--section")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the section name"));
+                throw_error("%s expects a positional argument: the section name", arg.c_str());
 
             out->section = argv[i+1];
             i += 2;
@@ -181,7 +182,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "--dump-decrypt")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the output file"));
+                throw_error("%s expects a positional argument: the output file", arg.c_str());
 
             out->decrypted_elf_output = argv[i+1];
             i += 2;
@@ -191,7 +192,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "-a" || arg == "--vaddr")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the VADDR"));
+                throw_error("%s expects a positional argument: the VADDR", arg.c_str());
 
             out->vaddr = std::stoul(argv[i+1], nullptr, 0);
             i += 2;
@@ -201,7 +202,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "-r")
         {
             if (i >= argc - 1)
-                throw std::runtime_error(str(arg, " expects a positional argument: the range"));
+                throw_error("%s expects a positional argument: the range", arg.c_str());
 
             disasm_range &range = out->ranges.emplace_back();
             parse_range(&range, argv[i+1]);
@@ -275,8 +276,8 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         }
 
         // etc
-        if (begins_with(arg, str("-")))
-            throw std::runtime_error(str("unknown argument '", arg, "'"));
+        if (begins_with(arg.c_str(), "-"))
+            throw_error("unknown argument '%s'", arg.c_str());
 
         if (out->input_file.empty())
         {
@@ -285,7 +286,7 @@ void parse_arguments(int argc, const char **argv, arguments *out)
             continue;
         }
         else
-            throw std::runtime_error(str("unexpected argument '", arg, "'"));
+            throw_error("unexpected argument '%s'", arg.c_str());
     }
 }
 
@@ -361,7 +362,13 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
         parse_data &pdata = pdatas[i];
         pdata.jump_destinations = &jumps;
-        parse_allegrex(&sec.content, &pconf, &pdata);
+
+        if (sec.content.size() > 0)
+        {
+            memory_stream mem;
+            open(&mem, (char *)(sec.content.data()), sec.content.size());
+            parse_allegrex(&mem, &pconf, &pdata);
+        }
 
         dump_section &dsec = dconf.dump_sections[i];
         dsec.section = &sec;
@@ -379,14 +386,18 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     if (!args.output_file.empty())
         outfd = fopen(args.output_file.c_str(), "w");
 
-    file_stream out(outfd);
+    file_stream out;
+    out.handle = outfd;
 
-    if (!out)
-        throw std::runtime_error("could not open output file");
+    if (!is_ok(&out))
+        throw_error("could not open output file %s", args.output_file.c_str());
 
     dconf.jump_destinations = &jumps;
 
     format_dump(args.output_type, &dconf, &out);
+
+    if (outfd != stdout)
+        close(&out);
 }
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
@@ -400,16 +411,17 @@ void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args
         return;
     }
     
-    FILE *outfd = fopen(args.decrypted_elf_output.c_str(), "w");
+    file_stream out;
+    open(&out, args.decrypted_elf_output.c_str(), MODE_WRITE);
 
-    file_stream out(outfd);
+    if (!is_ok(&out))
+        throw_error("could not open dump output file %s", args.decrypted_elf_output.c_str());
 
-    if (!out)
-        throw std::runtime_error("could not open dump output file");
-
-    out.write(delf.data(), sz);
+    write(&out, delf.data(), sz);
 
     printf("dumped decrypted ELF from %s to %s\n", args.input_file.c_str(), args.decrypted_elf_output.c_str());
+
+    close(&out);
 }
 
 void disassemble_range(file_stream *in, file_stream *log, const disasm_range *range, const arguments &args)
@@ -418,10 +430,10 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     u32 sz = range->size;
 
     if (sz == INFER_SIZE)
-        sz = in->size() - from;
+        sz = in->size - from;
 
-    if (from + sz > in->size())
-        throw std::runtime_error(str("end offset 0x", std::hex, from + sz, " (start 0x", std::hex, from, " + size 0x", std::hex, sz, ") is larger than input file size 0x", std::hex, in->size()));
+    if (from + sz > in->size)
+        throw_error("end offset %x (start %x + size %x) is larger than input file size %x", from + sz, from, sz, in->size);
 
     parse_config pconf;
     pconf.log = log;
@@ -433,15 +445,18 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
         pconf.vaddr = 0;
 
     if (args.verbose)
-        log->format("disassembling range %08x - %08x (size: %08x) with vaddr %08x\n", from, from + sz, sz, pconf.vaddr);
+        format(log, "disassembling range %08x - %08x (size: %08x) with vaddr %08x\n", from, from + sz, sz, pconf.vaddr);
 
-    auto memstr = memory_stream(sz);
-    in->read_at(memstr.data(), from, sz);
+    memory_stream memstr;
+    open(&memstr, sz);
+    
+    read_at(in, memstr.data, from, sz);
 
     parse_data pdata;
     jump_destination_array jumps;
     pdata.jump_destinations = &jumps;
     parse_allegrex(&memstr, &pconf, &pdata);
+    close(&memstr);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
@@ -449,10 +464,11 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     if (!args.output_file.empty())
         outfd = fopen(args.output_file.c_str(), "w");
 
-    file_stream out(outfd);
+    file_stream out;
+    out.handle = outfd;
 
-    if (!out)
-        throw std::runtime_error("could not open output file");
+    if (!is_ok(&out))
+        throw_error("could not open output file %s", args.output_file.c_str());
 
     dump_config dconf;
     dconf.jump_destinations = &jumps;
@@ -470,7 +486,10 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     format_dump(args.output_type, &dconf, &out);
 
     if (args.verbose)
-        log->write("\n");
+        write(log, "\n");
+
+    if (outfd != stdout)
+        close(&out);
 }
 
 void disassemble_ranges(file_stream *in, file_stream *log, const arguments &args)
@@ -487,7 +506,7 @@ try
     parse_arguments(argc, argv, &args);
 
     if (args.input_file.empty())
-        throw std::runtime_error("expected input file");
+        throw_error("expected input file");
 
     // get logfile
     FILE *logfd = stdout;
@@ -495,22 +514,22 @@ try
     if (!args.log_file.empty())
         logfd = fopen(args.log_file.c_str(), "a");
 
-    file_stream log(logfd);
+    file_stream log;
+    log.handle = logfd;
 
-    if (!log)
-        throw std::runtime_error("could not open file to log");
+    if (!is_ok(&log))
+        throw_error("could not open file to log %s", args.log_file.c_str());
 
-    file_stream in(args.input_file, "rb");
+    file_stream in;
+    open(&in, args.input_file.c_str(), "rb");
 
-    if (!in)
-        throw std::runtime_error("could not open input file");
+    if (!is_ok(&in))
+        throw_error("could not open input file %s", args.input_file.c_str());
 
-    in.calculate_size();
-    
     if (!args.decrypted_elf_output.empty())
     {
         if (args.input_file == args.decrypted_elf_output)
-            throw std::runtime_error("decrypted elf target output file is same as input file, aborting");
+            throw_error("decrypted elf target output file is same as input file, aborting");
 
         dump_decrypted_elf(&in, &log, args);
     }
@@ -519,11 +538,11 @@ try
     else
         disassemble_elf(&in, &log, args);
 
-    in.close();
+    close(&in);
     return 0;
 }
-catch (std::runtime_error &e)
+catch (error &e)
 {
-    fprintf(stderr, "error: %s\n", e.what());
+    fprintf(stderr, "error: %s\n", e.what);
     return 1;
 }

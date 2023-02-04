@@ -9,7 +9,7 @@ extern "C"
 #include "libkirk/SHA1.h"
 }
 
-#include "prx_decrypt.hpp"
+#include "allegrex/prx_decrypt.hpp"
 
 #define ROUNDUP16(x)  (((x)+15)&~15)
 

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "enum.hpp"
-#include "number_types.hpp"
+#include "shl/enum_flag.hpp"
+#include "shl/number_types.hpp"
 
 enum class mips_register : u32
 {

@@ -1,10 +1,11 @@
 
 #pragma once
 
-#include "instruction.hpp"
-#include "file_stream.hpp"
-#include "memory_stream.hpp"
-#include "number_types.hpp"
+#include "shl/file_stream.hpp"
+#include "shl/memory_stream.hpp"
+#include "shl/number_types.hpp"
+
+#include "allegrex/instruction.hpp"
 
 struct parse_config
 {

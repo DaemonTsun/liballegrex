@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <ostream>
 #include <string.h>
-#include "parse_instructions.hpp"
+#include "allegrex/parse_instructions.hpp"
 
 #define clear_instruction() \
     inst.opcode = 0;\

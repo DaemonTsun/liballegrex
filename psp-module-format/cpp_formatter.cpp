@@ -1,7 +1,6 @@
 
 #include <map>
 #include <unordered_map>
-#include <exception>
 #include <string>
 
 #include <assert.h>
@@ -10,8 +9,9 @@
 #include <linux/limits.h>
 #include <unistd.h>
 
-#include "string.hpp"
-#include "psp_modules.hpp"
+#include "shl/error.hpp"
+#include "allegrex/psp_modules.hpp"
+
 #include "cpp_formatter.hpp"
 
 // cpp formatter
@@ -113,7 +113,7 @@ void parse_file(const char *path, const char *filename, parse_handler handler)
     FILE *f = fopen(arg_def_file_path, "r");
 
     if (f == nullptr)
-        throw std::runtime_error(str("could not open file ", arg_def_file_path));
+        throw_error("could not open file %s", arg_def_file_path);
 
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
@@ -127,10 +127,10 @@ void parse_file(const char *path, const char *filename, parse_handler handler)
     {
         handler(content);
     }
-    catch (std::exception &e)
+    catch (...)
     {
         free(content);
-        throw e;
+        throw;
         return;
     }
 
@@ -149,7 +149,7 @@ void load_liballegrex_data()
 
     // we're assuming we're always in a bin folder which is next to src.
     // yes this is terrible.
-    strcpy(strrchr(pth, '/'), "/../../src/internal/");
+    strcpy(strrchr(pth, '/'), "/../../src/allegrex/internal/");
 
     parse_file(pth, "psp_module_function_argument_defs.hpp", load_function_args);
     parse_file(pth, "psp_module_function_pspdev_headers.hpp", load_pspdev_headers);

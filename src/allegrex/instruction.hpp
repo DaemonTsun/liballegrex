@@ -4,11 +4,12 @@
 #include <vector>
 #include <variant>
 
-#include "psp_modules.hpp"
-#include "mips_registers.hpp"
-#include "allegrex_mnemonics.hpp"
-#include "allegrex_vfpu.hpp"
-#include "number_types.hpp"
+#include "shl/number_types.hpp"
+
+#include "allegrex/psp_modules.hpp"
+#include "allegrex/mips_registers.hpp"
+#include "allegrex/allegrex_mnemonics.hpp"
+#include "allegrex/allegrex_vfpu.hpp"
 
 #define DEFINE_TYPED_ARG(name, type) struct name {type data;}
 
@@ -38,7 +39,7 @@ DEFINE_TYPED_ARG(bitfield_pos, u32);
 DEFINE_TYPED_ARG(extra, u32);
 DEFINE_TYPED_ARG(string_arg, const char *);
 // error handling
-DEFINE_TYPED_ARG(error, const char *);
+DEFINE_TYPED_ARG(invalid_argument, const char *);
 
 using instruction_argument =
     std::variant<mips_register,
@@ -68,7 +69,7 @@ using instruction_argument =
                  bitfield_size,
                  extra,
                  string_arg,
-                 error>;
+                 invalid_argument>;
 
 struct instruction
 {

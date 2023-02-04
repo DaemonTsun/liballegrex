@@ -1,14 +1,14 @@
 
 #include <assert.h>
 
-#include "string.hpp"
-#include "instruction.hpp"
+#include "shl/string_manip.hpp"
+#include "allegrex/instruction.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
 
 // asm-specific formatting functions
 inline void asm_fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
 {
-    out->format(format_string, pos, inst->address, inst->opcode);
+    format(out, format_string, pos, inst->address, inst->opcode);
 }
 
 void format_name(file_stream *out, const instruction *inst)
@@ -19,18 +19,18 @@ void format_name(file_stream *out, const instruction *inst)
     {
         vfpu_size sz = get_vfpu_size(inst->opcode);
         const char *suf = size_suffix(sz);
-        auto fullname = str(name, suf); // slow lol
+        auto fullname = to_string(name, suf); // slow lol
 
-        out->format("%-10s", fullname.c_str());
+        format(out, "%-10s", fullname.c_str());
     }
     else
-        out->format("%-10s", name);
+        format(out, "%-10s", name);
 }
 
 #define ARG_HOLDS_T_FORMAT(out, arg, T, FMT) \
     (std::holds_alternative<T>(arg)) \
     { \
-        out->format(FMT, std::get<T>(arg).data); \
+        format(out, FMT, std::get<T>(arg).data); \
     }
 
 // thanks for those c++ function aliases
@@ -107,14 +107,14 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     }
 
     // do the writing
-    out->format("\n\n/* Disassembly of section %s */\n", sec->name.c_str());
+    format(out, "\n\n/* Disassembly of section %s */\n", sec->name.c_str());
 
     for (const instruction &inst : dsec->pdata->instructions)
     {
         bool write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
 
         if (write_label)
-            out->write("\n");
+            write(out, "\n");
 
         while (write_label)
         {
@@ -150,7 +150,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
 
             // i hate variant
             if (holds_type<string_arg>(arg))
-                out->format("%s", std::get<string_arg>(arg).data);
+                format(out, "%s", std::get<string_arg>(arg).data);
 
             else if (holds_type<mips_register>(arg))
                 f_mips_register_name(out, std::get<mips_register>(arg));
@@ -164,19 +164,19 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             else if (holds_type<vfpu_matrix>(arg))
             {
                 auto &mtx = std::get<vfpu_matrix>(arg);
-                out->format("%s%s", matrix_name(mtx)
+                format(out, "%s%s", matrix_name(mtx)
                                   , size_suffix(mtx.size));
             }
             else if (holds_type<vfpu_condition>(arg))
-                out->format("%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
+                format(out, "%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
 
             else if (holds_type<vfpu_constant>(arg))
-                out->format("%s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
+                format(out, "%s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
 
             else if (holds_type<vfpu_prefix_array>(arg))
             {
                 auto &arr = std::get<vfpu_prefix_array>(arg).data;
-                out->format("[%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
+                format(out, "[%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
                                            , vfpu_prefix_name(arr[1])
                                            , vfpu_prefix_name(arr[2])
                                            , vfpu_prefix_name(arr[3])
@@ -185,7 +185,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             else if (holds_type<vfpu_destination_prefix_array>(arg))
             {
                 auto &arr = std::get<vfpu_destination_prefix_array>(arg).data;
-                out->format("[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
+                format(out, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
                                            , vfpu_destination_prefix_name(arr[1])
                                            , vfpu_destination_prefix_name(arr[2])
                                            , vfpu_destination_prefix_name(arr[3])
@@ -194,24 +194,24 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             else if (holds_type<vfpu_rotation_array>(arg))
             {
                 auto &arr = std::get<vfpu_rotation_array>(arg);
-                out->format("[%s", vfpu_rotation_name(arr.data[0]));
+                format(out, "[%s", vfpu_rotation_name(arr.data[0]));
 
                 for (int i = 1; i < arr.size; ++i)
-                    out->format(",%s", vfpu_rotation_name(arr.data[i]));
+                    format(out, ",%s", vfpu_rotation_name(arr.data[i]));
 
-                out->format("]");
+                format(out, "]");
             }
             else if (holds_type<base_register>(arg))
             {
-                out->write("(");
+                write(out, "(");
                 f_mips_register_name(out, std::get<base_register>(arg).data);
-                out->write(")");
+                write(out, ")");
             }
 
             else if (holds_type<const psp_function*>(arg))
             {
                 const psp_function *sc = std::get<const psp_function*>(arg);
-                out->format("%s <0x%08x>", sc->name, sc->nid);
+                format(out, "%s <0x%08x>", sc->name, sc->nid);
             }
             else if (holds_type<jump_address>(arg))
                 f_jump_argument(out, std::get<jump_address>(arg).data, conf);
@@ -223,18 +223,18 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             {
                 s32 d = std::get<immediate<s32>>(arg).data;
                 if (d < 0)
-                    out->format("-%#x", -d);
+                    format(out, "-%#x", -d);
                 else
-                    out->format("%#x", d);
+                    format(out, "%#x", d);
             }
 
             else if (holds_type<immediate<s16>>(arg))
             {
                 s16 d = std::get<immediate<s16>>(arg).data;
                 if (d < 0)
-                    out->format("-%#x", -d);
+                    format(out, "-%#x", -d);
                 else
-                    out->format("%#x", d);
+                    format(out, "%#x", d);
             }
 
             else if ARG_HOLDS_T_FORMAT(out, arg, shift,            "%#x")
@@ -249,12 +249,12 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             else if (holds_type<coprocessor_register>(arg))
             {
                 auto &d = std::get<coprocessor_register>(arg);
-                out->format("[%u, %u]", d.rd, d.sel);
+                format(out, "[%u, %u]", d.rd, d.sel);
             }
         }
         
         // end
-        out->write("\n");
+        write(out, "\n");
         pos += sizeof(u32);
     }
 }

@@ -1,5 +1,5 @@
 
-#include "mips_registers.hpp"
+#include "allegrex/mips_registers.hpp"
 
 const char *register_names[] = {
     "zero",     // 0

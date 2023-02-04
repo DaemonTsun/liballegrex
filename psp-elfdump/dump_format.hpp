@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "enum.hpp"
-#include "psp_elf.hpp"
-#include "parse_instructions.hpp"
+#include "shl/enum_flag.hpp"
+#include "allegrex/psp_elf.hpp"
+#include "allegrex/parse_instructions.hpp"
 
 enum class format_options
 {
@@ -15,7 +15,7 @@ enum class format_options
     pseudoinstructions     = 1 << 5, // e.g. b, bal, ...
 };
 
-ENUM_CLASS_FLAG_OPS(format_options);
+enum_flag(format_options);
 
 constexpr format_options default_format_options = 
     format_options::comment_pos_addr_instr |

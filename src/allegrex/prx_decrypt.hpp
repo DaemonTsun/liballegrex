@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "number_types.hpp"
-#include "number_swap.hpp"
+#include "allegrex/number_swap.hpp"
 
 #ifdef _MSC_VER
 #pragma pack(push, 1)

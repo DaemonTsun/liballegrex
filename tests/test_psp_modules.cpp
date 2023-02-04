@@ -2,7 +2,7 @@
 #include <t1/t1.hpp>
 #include <string.h>
 
-#include "psp_modules.hpp"
+#include "allegrex/psp_modules.hpp"
 
 #define assert_str_equal(A, B) assert_equal(strcmp(A, B), 0)
 

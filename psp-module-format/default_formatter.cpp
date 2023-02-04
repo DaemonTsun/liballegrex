@@ -1,5 +1,6 @@
 
-#include "psp_modules.hpp"
+#include "allegrex/psp_modules.hpp"
+
 #include "default_formatter.hpp"
 
 // default formatter

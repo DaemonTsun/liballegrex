@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "enum.hpp"
-#include "number_types.hpp"
+#include "shl/enum_flag.hpp"
+#include "shl/number_types.hpp"
 
-// not called instruction to avoid confusion between
-// instruction struct and mnemonics.
+// not called instruction to avoid confusion between instruction struct and mnemonics.
 // also these are just the mnemonics.
+// order matters.
 enum class allegrex_mnemonic : u32
 {
     NOP,

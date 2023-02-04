@@ -316,7 +316,7 @@ define_test(vcrs_0)
     assert_argument_count(1);
     assert_argument_vfpu_size(Single);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
 }
 
 define_test(vcrs_1)
@@ -328,7 +328,7 @@ define_test(vcrs_1)
     assert_argument_count(1);
     assert_argument_vfpu_size(Single);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
 }
 
 define_test(vcrs_2)
@@ -340,7 +340,7 @@ define_test(vcrs_2)
     assert_argument_count(1);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
 }
 
 define_test(vcrs_3)
@@ -366,7 +366,7 @@ define_test(vcrs_4)
     assert_argument_count(1);
     assert_argument_vfpu_size(Quad);
 
-    assert_argument_type(0, error);
+    assert_argument_type(0, invalid_argument);
 }
 
 // vdet vd, vs, vt

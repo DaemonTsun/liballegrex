@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "internal/psp_module_function_argument_defs.hpp"
-#include "internal/psp_module_function_pspdev_headers.hpp"
-#include "psp_modules.hpp"
+#include "allegrex/internal/psp_module_function_argument_defs.hpp"
+#include "allegrex/internal/psp_module_function_pspdev_headers.hpp"
+#include "allegrex/psp_modules.hpp"
 
 static_assert(ARGS(a, b, c) == L"abc");
 

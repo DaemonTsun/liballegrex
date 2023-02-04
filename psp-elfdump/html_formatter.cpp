@@ -2,9 +2,10 @@
 #include <assert.h>
 #include <string.h>
 
-#include "string.hpp"
-#include "instruction.hpp"
-#include "internal/psp_module_function_pspdev_headers.hpp"
+#include "shl/string_manip.hpp"
+
+#include "allegrex/instruction.hpp"
+#include "allegrex/internal/psp_module_function_pspdev_headers.hpp"
 #include "psp-elfdump/html_formatter.hpp"
 
 enum class jump_address_type
@@ -85,7 +86,7 @@ void get_jump_address_info(const dump_config *conf, u32 address, jump_address_in
 const char *pspsdk_github_base_src_url = "https://github.com/pspdev/pspsdk/tree/master/src/";
 
 #define html_fmt_number(out, num, FMT) \
-    out->format("<a class=\"num\">" FMT "</a>", num);
+    format(out, "<a class=\"num\">" FMT "</a>", num);
 
 void html_fmt_pos_anchor(char *out, u32 address)
 {
@@ -124,7 +125,7 @@ void html_fmt_branch_anchor(char *out, u32 address)
 
 void html_fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("<a class=\"addr\">0x%08x</a>", address);
+    format(out, "<a class=\"addr\">0x%08x</a>", address);
 }
 
 void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
@@ -138,12 +139,12 @@ void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_confi
     {
     case jump_address_type::Jump:
         html_fmt_jump_anchor(anchor, info.address);
-        out->format(R"(<a class="jlabel" href="#%s">func_%08x</a>)", anchor, info.address);
+        format(out, R"(<a class="jlabel" href="#%s">func_%08x</a>)", anchor, info.address);
         break;
 
     case jump_address_type::Symbol:
         html_fmt_symbol_anchor(anchor, info.name);
-        out->format(R"(<a class="symbol" href="#%s">%s</a>)", anchor, info.name);
+        format(out, R"(<a class="symbol" href="#%s">%s</a>)", anchor, info.name);
         break;
 
     case jump_address_type::Import:
@@ -152,15 +153,15 @@ void html_fmt_jump_address_label(file_stream *out, u32 address, const dump_confi
         if (info.import_header_file == nullptr
          || strlen(info.import_header_file) == 0
          || strcmp(info.import_header_file, unknown_header) == 0)
-            out->format(R"(<a class="uimport">%s</a>)", info.name);
+            format(out, R"(<a class="uimport">%s</a>)", info.name);
         else
-            out->format(R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
+            format(out, R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
 
         break;
 
     case jump_address_type::Export:
         html_fmt_export_anchor(anchor, info.name);
-        out->format(R"(<a class="export" href="#%s">%s</a>)", anchor, info.name);
+        format(out, R"(<a class="export" href="#%s">%s</a>)", anchor, info.name);
         break;
     };
 }
@@ -170,7 +171,7 @@ void html_fmt_branch_address_number(file_stream *out, u32 address, const dump_co
     char anchor[32] = {0};
 
     html_fmt_vaddr_anchor(anchor, address);
-    out->format(R"(<a class="addr" href="#%s">0x%08x</a>)", anchor, address);
+    format(out, R"(<a class="addr" href="#%s">0x%08x</a>)", anchor, address);
 }
 
 void html_fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
@@ -180,12 +181,12 @@ void html_fmt_branch_address_label(file_stream *out, u32 address, const dump_con
     char anchor[32] = {0};
 
     html_fmt_branch_anchor(anchor, address);
-    out->format(R"(<a class="blabel" href="#%s">.L%08x</a>)", anchor, address);
+    format(out, R"(<a class="blabel" href="#%s">.L%08x</a>)", anchor, address);
 }
 
 void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
 {
-    out->format("glabel ");
+    format(out, "glabel ");
 
     char anchor[256] = {0};
     jump_address_info info;
@@ -196,12 +197,12 @@ void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf
     {
     case jump_address_type::Jump:
         html_fmt_jump_anchor(anchor, info.address);
-        out->format(R"(<a class="jlabel" id="%s">func_%08x</a>)", anchor, info.address);
+        format(out, R"(<a class="jlabel" id="%s">func_%08x</a>)", anchor, info.address);
         break;
 
     case jump_address_type::Symbol:
         html_fmt_symbol_anchor(anchor, info.name);
-        out->format(R"(<a class="symbol" id="%s">%s</a>)", anchor, info.name);
+        format(out, R"(<a class="symbol" id="%s">%s</a>)", anchor, info.name);
         break;
 
     case jump_address_type::Import:
@@ -210,15 +211,15 @@ void html_fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf
         if (info.import_header_file == nullptr
          || strlen(info.import_header_file) == 0
          || strcmp(info.import_header_file, unknown_header) == 0)
-            out->format(R"(<a class="uimport">%s</a>)", info.name);
+            format(out, R"(<a class="uimport">%s</a>)", info.name);
         else
-            out->format(R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
+            format(out, R"(<a class="import" href="%s%s">%s</a>)", pspsdk_github_base_src_url, info.import_header_file, info.name);
 
         break;
 
     case jump_address_type::Export:
         html_fmt_export_anchor(anchor, info.name);
-        out->format(R"(<a class="export" id="%s">%s</a>)", anchor, info.name);
+        format(out, R"(<a class="export" id="%s">%s</a>)", anchor, info.name);
         break;
     };
 }
@@ -228,47 +229,47 @@ void html_fmt_branch_label(file_stream *out, u32 address, const dump_config *con
     char anchor[32] = {0};
 
     html_fmt_branch_anchor(anchor, address);
-    out->format(R"(<a class="blabel" id="%s">.L%08x</a>:)", anchor, address);
+    format(out, R"(<a class="blabel" id="%s">.L%08x</a>:)", anchor, address);
 }
 
 void html_fmt_mips_register_name(file_stream *out, mips_register reg)
 {
-    out->format("<a class=\"reg\">%s</a>", register_name(reg));
+    format(out, "<a class=\"reg\">%s</a>", register_name(reg));
 }
 
 void html_fmt_dollar_mips_register_name(file_stream *out, mips_register reg)
 {
-    out->format("<a class=\"reg\">$%s</a>", register_name(reg));
+    format(out, "<a class=\"reg\">$%s</a>", register_name(reg));
 }
 
 void html_fmt_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
 {
-    out->format("<a class=\"reg_fpu\">%s</a>", register_name(reg));
+    format(out, "<a class=\"reg_fpu\">%s</a>", register_name(reg));
 }
 
 void html_fmt_dollar_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
 {
-    out->format("<a class=\"reg_fpu\">$%s</a>", register_name(reg));
+    format(out, "<a class=\"reg_fpu\">$%s</a>", register_name(reg));
 }
 
 void html_fmt_vfpu_register_name(file_stream *out, vfpu_register reg)
 {
-    out->format("<a class=\"reg_vfpu\">%s%s</a>", register_name(reg), size_suffix(reg.size));
+    format(out, "<a class=\"reg_vfpu\">%s%s</a>", register_name(reg), size_suffix(reg.size));
 }
 
 void html_fmt_dollar_vfpu_register_name(file_stream *out, vfpu_register reg)
 {
-    out->format("<a class=\"reg_vfpu\">$%s%s</a>", register_name(reg), size_suffix(reg.size));
+    format(out, "<a class=\"reg_vfpu\">$%s%s</a>", register_name(reg), size_suffix(reg.size));
 }
 
 void html_fmt_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
 {
-    out->format("<a class=\"mat_vfpu\">%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
+    format(out, "<a class=\"mat_vfpu\">%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
 }
 
 void html_fmt_dollar_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
 {
-    out->format("<a class=\"mat_vfpu\">$%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
+    format(out, "<a class=\"mat_vfpu\">$%s%s</a>", matrix_name(mtx), size_suffix(mtx.size));
 }
 
 void html_format_instruction_name(file_stream *out, const instruction *inst)
@@ -279,12 +280,12 @@ void html_format_instruction_name(file_stream *out, const instruction *inst)
     {
         vfpu_size sz = get_vfpu_size(inst->opcode);
         const char *suf = size_suffix(sz);
-        auto fullname = str(name, suf); // slow lol
+        auto fullname = to_string(name, suf); // slow lol
 
-        out->format(" <pre>%-10s</pre>", fullname.c_str());
+        format(out, " <pre>%-10s</pre>", fullname.c_str());
     }
     else
-        out->format(" <pre>%-10s</pre>", name);
+        format(out, " <pre>%-10s</pre>", name);
 }
 
 void html_format_header(const dump_config *conf, file_stream *out)
@@ -292,30 +293,30 @@ void html_format_header(const dump_config *conf, file_stream *out)
     const prx_sce_module_info *module_info = conf->module_info;
     const char *module_name = module_info ? module_info->name : "[unknown]";
 
-    out->format(R"=(
+    format(out, R"=(
 <head>
   <title>
     %s
   </title>
 )=", module_name);
 
-    out->format(
+    format(out, 
 #include "disasm.css"
     );
 
-    out->format("</head>\n");
+    format(out, "</head>\n");
 }
 
 void html_format_module_info(const dump_config *conf, const prx_sce_module_info *module_info, file_stream *out)
 {
     if (module_info == nullptr)
     {
-        out->format("  <div class=\"block module_info\">[unknown]</div>");
+        format(out, "  <div class=\"block module_info\">[unknown]</div>");
         return;
     }
 
     // TODO: anchor, attributes, version, imports, exports
-    out->format(R"=(
+    format(out, R"=(
   <div class="block module_info">
     <span>%s</span><hr/>
   </div><br/>
@@ -325,7 +326,7 @@ void html_format_module_info(const dump_config *conf, const prx_sce_module_info 
 #define ARG_HOLDS_T_FORMAT(out, arg, T, FMT) \
     (std::holds_alternative<T>(arg)) \
     { \
-        out->format(FMT, std::get<T>(arg).data); \
+        format(out, FMT, std::get<T>(arg).data); \
     }
 
 #define ARG_HOLDS_NUMBER_FORMAT(out, arg, T, FMT) \
@@ -391,10 +392,10 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             ++jmp_i;
     
     // start writing
-    out->format("  <div class=\"block section\">\n");
+    format(out, "  <div class=\"block section\">\n");
 
     // TODO: anchor, offset, size, content
-    out->format("    <span>%s</span><hr/>\n", dsec->section->name.c_str());
+    format(out, "    <span>%s</span><hr/>\n", dsec->section->name.c_str());
 
     bool first_function = true;
     u32 n_blocks = 0; // TODO: remove
@@ -414,13 +415,13 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
                     if (first_function)
                         first_function = false;
                     else
-                        out->format("</div>\n");
+                        format(out, "</div>\n");
 
-                    out->format("<div class=\"block function\">\n");
+                    format(out, "<div class=\"block function\">\n");
 
-                    out->format("<a class=\"function\">\n");
+                    format(out, "<a class=\"function\">\n");
                     f_jump_glabel(out, jmp.address, conf);
-                    out->format("</a><br/>\n");
+                    format(out, "</a><br/>\n");
 
                     if (++n_blocks > 20) // TODO: remove
                         goto outer_loop_end;
@@ -430,9 +431,9 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             {
                 if (f_branch_label != nullptr)
                 {
-                    out->format("<a class=\"branch\">\n");
+                    format(out, "<a class=\"branch\">\n");
                     f_branch_label(out, jmp.address, conf);
-                    out->format("</a><br/>\n");
+                    format(out, "</a><br/>\n");
                 }
             }
 
@@ -440,7 +441,7 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
         }
 
-        out->format(pos_vaddr_code_format_string, pos, inst.address, inst.opcode);
+        format(out, pos_vaddr_code_format_string, pos, inst.address, inst.opcode);
 
         html_format_instruction_name(out, &inst);
 
@@ -454,7 +455,7 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
 
             // i hate variant
             if (holds_type<string_arg>(arg))
-                out->format("%s", std::get<string_arg>(arg).data);
+                format(out, "%s", std::get<string_arg>(arg).data);
 
             else if (holds_type<mips_register>(arg))
                 f_mips_register_name(out, std::get<mips_register>(arg));
@@ -469,15 +470,15 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
                 f_vfpu_matrix_name(out, std::get<vfpu_matrix>(arg));
 
             else if (holds_type<vfpu_condition>(arg))
-                out->format("%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
+                format(out, "%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
 
             else if (holds_type<vfpu_constant>(arg))
-                out->format("%s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
+                format(out, "%s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
 
             else if (holds_type<vfpu_prefix_array>(arg))
             {
                 auto &arr = std::get<vfpu_prefix_array>(arg).data;
-                out->format("[%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
+                format(out, "[%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
                                            , vfpu_prefix_name(arr[1])
                                            , vfpu_prefix_name(arr[2])
                                            , vfpu_prefix_name(arr[3])
@@ -486,7 +487,7 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             else if (holds_type<vfpu_destination_prefix_array>(arg))
             {
                 auto &arr = std::get<vfpu_destination_prefix_array>(arg).data;
-                out->format("[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
+                format(out, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
                                            , vfpu_destination_prefix_name(arr[1])
                                            , vfpu_destination_prefix_name(arr[2])
                                            , vfpu_destination_prefix_name(arr[3])
@@ -495,24 +496,24 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             else if (holds_type<vfpu_rotation_array>(arg))
             {
                 auto &arr = std::get<vfpu_rotation_array>(arg);
-                out->format("[%s", vfpu_rotation_name(arr.data[0]));
+                format(out, "[%s", vfpu_rotation_name(arr.data[0]));
 
                 for (int i = 1; i < arr.size; ++i)
-                    out->format(",%s", vfpu_rotation_name(arr.data[i]));
+                    format(out, ",%s", vfpu_rotation_name(arr.data[i]));
 
-                out->format("]");
+                format(out, "]");
             }
             else if (holds_type<base_register>(arg))
             {
-                out->write("(");
+                write(out, "(");
                 f_mips_register_name(out, std::get<base_register>(arg).data);
-                out->write(")");
+                write(out, ")");
             }
 
             else if (holds_type<const psp_function*>(arg))
             {
                 const psp_function *sc = std::get<const psp_function*>(arg);
-                out->format("%s <0x%08x>", sc->name, sc->nid);
+                format(out, "%s <0x%08x>", sc->name, sc->nid);
             }
             else if (holds_type<jump_address>(arg))
                 f_jump_argument(out, std::get<jump_address>(arg).data, conf);
@@ -558,32 +559,32 @@ R"=(<a class="opcode_data">%%0%ux %%08x %%08x</a>)=", pos_digits);
             else if (holds_type<coprocessor_register>(arg))
             {
                 auto &d = std::get<coprocessor_register>(arg);
-                out->format("[%u, %u]", d.rd, d.sel);
+                format(out, "[%u, %u]", d.rd, d.sel);
             }
         }
 
-        out->format("<br/>\n");
+        format(out, "<br/>\n");
         pos += sizeof(u32);
     }
 
 outer_loop_end:
 
     if (!first_function)
-        out->format("</div><br/>");
+        format(out, "</div><br/>");
 
-    out->format("  </div><br/>\n"); // section block
+    format(out, "  </div><br/>\n"); // section block
 }
 
 void html_format_body(const dump_config *conf, file_stream *out)
 {
-    out->format("<body>");
+    format(out, "<body>");
 
     html_format_module_info(conf, conf->module_info, out);
 
     for (const dump_section &dsec : conf->dump_sections)
         html_format_section(conf, &dsec, out);
 
-    out->format("</body>\n");
+    format(out, "</body>\n");
 }
 
 void html_format(const dump_config *conf, file_stream *out)
@@ -591,10 +592,10 @@ void html_format(const dump_config *conf, file_stream *out)
     assert(conf != nullptr);
     assert(out != nullptr);
 
-    out->format("<html>");
+    format(out, "<html>");
     html_format_header(conf, out);
 
     html_format_body(conf, out);
 
-    out->format("</html>");
+    format(out, "</html>");
 }

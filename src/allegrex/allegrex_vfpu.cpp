@@ -1,6 +1,7 @@
 
 #include <assert.h>
-#include "allegrex_vfpu.hpp"
+
+#include "allegrex/allegrex_vfpu.hpp"
 
 #define MAX_CONTROL_REGISTERS 16
 const char *vfpu_control_register_names[] = {

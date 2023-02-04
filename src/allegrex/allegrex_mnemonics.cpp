@@ -1,5 +1,5 @@
 
-#include "allegrex_mnemonics.hpp"
+#include "allegrex/allegrex_mnemonics.hpp"
 
 const char *mnemonic_names[] = {
     "nop",
