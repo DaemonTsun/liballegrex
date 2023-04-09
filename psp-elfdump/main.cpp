@@ -15,7 +15,6 @@
 
 #include "psp-elfdump/dump_format.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
-#include "psp-elfdump/html_formatter.hpp"
 #include "psp-elfdump/config.hpp"
 
 #define INFER_SIZE UINT32_MAX
@@ -42,7 +41,7 @@ struct arguments
     // --no-glabels
     // --no-labels
     // --no-pseudoinstructions
-    format_options output_format;
+    mips_format_options output_format;
     // --asm (default)
     // --html
     format_type output_type;
@@ -58,17 +57,17 @@ const arguments default_arguments{
     .vaddr = INFER_VADDR,
     .ranges = {},
     .verbose = false,
-    .output_format = default_format_options,
+    .output_format = default_mips_format_options,
     .output_type = format_type::Asm,
     .input_file = ""
 };
 
 void print_usage()
 {
-    puts("Usage: " PSP_ELFDUMP_NAME " [-h] [-g] [-o OUTPUT] [-p] [-a VADDR] [-v] OBJFILE\n"
+    puts("Usage: " psp_elfdump_NAME " [-h] [-g] [-o OUTPUT] [-p] [-a VADDR] [-v] OBJFILE\n"
          "\n"
-         PSP_ELFDUMP_NAME " v" PSP_ELFDUMP_VERSION ": little-endian MIPS ELF object file disassembler\n"
-         "by " PSP_ELFDUMP_AUTHOR "\n"
+         psp_elfdump_NAME " v" psp_elfdump_VERSION ": little-endian MIPS ELF object file disassembler\n"
+         "by " psp_elfdump_AUTHOR "\n"
          "\n"
          "Optional arguments:\n"
          "  -h, --help                  show this help and exit\n"
@@ -99,7 +98,6 @@ void print_usage()
          "--no-pseudoinstructions       don't emit pseudoinstructions\n"
          "\n"
          "--asm                         output assembly (default)\n"
-         "--html                        output HTML\n"
          "\n"
          "Arguments:\n"
          "  OBJFILE      ELF object file to disassemble the given section for\n"
@@ -220,42 +218,42 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         // format
         if (arg == "--no-comment")
         {
-            unset(out->output_format, format_options::comment_pos_addr_instr);
+            unset(out->output_format, mips_format_options::comment_pos_addr_instr);
             ++i;
             continue;
         }
 
         if (arg == "--no-comma-separator")
         {
-            unset(out->output_format, format_options::comma_separate_args);
+            unset(out->output_format, mips_format_options::comma_separate_args);
             ++i;
             continue;
         }
 
         if (arg == "--no-dollar-registers")
         {
-            unset(out->output_format, format_options::dollar_registers);
+            unset(out->output_format, mips_format_options::dollar_registers);
             ++i;
             continue;
         }
 
         if (arg == "--no-glabels")
         {
-            unset(out->output_format, format_options::function_glabels);
+            unset(out->output_format, mips_format_options::function_glabels);
             ++i;
             continue;
         }
 
         if (arg == "--no-labels")
         {
-            unset(out->output_format, format_options::labels);
+            unset(out->output_format, mips_format_options::labels);
             ++i;
             continue;
         }
 
         if (arg == "--no-pseudoinstructions")
         {
-            unset(out->output_format, format_options::pseudoinstructions);
+            unset(out->output_format, mips_format_options::pseudoinstructions);
             ++i;
             continue;
         }
@@ -264,13 +262,6 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         if (arg == "--asm")
         {
             out->output_type = format_type::Asm;
-            ++i;
-            continue;
-        }
-
-        if (arg == "--html")
-        {
-            out->output_type = format_type::Html;
             ++i;
             continue;
         }
@@ -318,9 +309,6 @@ void format_dump(format_type type, const dump_config *dconf, file_stream *out)
     case format_type::Asm:
         asm_format(dconf, out);
         break;
-    case format_type::Html:
-        html_format(dconf, out);
-        break;
     }
 }
 
@@ -358,7 +346,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
         pconf.log = log;
         pconf.vaddr = sec.vaddr;
         pconf.verbose = args.verbose;
-        pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
+        pconf.emit_pseudo = is_set(args.output_format, mips_format_options::pseudoinstructions);
 
         parse_data &pdata = pdatas[i];
         pdata.jump_destinations = &jumps;
@@ -439,7 +427,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     pconf.log = log;
     pconf.vaddr = range->vaddr;
     pconf.verbose = args.verbose;
-    pconf.emit_pseudo = is_set(args.output_format, format_options::pseudoinstructions);
+    pconf.emit_pseudo = is_set(args.output_format, mips_format_options::pseudoinstructions);
 
     if (pconf.vaddr == INFER_VADDR)
         pconf.vaddr = 0;

@@ -5,7 +5,7 @@
 #include "allegrex/psp_elf.hpp"
 #include "allegrex/parse_instructions.hpp"
 
-enum class format_options
+enum class mips_format_options
 {
     comment_pos_addr_instr = 1 << 0, // e.g. /* 0025B4 08804000 27BDFFD0 */ ...
     dollar_registers       = 1 << 1, // e.g. li $a1, 1
@@ -15,20 +15,19 @@ enum class format_options
     pseudoinstructions     = 1 << 5, // e.g. b, bal, ...
 };
 
-enum_flag(format_options);
+enum_flag(mips_format_options);
 
-constexpr format_options default_format_options = 
-    format_options::comment_pos_addr_instr |
-    format_options::dollar_registers |
-    format_options::comma_separate_args |
-    format_options::function_glabels |
-    format_options::labels |
-    format_options::pseudoinstructions;
+constexpr mips_format_options default_mips_format_options = 
+    mips_format_options::comment_pos_addr_instr |
+    mips_format_options::dollar_registers |
+    mips_format_options::comma_separate_args |
+    mips_format_options::function_glabels |
+    mips_format_options::labels |
+    mips_format_options::pseudoinstructions;
 
 enum class format_type
 {
-    Asm,
-    Html
+    Asm
 };
 
 struct dump_section
@@ -54,7 +53,7 @@ struct dump_config
     prx_sce_module_info *module_info;
 
     bool verbose;
-    format_options format;
+    mips_format_options format;
 };
 
 const char *lookup_address_name(u32 addr, const dump_config *conf);

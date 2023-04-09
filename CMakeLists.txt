@@ -1,43 +1,29 @@
 cmake_minimum_required(VERSION 3.18)
 find_package(better REQUIRED NO_DEFAULT_PATH PATHS ext/better-cmake/cmake)
 
-project(allegrex VERSION 1.0.0)
+project(liballegrex)
 project_author("DaemonTsun")
-get_version_target(allegrex_TARGET ${PROJECT_NAME})
 
-if(TARGET ${allegrex_TARGET})
-    return()
-endif()
-
-# settings
-set(CMAKE_CXX_STANDARD 17)
-
-# sources
-set(allegrex_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/")
-generate_project_header("${allegrex_SOURCES_DIR}/${PROJECT_NAME}/lib${PROJECT_NAME}_info.hpp")
-find_sources(allegrex_SOURCES "${allegrex_SOURCES_DIR}")
-find_headers(allegrex_HEADERS "${allegrex_SOURCES_DIR}")
-
-# libs
 add_subdirectory(libkirk)
-add_subdirectory(ext/shl)
 
-# target lib
-add_library(${allegrex_TARGET} SHARED)
-target_sources(${allegrex_TARGET} PUBLIC ${allegrex_SOURCES} ${allegrex_HEADERS})
-target_include_directories(${allegrex_TARGET} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${allegrex_SOURCES_DIR}" "${shl_SOURCES_DIR}")
-set_property(TARGET ${allegrex_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+set(TEST_SOURCE_DIR ${ROOT}/tests)
 
-target_link_libraries(${allegrex_TARGET} PRIVATE ${shl_TARGET} kirk)
+add_lib(allegrex STATIC
+    VERSION 1.0.1
+    SOURCES_DIR "${ROOT}/src/"
+    INCLUDE_DIRS "${ROOT}"
+    GENERATE_TARGET_HEADER "${ROOT}/src/allegrex/liballegrex.hpp"
+    CPP_VERSION 20
+    CPP_WARNINGS ALL SANE FATAL
+    LIBRARIES kirk
+    EXT
+        LIB shl 0.6.6 "${ROOT}/ext/shl" INCLUDE LINK GIT_SUBMODULE
+    TESTS "${TEST_SOURCE_DIR}"
+    )
 
-if (NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    export_library_variables(allegrex)
-    return()
-endif()
+set(shl_SOURCES_DIR "${shl-0.6.6_SOURCES_DIR}")
 
+exit_if_included()
 
 add_subdirectory(psp-elfdump)
-
-# etc
-add_subdirectory(tests)
 add_subdirectory(psp-module-format)

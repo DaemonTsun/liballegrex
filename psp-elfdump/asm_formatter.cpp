@@ -1,7 +1,7 @@
 
 #include <assert.h>
 
-#include "shl/string_manip.hpp"
+#include "shl/format.hpp"
 #include "allegrex/instruction.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
 
@@ -19,9 +19,9 @@ void format_name(file_stream *out, const instruction *inst)
     {
         vfpu_size sz = get_vfpu_size(inst->opcode);
         const char *suf = size_suffix(sz);
-        auto fullname = to_string(name, suf); // slow lol
+        auto fullname = tformat("%%\0"_cs, name, suf);
 
-        format(out, "%-10s", fullname.c_str());
+        format(out, "%-10s", fullname.c_str);
     }
     else
         format(out, "%-10s", name);
@@ -59,7 +59,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     // prepare
     char comment_format_string[32] = {0};
 
-    if (is_set(conf->format, format_options::comment_pos_addr_instr))
+    if (is_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
         u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
@@ -72,7 +72,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         f_comment_pos_addr_instr = nullptr;
     }
 
-    if (is_set(conf->format, format_options::dollar_registers))
+    if (is_set(conf->format, mips_format_options::dollar_registers))
     {
         f_mips_register_name = fmt_dollar_mips_register_name;
         f_mips_fpu_register_name = fmt_dollar_mips_fpu_register_name;
@@ -80,15 +80,15 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         f_vfpu_matrix_name = fmt_dollar_vfpu_matrix_name;
     }
 
-    if (is_set(conf->format, format_options::comma_separate_args))
+    if (is_set(conf->format, mips_format_options::comma_separate_args))
         f_argument_sep = fmt_argument_comma_space;
 
-    if (is_set(conf->format, format_options::function_glabels))
+    if (is_set(conf->format, mips_format_options::function_glabels))
         f_jump_argument = fmt_jump_address_label;
     else
         f_jump_glabel = nullptr;
 
-    if (is_set(conf->format, format_options::labels))
+    if (is_set(conf->format, mips_format_options::labels))
         f_branch_argument = fmt_branch_address_label;
     else
         f_branch_label = nullptr;
@@ -96,8 +96,8 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     u32 pos = dsec->first_instruction_offset;
     u32 jmp_i = 0;
 
-    if (!is_set(conf->format, format_options::function_glabels)
-     && !is_set(conf->format, format_options::labels))
+    if (!is_set(conf->format, mips_format_options::function_glabels)
+     && !is_set(conf->format, mips_format_options::labels))
         jmp_i = UINT32_MAX;
     else
     {
