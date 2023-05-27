@@ -5,7 +5,10 @@
 #include <assert.h>
 #include <string.h>
 
+#include "shl/compare.hpp"
+#include "shl/fixed_array.hpp"
 #include "shl/error.hpp"
+#include "shl/defer.hpp"
 
 #include "allegrex/psp_modules.hpp"
 #include "allegrex/internal/psp_module_function_argument_defs.hpp"
@@ -20,7 +23,7 @@
 #define R_MIPS_LO16  6
 */
 
-constexpr std::array syslib_functions
+constexpr fixed_array syslib_functions
 {
     psp_function{ 0xd632acdb, "module_start",
                   RET(ARG_S32), ARGS(ARG_SceSize, ARG_VOID_PTR),
@@ -30,7 +33,7 @@ constexpr std::array syslib_functions
                   no_header, 0, 1 }
 };
 
-constexpr std::array syslib_variables
+constexpr fixed_array syslib_variables
 {
     psp_variable{ 0x0f7c276c, "module_start_thread_parameter" },
     psp_variable{ 0xcf0cc697, "module_stop_thread_parameter" },
@@ -40,31 +43,23 @@ constexpr std::array syslib_variables
 
 const psp_function *get_syslib_function(u32 nid)
 {
-    for (int i = 0; i < syslib_functions.size(); ++i)
-    {
-        const psp_function *fn = &syslib_functions.at(i);
-
+    for_array(fn, &syslib_functions)
         if (fn->nid == nid)
             return fn;
-    }
 
     return nullptr;
 }
 
 const psp_variable *get_syslib_variable(u32 nid)
 {
-    for (int i = 0; i < syslib_variables.size(); ++i)
-    {
-        const psp_variable *vr = &syslib_variables.at(i);
-
+    for_array(vr, &syslib_variables)
         if (vr->nid == nid)
             return vr;
-    }
 
     return nullptr;
 }
 
-#define log(CONF, ...) {if (CONF->verbose && CONF->log != nullptr) {format(CONF->log,__VA_ARGS__);}};
+#define log(CONF, ...) {if (CONF != nullptr && CONF->verbose && CONF->log != nullptr) {format(CONF->log,__VA_ARGS__);}};
 // #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
 template<typename T>
@@ -215,7 +210,7 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
     log(ctx->conf, "\n");
 }
 
-void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_parse_data *out)
+void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
@@ -294,7 +289,7 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
     log(ctx->conf, "\n");
 }
 
-void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_parse_data *out)
+void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
@@ -348,7 +343,7 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
     }
 }
 
-void add_prx_imports_exports(elf_read_ctx *ctx, elf_parse_data *out)
+void add_prx_imports_exports(elf_read_ctx *ctx, elf_psp_module *out)
 {
     prx_sce_module_info *mod_info = &out->module_info;
     read_prx_sce_module_info_section_header(ctx, mod_info);
@@ -400,7 +395,7 @@ const char *get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
     return in->data + string_table_header.sh_offset;
 }
 
-void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
+void _read_elf(memory_stream *in, elf_psp_module *out, const psp_elf_read_config *conf)
 {
     Elf32_Ehdr elf_header;
 
@@ -431,11 +426,16 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     const char *string_table = get_string_table(in, &elf_header);
 
     Elf32_Shdr section_header;
-    std::vector<int> section_indices;
+
+    array<int> section_indices;
+    init(&section_indices);
+    defer { free(&section_indices); };
 
     log(conf, "              %-20s: offset   - size\n", "name");
 
-    for (int i = 0; i < elf_header.e_shnum; ++i)
+    int section_header_count = elf_header.e_shnum;
+
+    for (int i = 0; i < section_header_count; ++i)
     {
         read_section(in, &elf_header, i, &section_header);
         const char *section_name = string_table + section_header.sh_name;
@@ -449,10 +449,10 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
             continue;
 
         log(conf, "found executable section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
-        section_indices.push_back(i);
+        ::add_at_end(&section_indices, i);
     }
 
-    if (section_indices.empty())
+    if (section_indices.size == 0)
     {
         if (conf->section.empty())
             throw_error("no executable sections found in input file");
@@ -472,8 +472,9 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
 
     add_relocations(&ctx, out->relocations);
 
-    for (int i : section_indices)
+    for_array(idx, _, &section_indices)
     {
+        int i = section_indices[idx];
         read_section(in, &elf_header, i, &section_header);
         const char *section_name = string_table + section_header.sh_name;
 
@@ -500,52 +501,94 @@ void _read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_dat
     add_prx_imports_exports(&ctx, out);
 }
 
-void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out)
 {
-    memory_stream memstr;
-    open(&memstr, in->size);
+    assert(elf_data != nullptr);
+    assert(out != nullptr);
 
-    read_at(in, memstr.data, 0, in->size);
-    read_elf(&memstr, conf, out);
+    file_stream log;
+    log.handle = stdout;
 
-    close(&memstr);
+    psp_elf_read_config conf;
+    conf.section = std::string();
+    conf.vaddr = INFER_VADDR;
+    conf.verbose = false;
+    conf.log = &log;
+
+    parse_psp_module_from_elf(elf_data, elf_size, out, &conf);
 }
 
-void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out)
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_elf_read_config *conf)
 {
-    std::vector<u8> decrypted_elf;
+    assert(elf_data != nullptr);
+    assert(out != nullptr);
 
-    if (decrypt_elf(in, &decrypted_elf))
+    memory_stream in;
+    in.data = elf_data;
+    in.size = elf_size;
+    in.block_size = 1;
+    in.position = 0;
+
+    parse_psp_module_from_elf(&in, out, conf);
+}
+
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out)
+{
+    assert(elf_stream != nullptr);
+    assert(out != nullptr);
+
+    file_stream log;
+    log.handle = stdout;
+
+    psp_elf_read_config conf;
+    conf.section = std::string();
+    conf.vaddr = INFER_VADDR;
+    conf.verbose = false;
+    conf.log = &log;
+
+    parse_psp_module_from_elf(elf_stream, out, &conf);
+}
+
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_elf_read_config *conf)
+{
+    assert(elf_stream != nullptr);
+    assert(out != nullptr);
+
+    array<u8> decrypted_elf;
+    init(&decrypted_elf);
+    defer { free(&decrypted_elf); };
+
+    if (decrypt_elf(elf_stream, &decrypted_elf))
     {
         log(conf, "ELF is encrypted and has been decrypted.\n");
         memory_stream delf;
-        open(&delf, reinterpret_cast<char*>(decrypted_elf.data()),
-                                            decrypted_elf.size());
-        _read_elf(&delf, conf, out);
+        delf.data = (char*)decrypted_elf.data;
+        delf.size = decrypted_elf.size;
+        delf.block_size = 1;
+        delf.position = 0;
+
+        _read_elf(&delf, out, conf);
         return;
     }
 
-    seek(in, 0);
+    seek(elf_stream, 0);
 
     // simply parse from memory if not encrypted
-    _read_elf(in, conf, out);
+    _read_elf(elf_stream, out, conf);
 }
 
-size_t decrypt_elf(file_stream *in, std::vector<u8> *out)
+u64 decrypt_elf(file_stream *in, array<u8> *out)
 {
     memory_stream memstr;
     open(&memstr, in->size);
+    defer { close(&memstr); };
 
     read_at(in, memstr.data, 0, in->size);
 
-    size_t ret = decrypt_elf(&memstr, out);
-
-    close(&memstr);
-
-    return ret;
+    return decrypt_elf(&memstr, out);
 }
 
-size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
+u64 decrypt_elf(memory_stream *in, array<u8> *out)
 {
     if (in->size < sizeof(Elf32_Ehdr))
         throw_error("input is not an ELF file");
@@ -567,11 +610,11 @@ size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
         PSP_Header phead;
         read_at(in, &phead, 0);
 
-        size_t nsize = std::max(phead.elf_size, phead.psp_size);
-        out->resize(nsize);
+        u64 nsize = Max(phead.elf_size, phead.psp_size);
+        resize(out, nsize);
 
         int decrypted_size = pspDecryptPRX(reinterpret_cast<const u8*>(in->data),
-                                           out->data(),
+                                           out->data,
                                            phead.psp_size);
 
         if (decrypted_size < 0)

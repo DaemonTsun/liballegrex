@@ -9,7 +9,7 @@ add_subdirectory(libkirk)
 set(TEST_SOURCE_DIR ${ROOT}/tests)
 
 add_lib(allegrex STATIC
-    VERSION 1.0.1
+    VERSION 1.0.2
     SOURCES_DIR "${ROOT}/src/"
     INCLUDE_DIRS "${ROOT}"
     GENERATE_TARGET_HEADER "${ROOT}/src/allegrex/liballegrex.hpp"

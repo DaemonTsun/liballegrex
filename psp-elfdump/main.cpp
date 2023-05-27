@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "shl/file_stream.hpp"
-#include "shl/memory_stream.hpp"
+#include "shl/streams.hpp"
 #include "shl/number_types.hpp"
 #include "shl/string.hpp"
 #include "shl/error.hpp"
+#include "shl/defer.hpp"
 
 #include "allegrex/psp_elf.hpp"
 #include "allegrex/parse_instructions.hpp"
@@ -43,7 +43,6 @@ struct arguments
     // --no-pseudoinstructions
     mips_format_options output_format;
     // --asm (default)
-    // --html
     format_type output_type;
 
     std::string input_file;
@@ -314,33 +313,39 @@ void format_dump(format_type type, const dump_config *dconf, file_stream *out)
 
 void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 {
+    memory_stream elf_data;
+    init(&elf_data);
+    defer { close(&elf_data); };
+
+    read_entire_file(in, &elf_data);
+
     psp_elf_read_config rconf;
-    rconf.log = log;
     rconf.section = args.section;
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
+    rconf.log = log;
 
-    elf_parse_data epdata;
-    read_elf(in, &rconf, &epdata);
+    elf_psp_module pspmodule;
+    parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf);
 
     jump_destination_array jumps;
 
     std::vector<parse_data> pdatas; // just memory management
-    pdatas.resize(epdata.sections.size());
+    pdatas.resize(pspmodule.sections.size());
 
     dump_config dconf;
     dconf.log = log;
-    dconf.symbols = &epdata.symbols;
-    dconf.imports = &epdata.imports;
-    dconf.imported_modules = &epdata.imported_modules;
-    dconf.exported_modules = &epdata.exported_modules;
-    dconf.module_info = &epdata.module_info;
+    dconf.symbols = &pspmodule.symbols;
+    dconf.imports = &pspmodule.imports;
+    dconf.imported_modules = &pspmodule.imported_modules;
+    dconf.exported_modules = &pspmodule.exported_modules;
+    dconf.module_info = &pspmodule.module_info;
     dconf.format = args.output_format;
-    dconf.dump_sections.resize(epdata.sections.size());
+    dconf.dump_sections.resize(pspmodule.sections.size());
 
-    for (int i = 0; i < epdata.sections.size(); ++i)
+    for (int i = 0; i < pspmodule.sections.size(); ++i)
     {
-        elf_section &sec = epdata.sections[i];
+        elf_section &sec = pspmodule.sections[i];
 
         parse_config pconf;
         pconf.log = log;
@@ -364,9 +369,9 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
         dsec.first_instruction_offset = sec.content_offset;
     }
 
-    add_symbols_to_jumps(&jumps, &epdata.symbols);
-    add_imports_to_jumps(&jumps, &epdata.imported_modules);
-    add_exports_to_jumps(&jumps, &epdata.exported_modules);
+    add_symbols_to_jumps(&jumps, &pspmodule.symbols);
+    add_imports_to_jumps(&jumps, &pspmodule.imported_modules);
+    add_exports_to_jumps(&jumps, &pspmodule.exported_modules);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
@@ -390,8 +395,11 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
 {
-    std::vector<u8> delf;
-    auto sz = decrypt_elf(in, &delf);
+    array<u8> decrypted_elf_bytes;
+    init(&decrypted_elf_bytes);
+    defer { free(&decrypted_elf_bytes); };
+
+    u64 sz = decrypt_elf(in, &decrypted_elf_bytes);
 
     if (sz == 0)
     {
@@ -401,15 +409,14 @@ void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args
     
     file_stream out;
     open(&out, args.decrypted_elf_output.c_str(), MODE_WRITE);
+    defer { close(&out); };
 
     if (!is_ok(&out))
         throw_error("could not open dump output file %s", args.decrypted_elf_output.c_str());
 
-    write(&out, delf.data(), sz);
+    write(&out, decrypted_elf_bytes.data, sz);
 
     printf("dumped decrypted ELF from %s to %s\n", args.input_file.c_str(), args.decrypted_elf_output.c_str());
-
-    close(&out);
 }
 
 void disassemble_range(file_stream *in, file_stream *log, const disasm_range *range, const arguments &args)
@@ -503,6 +510,8 @@ try
         logfd = fopen(args.log_file.c_str(), "a");
 
     file_stream log;
+    defer { if (log.handle != stdout) close(&log); };
+
     log.handle = logfd;
 
     if (!is_ok(&log))
@@ -510,6 +519,7 @@ try
 
     file_stream in;
     open(&in, args.input_file.c_str(), "rb");
+    defer { close(&in); };
 
     if (!is_ok(&in))
         throw_error("could not open input file %s", args.input_file.c_str());
@@ -526,7 +536,6 @@ try
     else
         disassemble_elf(&in, &log, args);
 
-    close(&in);
     return 0;
 }
 catch (error &e)

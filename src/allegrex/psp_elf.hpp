@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 
+#include "shl/array.hpp"
 #include "shl/file_stream.hpp"
 #include "shl/memory_stream.hpp"
 #include "shl/number_types.hpp"
@@ -80,8 +81,10 @@ typedef std::map<u32, function_import> import_map;
 typedef std::vector<module_import> module_import_array;
 typedef std::vector<module_export> module_export_array;
 
-struct elf_parse_data
+struct elf_psp_module
 {
+    prx_sce_module_info module_info;
+
     symbol_map symbols; // maps vaddrs to symbols
     import_map imports; // maps vaddrs to imported functions
 
@@ -90,15 +93,18 @@ struct elf_parse_data
 
     std::vector<elf_relocation> relocations;
     std::vector<elf_section> sections;
-
-    prx_sce_module_info module_info;
 };
+
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out);
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_elf_read_config *conf);
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out);
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_elf_read_config *conf);
 
 // parse all information about the elf file
 // its copied to memory if read from file, sorry
-void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
-void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_parse_data *out);
+// void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_psp_module *out);
+// void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_psp_module *out);
 
 // returns decrypted size, or 0 if input is regular ELF
-size_t decrypt_elf(file_stream *in, std::vector<u8> *out);
-size_t decrypt_elf(memory_stream *in, std::vector<u8> *out);
+u64 decrypt_elf(file_stream *in, array<u8> *out);
+u64 decrypt_elf(memory_stream *in, array<u8> *out);
