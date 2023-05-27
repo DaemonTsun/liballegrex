@@ -547,8 +547,6 @@ size_t decrypt_elf(file_stream *in, std::vector<u8> *out)
 
 size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
 {
-    Elf32_Ehdr elf_header;
-
     if (in->size < sizeof(Elf32_Ehdr))
         throw_error("input is not an ELF file");
 
@@ -557,11 +555,13 @@ size_t decrypt_elf(memory_stream *in, std::vector<u8> *out)
 
     if (strncmp(magic, "\x7f" "ELF", 4))
     {
-        // not an ELF
+        // not an ELF, might be incrypted
         
         if (strncmp(magic, "~PSP", 4))
-            // not encrypted either
+        {
+            // nope, not encrypted either
             throw_error("input is not an ELF file and is not encrypted");
+        }
 
         // ok its encrypted, attempt decrypt
         PSP_Header phead;

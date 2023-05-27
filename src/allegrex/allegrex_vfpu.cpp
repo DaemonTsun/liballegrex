@@ -560,8 +560,10 @@ const char *register_name(vfpu_register reg)
             return "(interlock)";
     }
 
-    if (reg.num >= 128 || reg.size == vfpu_size::Invalid)
+    if (reg.num >= 128)
+    {
         return "?";
+    }
 
 	return vfpu_register_names[value(reg.size)][reg.num]; 
 }
@@ -964,7 +966,9 @@ const char *vfpu_matrix_names[3][128] = {
 const char *matrix_name(vfpu_matrix mat)
 {
     if (mat.num > 127 || mat.size == vfpu_size::Single || mat.size == vfpu_size::Invalid)
+    {
         return "?";
+    }
 
 	return vfpu_matrix_names[value(mat.size)-1][mat.num]; 
 }
