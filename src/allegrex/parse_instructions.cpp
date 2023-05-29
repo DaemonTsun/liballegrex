@@ -1,6 +1,8 @@
 
-#include <array>
 #include <assert.h>
+
+#include "shl/array.hpp"
+#include "shl/fixed_array.hpp"
 
 #include "allegrex/parse_instruction_arguments.hpp"
 #include "allegrex/parse_instructions.hpp"
@@ -28,21 +30,21 @@ struct category
 #define I(Mnemonic, Opcode, ...) \
     instruction_info{allegrex_mnemonic::Mnemonic, Opcode __VA_OPT__(,) __VA_ARGS__}
 
-constexpr std::array instructions_Fixed = {
+constexpr fixed_array instructions_Fixed = {
     I(NOP, 0x00000000, nullptr)
 };
 
-constexpr std::array instructions_SrlRotr = {
+constexpr fixed_array instructions_SrlRotr = {
     I(SRL,  0x00000002, arg_parse_RdRtShift),
     I(ROTR, 0x00200002, arg_parse_RdRtShift)
 };
 
-constexpr std::array instructions_SrlvRotrv = {
+constexpr fixed_array instructions_SrlvRotrv = {
     I(SRLV,  0x00000006, arg_parse_VarShift),
     I(ROTRV, 0x00000046, arg_parse_VarShift)
 };
 
-constexpr std::array instructions_Special = {
+constexpr fixed_array instructions_Special = {
     I(SLL,     0x00000000, arg_parse_RdRtShift),
     I(SRA,     0x00000003, arg_parse_RdRtShift),
     I(SLLV,    0x00000004, arg_parse_VarShift),
@@ -88,7 +90,7 @@ constexpr std::array instructions_Special = {
     I(TNE,     0x00000036, arg_parse_RsRtCode)
 };
 
-constexpr std::array instructions_Cop0CO = {
+constexpr fixed_array instructions_Cop0CO = {
     I(TLBR,  0x42000001, nullptr),
     I(TLBWI, 0x42000002, nullptr),
     I(TLBWR, 0x42000006, nullptr),
@@ -99,7 +101,7 @@ constexpr std::array instructions_Cop0CO = {
     I(WAIT,  0x42000020, nullptr)
 };
 
-constexpr std::array instructions_Cop0 = {
+constexpr fixed_array instructions_Cop0 = {
     I(MFC0,   0x40000000, arg_parse_Cop0RtRdSel),
     I(MTC0,   0x40800000, arg_parse_Cop0RtRdSel),
     I(RDPGPR, 0x41600000, arg_parse_RdRt),
@@ -107,14 +109,14 @@ constexpr std::array instructions_Cop0 = {
     I(WRPGPR, 0x41c00000, arg_parse_RdRt)
 };
 
-constexpr std::array instructions_Cop1BC = {
+constexpr fixed_array instructions_Cop1BC = {
     I(BC1F,  0x45000000, arg_parse_FPUBranchAddress),
     I(BC1T,  0x45010000, arg_parse_FPUBranchAddress),
     I(BC1FL, 0x45020000, arg_parse_FPUBranchAddress),
     I(BC1TL, 0x45030000, arg_parse_FPUBranchAddress)
 };
 
-constexpr std::array instructions_Cop1S = {
+constexpr fixed_array instructions_Cop1S = {
     I(ADD_S,     0x46000000, arg_parse_FPUFdFsFt),
     I(SUB_S,     0x46000001, arg_parse_FPUFdFsFt),
     I(MUL_S,     0x46000002, arg_parse_FPUFdFsFt),
@@ -147,25 +149,25 @@ constexpr std::array instructions_Cop1S = {
     I(C_NGT_S,   0x4600003f, arg_parse_FPUCompare)
 };
 
-constexpr std::array instructions_Cop1W = {
+constexpr fixed_array instructions_Cop1W = {
     I(CVT_S_W, 0x46800020, arg_parse_FPUFdFs)
 };
 
-constexpr std::array instructions_Cop1 = {
+constexpr fixed_array instructions_Cop1 = {
     I(MFC1, 0x44000000, arg_parse_FPURtFs),
     I(CFC1, 0x44400000, arg_parse_FPURtFs),
     I(MTC1, 0x44800000, arg_parse_FPURtFs),
     I(CTC1, 0x44c00000, arg_parse_FPURtFs)
 };
 
-constexpr std::array instructions_Cop2BC2 = {
+constexpr fixed_array instructions_Cop2BC2 = {
     I(BVF,  0x49000000, arg_parse_FPUBranchAddress),
     I(BVT,  0x49010000, arg_parse_FPUBranchAddress),
     I(BVFL, 0x49020000, arg_parse_FPUBranchAddress),
     I(BVTL, 0x49030000, arg_parse_FPUBranchAddress)
 };
 
-constexpr std::array instructions_Cop2 = {
+constexpr fixed_array instructions_Cop2 = {
     // not really sure about MFC2/CFC2/MTC2/CTC2
     I(MFC2, 0x48000000, arg_parse_VFPU_Cop2),
     I(CFC2, 0x48400000, arg_parse_VFPU_Cop2),
@@ -175,14 +177,14 @@ constexpr std::array instructions_Cop2 = {
     I(MTV,  0x48e00000, arg_parse_VFPU_MFTV),
 };
 
-constexpr std::array instructions_VFPU0 = {
+constexpr fixed_array instructions_VFPU0 = {
     I(VADD, 0x60000000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VSUB, 0x60800000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VSBN, 0x61000000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VDIV, 0x63800000, arg_parse_VFPU_Vd_Vs_Vt),
 };
 
-constexpr std::array instructions_VFPU1 = {
+constexpr fixed_array instructions_VFPU1 = {
     I(VMUL, 0x64000000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VDOT, 0x64800000, arg_parse_VFPU_VdSingle_Vs_Vt),
     I(VSCL, 0x65000000, arg_parse_VFPU_Vd_Vs_VtSingle),
@@ -191,7 +193,7 @@ constexpr std::array instructions_VFPU1 = {
     I(VDET, 0x67000000, arg_parse_VFPU_VdSingle_Vs_Vt),
 };
 
-constexpr std::array instructions_VFPU3 = {
+constexpr fixed_array instructions_VFPU3 = {
     I(VCMP,  0x6c000000, arg_parse_VFPU_Vcmp),
     I(VMIN,  0x6d000000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VMAX,  0x6d800000, arg_parse_VFPU_Vd_Vs_Vt),
@@ -200,13 +202,13 @@ constexpr std::array instructions_VFPU3 = {
     I(VSLT,  0x6f800000, arg_parse_VFPU_Vd_Vs_Vt),
 };
 
-constexpr std::array instructions_Special2 = {
+constexpr fixed_array instructions_Special2 = {
     I(HALT, 0x70000000, nullptr),
     I(MFIC, 0x70000024, nullptr),
     I(MTIC, 0x70000026, nullptr)
 };
 
-constexpr std::array instructions_Allegrex0 = {
+constexpr fixed_array instructions_Allegrex0 = {
     I(WSBH,   0x7c0000a0, arg_parse_RdRt),
     I(WSBW,   0x7c0000e0, arg_parse_RdRt),
     I(SEB,    0x7c000420, arg_parse_RdRt),
@@ -214,13 +216,13 @@ constexpr std::array instructions_Allegrex0 = {
     I(SEH,    0x7c000620, arg_parse_RdRt)
 };
 
-constexpr std::array instructions_Special3 = {
+constexpr fixed_array instructions_Special3 = {
     I(EXT,   0x7c000000, arg_parse_Ext),
     I(INS,   0x7c000004, arg_parse_Ins),
     I(RDHWR, 0x7c00003b, nullptr)
 };
 
-constexpr std::array instructions_VFPU4 = {
+constexpr fixed_array instructions_VFPU4 = {
     I(VMOV,   0xd0000000, arg_parse_VFPU_Vd_Vs),
     I(VABS,   0xd0010000, arg_parse_VFPU_Vd_Vs),
     I(VNEG,   0xd0020000, arg_parse_VFPU_Vd_Vs),
@@ -242,7 +244,7 @@ constexpr std::array instructions_VFPU4 = {
     I(VREXP2, 0xd01c0000, arg_parse_VFPU_Vd_Vs)
 };
 
-constexpr std::array instructions_VFPU7 = {
+constexpr fixed_array instructions_VFPU7 = {
     I(VRNDS,  0xd0200000, arg_parse_VFPU_VdSingle),
     I(VRNDI,  0xd0210000, arg_parse_VFPU_Vd),
     I(VRNDF1, 0xd0220000, arg_parse_VFPU_Vd),
@@ -261,7 +263,7 @@ constexpr std::array instructions_VFPU7 = {
     I(VI2S,   0xd03f0000, arg_parse_VFPU_VdHalf_Vs)
 };
 
-constexpr std::array instructions_VFPU9 = {
+constexpr fixed_array instructions_VFPU9 = {
     I(VSRT1,  0xd0400000, arg_parse_VFPU_Vd_Vs),
     I(VSRT2,  0xd0410000, arg_parse_VFPU_Vd_Vs),
     I(VBFY1,  0xd0420000, arg_parse_VFPU_Vd_Vs),
@@ -280,16 +282,16 @@ constexpr std::array instructions_VFPU9 = {
     I(VT5650, 0xd05b0000, arg_parse_VFPU_ColorConv)
 };
 
-constexpr std::array instructions_vwbn = {
+constexpr fixed_array instructions_vwbn = {
     I(VWBN, 0xd3000000, arg_parse_VFPU_Vwbn)
 };
 
-constexpr std::array instructions_vcmov = {
+constexpr fixed_array instructions_vcmov = {
     I(VCMOVT, 0xd2a00000, arg_parse_VFPU_Vcmov),
     I(VCMOVF, 0xd2a80000, arg_parse_VFPU_Vcmov)
 };
 
-constexpr std::array instructions_VFPU4Jump = {
+constexpr fixed_array instructions_VFPU4Jump = {
     I(VCST,  0xd0600000, arg_parse_VFPU_Vcst),
     I(VF2IN, 0xd2000000, arg_parse_VFPU_Vd_Vs_Imm5),
     I(VF2IZ, 0xd2200000, arg_parse_VFPU_Vd_Vs_Imm5),
@@ -298,7 +300,7 @@ constexpr std::array instructions_VFPU4Jump = {
     I(VI2F,  0xd2800000, arg_parse_VFPU_Vd_Vs_Imm5)
 };
 
-constexpr std::array instructions_VFPU5 = {
+constexpr fixed_array instructions_VFPU5 = {
     I(VPFXS, 0xdc000000, arg_parse_VFPU_PrefixST),
     I(VPFXS, 0xdc800000, arg_parse_VFPU_PrefixST),
     I(VPFXT, 0xdd000000, arg_parse_VFPU_PrefixST),
@@ -309,14 +311,14 @@ constexpr std::array instructions_VFPU5 = {
     I(VFIM,  0xdf800000, arg_parse_VFPU_Vfim)
 };
 
-constexpr std::array instructions_VFPUMatrix = {
+constexpr fixed_array instructions_VFPUMatrix = {
     I(VMMOV,  0xf3800000, arg_parse_VFPU_MVd_MVs),
     I(VMIDT,  0xf3830000, arg_parse_VFPU_MVd),
     I(VMZERO, 0xf3860000, arg_parse_VFPU_MVd),
     I(VMONE,  0xf3870000, arg_parse_VFPU_MVd),
 };
 
-constexpr std::array instructions_vhtfm = {
+constexpr fixed_array instructions_vhtfm = {
     I(VHTFM2, 0xf0800000, arg_parse_VFPU_Vhtfm2),
     I(VTFM2,  0xf0800080, arg_parse_VFPU_Vhtfm2),
     I(VHTFM3, 0xf1000080, arg_parse_VFPU_Vhtfm3),
@@ -325,12 +327,12 @@ constexpr std::array instructions_vhtfm = {
     I(VTFM4,  0xf1808080, arg_parse_VFPU_Vhtfm4),
 };
 
-constexpr std::array instructions_crossquat = {
+constexpr fixed_array instructions_crossquat = {
     I(VCRSP,  0xf2808000, arg_parse_VFPU_Vd_Vs_Vt),
     I(VQMUL,  0xf2808080, arg_parse_VFPU_Vd_Vs_Vt),
 };
 
-constexpr std::array instructions_VFPU6 = {
+constexpr fixed_array instructions_VFPU6 = {
     I(VMMUL,  0xf0000000, arg_parse_VFPU_MVd_XVs_MVt),
     I(VMMUL,  0xf0200000, arg_parse_VFPU_MVd_XVs_MVt),
     I(VMMUL,  0xf0400000, arg_parse_VFPU_MVd_XVs_MVt),
@@ -342,14 +344,14 @@ constexpr std::array instructions_VFPU6 = {
     I(VROT,   0xf3a00000, arg_parse_VFPU_Vrot),
 };
 
-constexpr std::array instructions_lvsvrl = {
+constexpr fixed_array instructions_lvsvrl = {
     I(LVL, 0xd4000000, arg_parse_VFPU_LvSv_LRQ),
     I(LVR, 0xd4000002, arg_parse_VFPU_LvSv_LRQ),
     I(SVL, 0xf4000000, arg_parse_VFPU_LvSv_LRQ),
     I(SVR, 0xf4000002, arg_parse_VFPU_LvSv_LRQ),
 };
 
-constexpr std::array instructions_Immediate = {
+constexpr fixed_array instructions_Immediate = {
     I(J,     0x08000000, arg_parse_JumpAddress),
     I(JAL,   0x0c000000, arg_parse_JumpAddress),
     I(BEQ,   0x10000000, arg_parse_Beq),
@@ -391,7 +393,7 @@ constexpr std::array instructions_Immediate = {
     I(SV_Q,  0xf8000000, arg_parse_VFPU_LvSv_Q),
 };
 
-constexpr std::array instructions_RegisterImmediate = {
+constexpr fixed_array instructions_RegisterImmediate = {
     I(BLTZ,    0x04000000, arg_parse_RsBranchAddress),
     I(BGEZ,    0x04010000, arg_parse_RsBranchAddress),
     I(BLTZL,   0x04020000, arg_parse_RsBranchAddress),
@@ -409,19 +411,19 @@ constexpr std::array instructions_RegisterImmediate = {
     I(SYNCI,   0x041f0000, nullptr)
 };
 
-constexpr std::array instructions_VFPUSpecial = {
+constexpr fixed_array instructions_VFPUSpecial = {
     I(VNOP,   0xffff0000, nullptr),
     I(VSYNC,  0xffff0320, nullptr),
     I(VFLUSH, 0xffff040d, nullptr)
 };
 
 #define CATEGORY_INSTRUCTIONS(cat) \
-    .instructions = instructions_##cat.data(),\
-    .instruction_count = instructions_##cat.size()
+    .instructions = instructions_##cat.data,\
+    .instruction_count = array_size(&instructions_##cat)
 
 #define CATEGORY_SUB_CATEGORIES(cat) \
-    .sub_categories = sub_categories_##cat.data(),\
-    .sub_category_count = sub_categories_##cat.size()
+    .sub_categories = sub_categories_##cat.data,\
+    .sub_category_count = array_size(&sub_categories_##cat)
 
 // categories
 constexpr category Fixed{
@@ -451,7 +453,7 @@ constexpr category SrlvRotrv{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Special = {
+constexpr fixed_array sub_categories_Special = {
     &SrlRotr,
     &SrlvRotrv
 };
@@ -473,7 +475,7 @@ constexpr category Cop0CO{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Cop0 = {
+constexpr fixed_array sub_categories_Cop0 = {
     &Cop0CO,
 };
 
@@ -512,7 +514,7 @@ constexpr category Cop1W{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Cop1 = {
+constexpr fixed_array sub_categories_Cop1 = {
     &Cop1BC,
     &Cop1S,
     &Cop1W
@@ -535,7 +537,7 @@ constexpr category Cop2BC2{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Cop2 = {
+constexpr fixed_array sub_categories_Cop2 = {
     &Cop2BC2,
 };
 
@@ -592,7 +594,7 @@ constexpr category Allegrex0{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Special3 = {
+constexpr fixed_array sub_categories_Special3 = {
     &Allegrex0,
 };
 
@@ -649,7 +651,7 @@ constexpr category vcmov{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_VFPU4Jump = {
+constexpr fixed_array sub_categories_VFPU4Jump = {
     &VFPU4,
     &VFPU7,
     &VFPU9,
@@ -701,7 +703,7 @@ constexpr category crossquat{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_VFPU6 = {
+constexpr fixed_array sub_categories_VFPU6 = {
     &VFPUMatrix,
     &vhtfm,
     &crossquat
@@ -724,7 +726,7 @@ constexpr category lvsvrl{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_Immediate = {
+constexpr fixed_array sub_categories_Immediate = {
     &Special,
     &Cop0,
     &Cop1,
@@ -766,7 +768,7 @@ constexpr category VFPUSpecial{
     .sub_category_count = 0
 };
 
-constexpr std::array sub_categories_AllInstructions = {
+constexpr fixed_array sub_categories_AllInstructions = {
     &Fixed,
     &Immediate,
     &RegisterImmediate,
@@ -854,11 +856,39 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
     }
 }
 
-// desgustang
-#include <algorithm>
+#include "shl/sort.hpp"
 
-void cleanup_jumps(jump_destination_array *jumps)
+int compare_jumps(const jump_destination *l, const jump_destination *r)
 {
-    std::sort(jumps->begin(), jumps->end(), [](const jump_destination &l, const jump_destination &r) { return l.address < r.address || (l.address == r.address && l.type == jump_type::Jump);});
-    jumps->erase(std::unique(jumps->begin(), jumps->end(), [](const jump_destination &l, const jump_destination &r) { return (l.address == r.address) && (l.type == r.type);}), jumps->end());
+    if (l->address < r->address)
+        return -1;
+
+    if (l->address == r->address)
+    {
+        if (l->type == r->type)
+            return 0;
+
+        if (l->type == jump_type::Jump)
+            return -1;
+    }
+
+    return 1;
+}
+
+void cleanup_jumps(array<jump_destination> *jumps)
+{
+    ::sort(jumps->data, jumps->size, compare_jumps);
+
+    u64 i = 0;
+    while (i < jumps->size - 1)
+    {
+        jump_destination *l = jumps->data + i;
+        jump_destination *r = jumps->data + i + 1;
+
+        if ((l->address == r->address)
+         && (l->type == r->type))
+            ::remove_elements(jumps, i, 1);
+        else
+            i++;
+    }
 }

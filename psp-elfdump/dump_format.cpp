@@ -13,6 +13,19 @@ static_assert(hex_digits(0x00000100) == 3);
 static_assert(hex_digits(0x00100000) == 6);
 static_assert(hex_digits(0x10000000) == 8);
 
+void init(dump_config *conf)
+{
+    assert(conf != nullptr);
+    ::init(&conf->dump_sections);
+}
+
+void free(dump_config *conf)
+{
+    assert(conf != nullptr);
+
+    ::free(&conf->dump_sections);
+}
+
 const char *lookup_address_name(u32 addr, const dump_config *conf)
 {
     // symbols

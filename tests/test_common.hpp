@@ -18,7 +18,7 @@
     conf.log = nullptr;\
     conf.emit_pseudo = false;\
     parse_data pdata;\
-    jump_destination_array jumps;\
+    array<jump_destination> jumps;\
     pdata.jump_destinations = &jumps;
 
 #define emit_pseudoinstructions()\

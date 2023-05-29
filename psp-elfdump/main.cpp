@@ -280,28 +280,28 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
-void add_symbols_to_jumps(jump_destination_array *jumps, hash_table<u32, elf_symbol> *syms)
+void add_symbols_to_jumps(array<jump_destination> *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
-        jumps->push_back(jump_destination{*k, jump_type::Jump});
+        ::add_at_end(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(jump_destination_array *jumps, array<module_import> *mods)
+void add_imports_to_jumps(array<jump_destination> *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            jumps->push_back(jump_destination{func->address, jump_type::Jump});
+            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
-void add_exports_to_jumps(jump_destination_array *jumps, array<module_export> *mods)
+void add_exports_to_jumps(array<jump_destination> *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            jumps->push_back(jump_destination{func->address, jump_type::Jump});
+            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
@@ -335,12 +335,15 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
     parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf);
 
-    jump_destination_array jumps;
+    array<jump_destination> jumps{};
+    defer { ::free(&jumps); };
 
     std::vector<parse_data> pdatas; // just memory management
     pdatas.resize(pspmodule.sections.size);
 
     dump_config dconf;
+    init(&dconf);
+    defer { ::free(&dconf); };
     dconf.log = log;
     dconf.symbols = &pspmodule.symbols;
     dconf.imports = &pspmodule.imports;
@@ -348,7 +351,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.exported_modules = &pspmodule.exported_modules;
     dconf.module_info = &pspmodule.module_info;
     dconf.format = args.output_format;
-    dconf.dump_sections.resize(pspmodule.sections.size);
+    ::resize(&dconf.dump_sections, pspmodule.sections.size);
 
     for_array(i, sec, &pspmodule.sections)
     {
@@ -452,7 +455,9 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     read_at(in, memstr.data, from, sz);
 
     parse_data pdata;
-    jump_destination_array jumps;
+    array<jump_destination> jumps{};
+    defer { ::free(&jumps); };
+
     pdata.jump_destinations = &jumps;
     parse_allegrex(&memstr, &pconf, &pdata);
     close(&memstr);
@@ -477,10 +482,10 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dconf.imported_modules = nullptr;
     dconf.exported_modules = nullptr;
 
-    dump_section &dsec = dconf.dump_sections.emplace_back();
-    dsec.section = nullptr;
-    dsec.pdata = &pdata;
-    dsec.first_instruction_offset = from;
+    dump_section *dsec = ::add_at_end(&dconf.dump_sections);
+    dsec->section = nullptr;
+    dsec->pdata = &pdata;
+    dsec->first_instruction_offset = from;
 
     format_dump(args.output_type, &dconf, &out);
 

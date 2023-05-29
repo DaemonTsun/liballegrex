@@ -37,7 +37,9 @@ struct dump_section
     u32 first_instruction_offset;
 };
 
-// lol just add a pointer to a elf_psp_module
+// we don't just add a pointer to a elf_psp_module here because we don't
+// always want to disassemble an entire elf_psp_module, e.g. if we only
+// disassemble ranges.
 struct dump_config
 {
     file_stream *log;
@@ -48,14 +50,17 @@ struct dump_config
     array<module_export> *exported_modules;
 
     // relocations;
-    jump_destination_array *jump_destinations;
-    std::vector<dump_section> dump_sections;
+    array<jump_destination> *jump_destinations;
+    array<dump_section> dump_sections;
 
     prx_sce_module_info *module_info;
 
     bool verbose;
     mips_format_options format;
 };
+
+void init(dump_config *conf);
+void free(dump_config *conf);
 
 const char *lookup_address_name(u32 addr, const dump_config *conf);
 

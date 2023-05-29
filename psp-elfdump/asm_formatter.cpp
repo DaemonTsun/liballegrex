@@ -42,7 +42,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     assert(dsec->pdata != nullptr);
 
     const elf_section *sec = dsec->section;
-    const jump_destination_array *jumps = conf->jump_destinations;
+    const array<jump_destination> *jumps = conf->jump_destinations;
 
     // format functions
     auto f_comment_pos_addr_instr = asm_fmt_comment_pos_addr_instr;
@@ -102,7 +102,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     else
     {
         // skip symbols that come before this section
-        while (jmp_i < jumps->size() && jumps->at(jmp_i).address < dsec->pdata->vaddr)
+        while (jmp_i < jumps->size && jumps->data[jmp_i].address < dsec->pdata->vaddr)
             ++jmp_i;
     }
 
@@ -111,28 +111,28 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
 
     for (const instruction &inst : dsec->pdata->instructions)
     {
-        bool write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
+        bool write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst.address);
 
         if (write_label)
             write(out, "\n");
 
         while (write_label)
         {
-            auto &jmp = jumps->at(jmp_i);
+            jump_destination *jmp = jumps->data + jmp_i;
 
-            if (jmp.type == jump_type::Jump)
+            if (jmp->type == jump_type::Jump)
             {
                 if (f_jump_glabel != nullptr)
-                    f_jump_glabel(out, jmp.address, conf);
+                    f_jump_glabel(out, jmp->address, conf);
             }
             else
             {
                 if (f_branch_label != nullptr)
-                    f_branch_label(out, jmp.address, conf);
+                    f_branch_label(out, jmp->address, conf);
             }
 
             jmp_i++;
-            write_label = (jmp_i < jumps->size()) && (jumps->at(jmp_i).address <= inst.address);
+            write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst.address);
         }
 
         if (f_comment_pos_addr_instr != nullptr)
@@ -264,6 +264,6 @@ void asm_format(const dump_config *conf, file_stream *out)
     assert(conf != nullptr);
     assert(out != nullptr);
 
-    for (const dump_section &dsec : conf->dump_sections)
-        asm_format_section(conf, &dsec, out);
+    for_array(dsec, &conf->dump_sections)
+        asm_format_section(conf, dsec, out);
 }
