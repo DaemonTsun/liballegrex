@@ -107,7 +107,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     }
 
     // do the writing
-    format(out, "\n\n/* Disassembly of section %s */\n", sec->name.c_str());
+    format(out, "\n\n/* Disassembly of section %s */\n", sec->name);
 
     for (const instruction &inst : dsec->pdata->instructions)
     {

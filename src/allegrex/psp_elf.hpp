@@ -1,11 +1,9 @@
 
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
-
 #include "shl/array.hpp"
+#include "shl/string.hpp"
+#include "shl/hash_table.hpp"
 #include "shl/file_stream.hpp"
 #include "shl/memory_stream.hpp"
 #include "shl/number_types.hpp"
@@ -15,9 +13,9 @@
 
 #define INFER_VADDR UINT32_MAX
 
-struct psp_elf_read_config
+struct psp_parse_elf_config
 {
-    std::string section; // leave empty to read all executable sections
+    const_string section; // leave empty to read all executable sections
     u32 vaddr;
     bool verbose;
     file_stream *log;
@@ -26,22 +24,23 @@ struct psp_elf_read_config
 struct elf_symbol
 {
     u32 address;
-    std::string name;
+    const char *name;
 };
 
 struct elf_relocation
 {
     s32 addend;
     u32 offset;
-    std::string symbol_name;
+    const char *symbol_name;
 };
 
 struct elf_section
 {
-    std::vector<u8> content;
-    u32 content_offset;
+    char *content;
+    u64 content_size;
+    u32 content_offset; // within elf
     u32 vaddr;
-    std::string name;
+    const char *name;
 };
 
 struct function_import
@@ -52,9 +51,9 @@ struct function_import
 
 struct module_import
 {
-    std::string module_name;
-    std::vector<function_import> functions;
-    // TODO: std::vector<variable_import> variables;
+    const char *module_name;
+    array<function_import> functions;
+    // TODO: array<variable_import> variables;
 };
 
 struct function_export
@@ -71,39 +70,41 @@ struct variable_export
 
 struct module_export
 {
-    std::string module_name;
-    std::vector<function_export> functions;
-    std::vector<variable_export> variables;
+    const char *module_name;
+    array<function_export> functions;
+    array<variable_export> variables;
 };
-
-typedef std::map<u32, elf_symbol> symbol_map;
-typedef std::map<u32, function_import> import_map;
-typedef std::vector<module_import> module_import_array;
-typedef std::vector<module_export> module_export_array;
 
 struct elf_psp_module
 {
+    char *elf_data; // the whole decrypted elf data, including strings, sections, etc.
+    u64 elf_size; // size of elf_data
+
     prx_sce_module_info module_info;
 
-    symbol_map symbols; // maps vaddrs to symbols
-    import_map imports; // maps vaddrs to imported functions
+    hash_table<u32, elf_symbol> symbols; // maps vaddrs to symbols
+    hash_table<u32, function_import> imports; // maps vaddrs to imported functions
 
-    module_import_array imported_modules; // the imported modules with redundant function information
-    module_export_array exported_modules; // module_start, end, etc.
+    array<module_import> imported_modules; // the imported modules with redundant function information
+    array<module_export> exported_modules; // module_start, end, etc.
 
-    std::vector<elf_relocation> relocations;
-    std::vector<elf_section> sections;
+    array<elf_relocation> relocations;
+    array<elf_section> sections;
 };
 
+void init(elf_psp_module *mod);
+void free(elf_psp_module *mod);
+
+// TODO: read from path
 void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out);
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_elf_read_config *conf);
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf);
 void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out);
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_elf_read_config *conf);
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf);
 
 // parse all information about the elf file
 // its copied to memory if read from file, sorry
-// void read_elf(file_stream *in, const psp_elf_read_config *conf, elf_psp_module *out);
-// void read_elf(memory_stream *in, const psp_elf_read_config *conf, elf_psp_module *out);
+// void read_elf(file_stream *in, const psp_parse_elf_config *conf, elf_psp_module *out);
+// void read_elf(memory_stream *in, const psp_parse_elf_config *conf, elf_psp_module *out);
 
 // returns decrypted size, or 0 if input is regular ELF
 u64 decrypt_elf(file_stream *in, array<u8> *out);

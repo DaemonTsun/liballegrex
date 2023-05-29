@@ -1,6 +1,4 @@
 
-#include <vector>
-
 #include <elf.h>
 #include <assert.h>
 #include <string.h>
@@ -41,7 +39,7 @@ constexpr fixed_array syslib_variables
 	psp_variable{ 0x11b97506, "module_sdk_version" }
 };
 
-const psp_function *get_syslib_function(u32 nid)
+const psp_function *_get_syslib_function(u32 nid)
 {
     for_array(fn, &syslib_functions)
         if (fn->nid == nid)
@@ -50,7 +48,7 @@ const psp_function *get_syslib_function(u32 nid)
     return nullptr;
 }
 
-const psp_variable *get_syslib_variable(u32 nid)
+const psp_variable *_get_syslib_variable(u32 nid)
 {
     for_array(vr, &syslib_variables)
         if (vr->nid == nid)
@@ -60,7 +58,6 @@ const psp_variable *get_syslib_variable(u32 nid)
 }
 
 #define log(CONF, ...) {if (CONF != nullptr && CONF->verbose && CONF->log != nullptr) {format(CONF->log,__VA_ARGS__);}};
-// #define read_section(in, ehdr, index, out) in->read_at(out, ehdr.e_shoff + (index) * ehdr.e_shentsize);
 
 template<typename T>
 void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
@@ -71,7 +68,7 @@ void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
 struct elf_read_ctx
 {
     memory_stream *in;
-    const psp_elf_read_config *conf;
+    const psp_parse_elf_config *conf;
     const Elf32_Ehdr *elf_header;
     const char *string_table_data;
     u32 min_vaddr;
@@ -82,7 +79,7 @@ struct elf_read_ctx
 
 #define file_offset_from_vaddr(ctx, vaddr) ((vaddr - ctx->min_vaddr) + ctx->min_offset)
 
-void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
+void _add_section_to_symbols(elf_read_ctx *ctx, int section_index, hash_table<u32, elf_symbol> *symbols)
 {
     // there's a good chance symbols don't exist, but we add them anyway
     for (int i = 0; i < ctx->elf_header->e_shnum; i++)
@@ -105,16 +102,14 @@ void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
         Elf32_Shdr strtab_header;
         read_section(ctx->in, ctx->elf_header, sec_header.sh_link, &strtab_header);
 
-        std::vector<char> sec_string_table;
-        sec_string_table.resize(strtab_header.sh_size);
-        read_at(ctx->in, sec_string_table.data(), strtab_header.sh_offset, strtab_header.sh_size);
+        const char *sec_string_table = ctx->in->data + strtab_header.sh_offset;
 
         for (u32 i = 0; i < sec_header.sh_size; i += sizeof(Elf32_Sym))
         {
             Elf32_Sym sym;
             read_at(ctx->in, &sym, sec_header.sh_offset + i);
 
-            const char *name = sec_string_table.data() + sym.st_name;
+            const char *name = sec_string_table + sym.st_name;
 
             if (strlen(name) == 0)
                 continue;
@@ -123,7 +118,8 @@ void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
                 continue;
 
             log(ctx->conf, "  symbol at %08x: '%s'\n", sym.st_value, name);
-            symbols.emplace(sym.st_value, elf_symbol{sym.st_value, std::string(name)});
+
+            (*symbols)[sym.st_value] = elf_symbol{sym.st_value, name};
         }
     }
 }
@@ -131,7 +127,7 @@ void add_symbols(elf_read_ctx *ctx, int section_index, symbol_map &symbols)
 // TODO: actually add relocation information
 // currently only logs relocations
 // do games have relocations...?
-void add_relocations(elf_read_ctx *ctx, std::vector<elf_relocation> &out)
+void _add_relocations(elf_read_ctx *ctx, array<elf_relocation> *out)
 {
     for (int i = 0; i < ctx->elf_header->e_shnum; ++i)
     {
@@ -165,7 +161,7 @@ void add_relocations(elf_read_ctx *ctx, std::vector<elf_relocation> &out)
     }
 }
 
-bool get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr *out)
+bool _get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr *out)
 {
     if (out == nullptr)
         return false;
@@ -183,7 +179,7 @@ bool get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr 
     return false;
 }
 
-void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_info *out)
+void _read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_info *out)
 {
     assert(out != nullptr);
 
@@ -191,7 +187,7 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
 
     log(ctx->conf, "\n");
 
-    if (!get_section_header_by_name(ctx, ELF_SECTION_PRX_MODULE_INFO, &sceModuleInfo_section_header))
+    if (!_get_section_header_by_name(ctx, ELF_SECTION_PRX_MODULE_INFO, &sceModuleInfo_section_header))
     {
         log(ctx->conf, "could not find section '%s'\n", ELF_SECTION_PRX_MODULE_INFO);
         return;
@@ -210,13 +206,13 @@ void read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_i
     log(ctx->conf, "\n");
 }
 
-void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
+void _add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
 
     u32 count = sz / sizeof(prx_module_export);
-    out->exported_modules.reserve(count);
+    ::reserve(&out->exported_modules, count);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_export))
     {
@@ -233,7 +229,10 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
         log(ctx->conf, "export module %s: %08x %08x %02x %02x %04x %08x\n", module_name, exp.name_vaddr, exp.flags, exp.entry_size, exp.variable_count, exp.function_count, exp.exports_vaddr);
         log(ctx->conf, "  %08x\n", file_offset_from_vaddr(ctx, exp.exports_vaddr));
 
-        module_export *me = &out->exported_modules.emplace_back();
+        module_export *me = ::add_at_end(&out->exported_modules);
+        ::init(&me->functions);
+        ::init(&me->variables);
+
         me->module_name = module_name;
 
         for (u32 _j = 0; _j < exp.function_count; ++_j)
@@ -246,7 +245,7 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             read_at(ctx->in, &nid, file_offset_from_vaddr(ctx, exp.exports_vaddr) + j);
             read_at(ctx->in, &f_vaddr, file_offset_from_vaddr(ctx, f_vaddr_vaddr));
 
-            const psp_function *pf = get_syslib_function(nid);
+            const psp_function *pf = _get_syslib_function(nid);
 
             if (pf == nullptr)
             {
@@ -257,9 +256,10 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
 
             log(ctx->conf, "  export function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
 
-            me->functions.emplace_back(function_export{f_vaddr, pf});
+            ::add_at_end(&me->functions, function_export{f_vaddr, pf});
         }
 
+        // variables
         u32 v_offset = exp.exports_vaddr + exp.function_count * sizeof(u32);
         for (u32 _j = 0; _j < exp.variable_count; ++_j)
         {
@@ -271,7 +271,7 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             read_at(ctx->in, &nid, file_offset_from_vaddr(ctx, v_offset) + j);
             read_at(ctx->in, &v_vaddr, file_offset_from_vaddr(ctx, v_vaddr_vaddr));
 
-            const psp_variable *pv = get_syslib_variable(nid);
+            const psp_variable *pv = _get_syslib_variable(nid);
 
             if (pv == nullptr)
             {
@@ -282,21 +282,21 @@ void add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
 
             log(ctx->conf, "  export variable nid %08x at %08x: %s\n", nid, v_vaddr, pv->name);
 
-            me->variables.emplace_back(variable_export{v_vaddr, pv});
+            ::add_at_end(&me->variables, variable_export{v_vaddr, pv});
         }
     }
 
     log(ctx->conf, "\n");
 }
 
-void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
+void _add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
     assert(out != nullptr);
 
     u32 count = sz / sizeof(prx_module_import);
-    out->imported_modules.reserve(count);
+    ::reserve(&out->imported_modules, count);
 
     for (u32 i = 0; i < sz; i += sizeof(prx_module_import))
     {
@@ -310,7 +310,8 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
                        imp.entry_size, imp.variable_count, imp.function_count,
                        imp.nids_vaddr, imp.functions_vaddr);
 
-        module_import *mi = &out->imported_modules.emplace_back();
+        module_import *mi = ::add_at_end(&out->imported_modules);
+        ::init(&mi->functions);
         mi->module_name = module_name;
 
         for (u32 _j = 0; _j < imp.function_count; ++_j)
@@ -333,8 +334,8 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
             log(ctx->conf, "  import function nid %08x at %08x: %s\n", nid, f_vaddr, pf->name);
 
             function_import impf{f_vaddr, pf};
-            out->imports.emplace(f_vaddr, impf);
-            mi->functions.emplace_back(impf);
+            out->imports[f_vaddr] = impf;
+            ::add_at_end(&mi->functions, impf);
         }
 
         // TODO: import variables
@@ -343,16 +344,16 @@ void add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf
     }
 }
 
-void add_prx_imports_exports(elf_read_ctx *ctx, elf_psp_module *out)
+void _add_prx_imports_and_exports(elf_read_ctx *ctx, elf_psp_module *out)
 {
     prx_sce_module_info *mod_info = &out->module_info;
-    read_prx_sce_module_info_section_header(ctx, mod_info);
+    _read_prx_sce_module_info_section_header(ctx, mod_info);
 
-    add_prx_exports(ctx, mod_info, out);
-    add_prx_imports(ctx, mod_info, out);
+    _add_prx_exports(ctx, mod_info, out);
+    _add_prx_imports(ctx, mod_info, out);
 }
 
-void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
+void _get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
 {
     out->min_vaddr = 0xFFFFFFFF;
     out->max_vaddr = 0;
@@ -387,7 +388,7 @@ void get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf
 }
 
 // returns the pointer to the start of the string table in the memory stream
-const char *get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
+const char *_get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
 {
     Elf32_Shdr string_table_header;
     read_section(in, elf_header, elf_header->e_shstrndx, &string_table_header);
@@ -395,14 +396,61 @@ const char *get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
     return in->data + string_table_header.sh_offset;
 }
 
-void _read_elf(memory_stream *in, elf_psp_module *out, const psp_elf_read_config *conf)
+void init(elf_psp_module *mod)
 {
+    assert(mod != nullptr);
+
+    mod->elf_data = nullptr;
+    mod->elf_size = 0;
+
+    ::init(&mod->relocations);
+    ::init(&mod->sections);
+
+    ::init(&mod->symbols);
+    ::init(&mod->imports);
+
+    ::init(&mod->imported_modules);
+    ::init(&mod->exported_modules);
+}
+
+void free(elf_psp_module *mod)
+{
+    assert(mod != nullptr);
+
+    free_memory(mod->elf_data);
+
+    ::free(&mod->relocations);
+    ::free(&mod->sections);
+
+    for_array(imp, &mod->imported_modules)
+        ::free(&imp->functions);
+
+    ::free(&mod->imported_modules);
+
+    for_array(exp, &mod->exported_modules)
+    {
+        ::free(&exp->functions);
+        ::free(&exp->variables);
+    }
+
+    ::free(&mod->exported_modules);
+
+    ::free(&mod->symbols);
+    ::free(&mod->imports);
+}
+
+void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
+{
+    memory_stream in{};
+    in.data = out->elf_data;
+    in.size = out->elf_size;
+
     Elf32_Ehdr elf_header;
 
-    if (in->size < sizeof(Elf32_Ehdr))
+    if (in.size < sizeof(Elf32_Ehdr))
         throw_error("input is not an ELF file");
 
-    read(in, &elf_header);
+    read(&in, &elf_header);
 
     if (strncmp((const char*)elf_header.e_ident, "\x7f" "ELF", 4))
         throw_error("input is not an ELF file");
@@ -423,7 +471,7 @@ void _read_elf(memory_stream *in, elf_psp_module *out, const psp_elf_read_config
         throw_error("no section header table index found");
     }
 
-    const char *string_table = get_string_table(in, &elf_header);
+    const char *string_table_ptr = _get_string_table(&in, &elf_header);
 
     Elf32_Shdr section_header;
 
@@ -437,15 +485,15 @@ void _read_elf(memory_stream *in, elf_psp_module *out, const psp_elf_read_config
 
     for (int i = 0; i < section_header_count; ++i)
     {
-        read_section(in, &elf_header, i, &section_header);
-        const char *section_name = string_table + section_header.sh_name;
+        read_section(&in, &elf_header, i, &section_header);
+        const char *section_name = string_table_ptr + section_header.sh_name;
 
-        if (conf->section.empty())
+        if (::is_blank(conf->section))
         {
             if ((section_header.sh_flags & SHF_EXECINSTR) == 0) // ignore non-executable sections
                 continue;
         }
-        else if (conf->section != section_name)
+        else if (compare_strings(conf->section, section_name) != 0)
             continue;
 
         log(conf, "found executable section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
@@ -454,51 +502,49 @@ void _read_elf(memory_stream *in, elf_psp_module *out, const psp_elf_read_config
 
     if (section_indices.size == 0)
     {
-        if (conf->section.empty())
+        if (::is_blank(conf->section))
             throw_error("no executable sections found in input file");
         else
-            throw_error("section '%s' not found in input file", conf->section.c_str());
+            throw_error("section '%s' not found in input file", conf->section.c_str);
     }
 
     elf_read_ctx ctx;
-    ctx.in = in;
+    ctx.in = &in;
     ctx.conf = conf;
     ctx.elf_header = &elf_header;
-    ctx.string_table_data = string_table;
-    get_elf_min_max_offsets_and_vaddrs(in, &elf_header, &ctx);
+    ctx.string_table_data = string_table_ptr;
+    _get_elf_min_max_offsets_and_vaddrs(&in, &elf_header, &ctx);
     
     log(conf, "min section vaddr:  %08x, max section vaddr:  %08x\n", ctx.min_vaddr,  ctx.max_vaddr);
     log(conf, "min section offset: %08x, max section offset: %08x\n", ctx.min_offset, ctx.max_offset);
 
-    add_relocations(&ctx, out->relocations);
+    _add_relocations(&ctx, &out->relocations);
 
-    for_array(idx, _, &section_indices)
+    for_array(_i, &section_indices)
     {
-        int i = section_indices[idx];
-        read_section(in, &elf_header, i, &section_header);
-        const char *section_name = string_table + section_header.sh_name;
+        int i = *_i;
+        read_section(&in, &elf_header, i, &section_header);
+        const char *section_name = string_table_ptr + section_header.sh_name;
 
-        elf_section &esec = out->sections.emplace_back();
-        esec.name = std::string(section_name);
+        elf_section *esec = ::add_at_end(&out->sections);
+        esec->name = section_name;
 
         u32 vaddr = conf->vaddr;
 
         if (conf->vaddr == INFER_VADDR)
             vaddr = section_header.sh_addr;
 
-        esec.vaddr = vaddr;
+        esec->vaddr = vaddr;
 
-        out->symbols.emplace(vaddr, elf_symbol{vaddr, section_name});
-        add_symbols(&ctx, i, out->symbols);
+        out->symbols[vaddr] = elf_symbol{vaddr, section_name};
+        _add_section_to_symbols(&ctx, i, &out->symbols);
 
-        esec.content.resize(section_header.sh_size);
-        esec.content_offset = section_header.sh_offset;
-
-        if (section_header.sh_size > 0)
-            read_at(in, esec.content.data(), section_header.sh_offset, section_header.sh_size);
+        esec->content = in.data + section_header.sh_offset;
+        esec->content_size = section_header.sh_size;
+        esec->content_offset = section_header.sh_offset;
     }
 
-    add_prx_imports_exports(&ctx, out);
+    _add_prx_imports_and_exports(&ctx, out);
 }
 
 void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out)
@@ -509,8 +555,8 @@ void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out
     file_stream log;
     log.handle = stdout;
 
-    psp_elf_read_config conf;
-    conf.section = std::string();
+    psp_parse_elf_config conf;
+    conf.section = ""_cs;
     conf.vaddr = INFER_VADDR;
     conf.verbose = false;
     conf.log = &log;
@@ -518,7 +564,7 @@ void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out
     parse_psp_module_from_elf(elf_data, elf_size, out, &conf);
 }
 
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_elf_read_config *conf)
+void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf)
 {
     assert(elf_data != nullptr);
     assert(out != nullptr);
@@ -540,8 +586,8 @@ void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out)
     file_stream log;
     log.handle = stdout;
 
-    psp_elf_read_config conf;
-    conf.section = std::string();
+    psp_parse_elf_config conf;
+    conf.section = ""_cs;
     conf.vaddr = INFER_VADDR;
     conf.verbose = false;
     conf.log = &log;
@@ -549,32 +595,32 @@ void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out)
     parse_psp_module_from_elf(elf_stream, out, &conf);
 }
 
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_elf_read_config *conf)
+void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf)
 {
     assert(elf_stream != nullptr);
     assert(out != nullptr);
 
-    array<u8> decrypted_elf;
-    init(&decrypted_elf);
-    defer { free(&decrypted_elf); };
+    array<u8> decrypted_elf{};
 
     if (decrypt_elf(elf_stream, &decrypted_elf))
     {
         log(conf, "ELF is encrypted and has been decrypted.\n");
-        memory_stream delf;
-        delf.data = (char*)decrypted_elf.data;
-        delf.size = decrypted_elf.size;
-        delf.block_size = 1;
-        delf.position = 0;
 
-        _read_elf(&delf, out, conf);
+        out->elf_data = (char*)decrypted_elf.data;
+        out->elf_size = decrypted_elf.size;
+
+        _read_elf(out, conf);
         return;
     }
 
-    seek(elf_stream, 0);
+    free(&decrypted_elf);
 
-    // simply parse from memory if not encrypted
-    _read_elf(elf_stream, out, conf);
+    // elf is not encrypted, copy it to the module
+    out->elf_data = allocate_memory<char>(elf_stream->size);
+    out->elf_size = elf_stream->size;
+    copy_memory(elf_stream->data, out->elf_data, elf_stream->size);
+
+    _read_elf(out, conf);
 }
 
 u64 decrypt_elf(file_stream *in, array<u8> *out)
@@ -598,8 +644,7 @@ u64 decrypt_elf(memory_stream *in, array<u8> *out)
 
     if (strncmp(magic, "\x7f" "ELF", 4))
     {
-        // not an ELF, might be incrypted
-        
+        // not an ELF, might be encrypted
         if (strncmp(magic, "~PSP", 4))
         {
             // nope, not encrypted either

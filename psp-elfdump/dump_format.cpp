@@ -16,23 +16,23 @@ static_assert(hex_digits(0x10000000) == 8);
 const char *lookup_address_name(u32 addr, const dump_config *conf)
 {
     // symbols
-    auto it = conf->symbols->find(addr);
+    elf_symbol *sym = ::search(conf->symbols, &addr);
 
-    if (it != conf->symbols->end())
-        return it->second.name.c_str();
+    if (sym != nullptr)
+        return sym->name;
 
     // imports
-    auto it2 = conf->imports->find(addr);
+    function_import *fimp = ::search(conf->imports, &addr);
 
-    if (it2 != conf->imports->end())
-        return it2->second.function->name;
+    if (fimp != nullptr)
+        return fimp->function->name;
 
     // exports (unoptimized, but probably not too common)
-    for (int i = 0; i < conf->exported_modules->size(); ++i)
+    for_array(mod, conf->exported_modules)
     {
-        for (const auto &f : conf->exported_modules->at(i).functions)
-            if (f.address == addr)
-                return f.function->name;
+        for_array(func, &mod->functions)
+            if (func->address == addr)
+                return func->function->name;
     }
 
     return nullptr;

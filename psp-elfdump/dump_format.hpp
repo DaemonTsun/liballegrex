@@ -37,14 +37,15 @@ struct dump_section
     u32 first_instruction_offset;
 };
 
+// lol just add a pointer to a elf_psp_module
 struct dump_config
 {
     file_stream *log;
 
-    symbol_map *symbols;
-    import_map *imports;
-    module_import_array *imported_modules;
-    module_export_array *exported_modules;
+    hash_table<u32, elf_symbol> *symbols;
+    hash_table<u32, function_import> *imports;
+    array<module_import> *imported_modules;
+    array<module_export> *exported_modules;
 
     // relocations;
     jump_destination_array *jump_destinations;

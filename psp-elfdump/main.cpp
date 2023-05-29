@@ -280,25 +280,29 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
-void add_symbols_to_jumps(jump_destination_array *jumps, symbol_map *syms)
+void add_symbols_to_jumps(jump_destination_array *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
-    for (const auto &sp : *syms)
-        jumps->push_back(jump_destination{sp.first, jump_type::Jump});
+    for_hash_table(k, _, syms)
+        jumps->push_back(jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(jump_destination_array *jumps, module_import_array *mods)
+void add_imports_to_jumps(jump_destination_array *jumps, array<module_import> *mods)
 {
-    for (const auto &mod : *mods)
-        for (const auto &f : mod.functions)
-            jumps->push_back(jump_destination{f.address, jump_type::Jump});
+    for_array(mod, mods)
+    {
+        for_array(func, &mod->functions)
+            jumps->push_back(jump_destination{func->address, jump_type::Jump});
+    }
 }
 
-void add_exports_to_jumps(jump_destination_array *jumps, module_export_array *mods)
+void add_exports_to_jumps(jump_destination_array *jumps, array<module_export> *mods)
 {
-    for (const auto &mod : *mods)
-        for (const auto &f : mod.functions)
-            jumps->push_back(jump_destination{f.address, jump_type::Jump});
+    for_array(mod, mods)
+    {
+        for_array(func, &mod->functions)
+            jumps->push_back(jump_destination{func->address, jump_type::Jump});
+    }
 }
 
 void format_dump(format_type type, const dump_config *dconf, file_stream *out)
@@ -319,19 +323,22 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
     read_entire_file(in, &elf_data);
 
-    psp_elf_read_config rconf;
-    rconf.section = args.section;
+    psp_parse_elf_config rconf;
+    rconf.section = to_const_string(args.section.c_str());
     rconf.vaddr = args.vaddr;
     rconf.verbose = args.verbose;
     rconf.log = log;
 
     elf_psp_module pspmodule;
+    init(&pspmodule);
+    defer { free(&pspmodule); };
+
     parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf);
 
     jump_destination_array jumps;
 
     std::vector<parse_data> pdatas; // just memory management
-    pdatas.resize(pspmodule.sections.size());
+    pdatas.resize(pspmodule.sections.size);
 
     dump_config dconf;
     dconf.log = log;
@@ -341,32 +348,30 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
     dconf.exported_modules = &pspmodule.exported_modules;
     dconf.module_info = &pspmodule.module_info;
     dconf.format = args.output_format;
-    dconf.dump_sections.resize(pspmodule.sections.size());
+    dconf.dump_sections.resize(pspmodule.sections.size);
 
-    for (int i = 0; i < pspmodule.sections.size(); ++i)
+    for_array(i, sec, &pspmodule.sections)
     {
-        elf_section &sec = pspmodule.sections[i];
-
         parse_config pconf;
         pconf.log = log;
-        pconf.vaddr = sec.vaddr;
+        pconf.vaddr = sec->vaddr;
         pconf.verbose = args.verbose;
         pconf.emit_pseudo = is_set(args.output_format, mips_format_options::pseudoinstructions);
 
         parse_data &pdata = pdatas[i];
         pdata.jump_destinations = &jumps;
 
-        if (sec.content.size() > 0)
+        if (sec->content_size > 0)
         {
-            memory_stream mem;
-            open(&mem, (char *)(sec.content.data()), sec.content.size());
+            memory_stream mem{};
+            open(&mem, sec->content, sec->content_size);
             parse_allegrex(&mem, &pconf, &pdata);
         }
 
         dump_section &dsec = dconf.dump_sections[i];
-        dsec.section = &sec;
+        dsec.section = sec;
         dsec.pdata = &pdata;
-        dsec.first_instruction_offset = sec.content_offset;
+        dsec.first_instruction_offset = sec->content_offset;
     }
 
     add_symbols_to_jumps(&jumps, &pspmodule.symbols);
@@ -395,8 +400,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments &args)
 
 void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments &args)
 {
-    array<u8> decrypted_elf_bytes;
-    init(&decrypted_elf_bytes);
+    array<u8> decrypted_elf_bytes{};
     defer { free(&decrypted_elf_bytes); };
 
     u64 sz = decrypt_elf(in, &decrypted_elf_bytes);
