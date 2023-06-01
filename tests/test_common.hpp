@@ -2,13 +2,12 @@
 #include <algorithm>
 #include <ostream>
 #include <string.h>
+
 #include "allegrex/parse_instructions.hpp"
 
 #define clear_instruction() \
-    inst.opcode = 0;\
-    inst.address = 0;\
+    memset(&inst, 0, sizeof(instruction));\
     inst.mnemonic = allegrex_mnemonic::_UNKNOWN;\
-    inst.arguments.clear();
 
 #define setup_test_variables() \
     instruction inst;\
@@ -18,7 +17,7 @@
     conf.log = nullptr;\
     conf.emit_pseudo = false;\
     parse_data pdata;\
-    array<jump_destination> jumps;\
+    array<jump_destination> jumps{};\
     pdata.jump_destinations = &jumps;
 
 #define emit_pseudoinstructions()\
@@ -32,17 +31,18 @@
     assert_equal(inst.mnemonic, allegrex_mnemonic::MNEM);
     
 #define assert_argument_count(N) \
-    assert_equal(inst.arguments.size(), N);
+    assert_equal(inst.argument_count, N);
     
 #define assert_argument_non_extra_count(N) \
-    auto _count = std::count_if(inst.arguments.begin(), \
-                                inst.arguments.end(), \
-                                [](const instruction_argument &arg){ return !std::holds_alternative<extra>(arg); }\
-                               ); \
+    u32 _count = 0;\
+    for (u32 nonextra_it = 0; nonextra_it < inst.argument_count; ++nonextra_it)\
+        if (inst.argument_types[nonextra_it] != argument_type::Extra)\
+            _count++;\
     assert_equal(_count, N);
     
-#define assert_argument_type(N, T) \
-    assert_equal(std::holds_alternative<T>(inst.arguments.at(N)), true);
+#define assert_argument_type(N, Type) \
+    assert_greater_or_equal(inst.argument_count, N+1);\
+    assert_equal(inst.argument_types[N], Type);
     
 #define assert_argument_equals(N, ...) \
     assert_equal(std::get<decltype(__VA_ARGS__)>(inst.arguments.at(N)), (__VA_ARGS__));
@@ -196,7 +196,7 @@ std::ostream &operator<<(std::ostream &lhs, coprocessor_register rhs)
     return lhs << '[' << static_cast<int>(rhs.rd) << ", " << static_cast<int>(rhs.sel) << ']';
 }
 
-std::ostream &operator<<(std::ostream &lhs, string_arg rhs)
+std::ostream &operator<<(std::ostream &lhs, string_argument rhs)
 {
     return lhs << rhs.data;
 }
@@ -297,7 +297,7 @@ bool operator==(const vfpu_rotation_array &lhs, const vfpu_rotation_array &rhs)
     return true;
 }
 
-bool operator==(const string_arg &lhs, const string_arg &rhs)
+bool operator==(const string_argument &lhs, const string_argument &rhs)
 {
     return strcmp(lhs.data, rhs.data) == 0;
 }

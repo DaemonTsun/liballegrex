@@ -27,15 +27,6 @@ void format_name(file_stream *out, const instruction *inst)
         format(out, "%-10s", name);
 }
 
-#define ARG_HOLDS_T_FORMAT(out, arg, T, FMT) \
-    (std::holds_alternative<T>(arg)) \
-    { \
-        format(out, FMT, std::get<T>(arg).data); \
-    }
-
-// thanks for those c++ function aliases
-#define holds_type std::holds_alternative
-
 void asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
 {
     assert(dsec != nullptr);
@@ -62,7 +53,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     if (is_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
-        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size() * sizeof(u32);
+        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);
@@ -102,16 +93,17 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     else
     {
         // skip symbols that come before this section
-        while (jmp_i < jumps->size && jumps->data[jmp_i].address < dsec->pdata->vaddr)
+        while (jmp_i < jumps->size
+            && jumps->data[jmp_i].address < dsec->pdata->vaddr)
             ++jmp_i;
     }
 
     // do the writing
     format(out, "\n\n/* Disassembly of section %s */\n", sec->name);
 
-    for (const instruction &inst : dsec->pdata->instructions)
+    for_array(inst, &dsec->pdata->instructions)
     {
-        bool write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst.address);
+        bool write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst->address);
 
         if (write_label)
             write(out, "\n");
@@ -132,124 +124,163 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             }
 
             jmp_i++;
-            write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst.address);
+            write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst->address);
         }
 
         if (f_comment_pos_addr_instr != nullptr)
-            f_comment_pos_addr_instr(out, pos, &inst, comment_format_string);
+            f_comment_pos_addr_instr(out, pos, inst, comment_format_string);
 
-        format_name(out, &inst);
+        format_name(out, inst);
 
         bool first = true;
-        for (auto &arg : inst.arguments)
+        for (int i = 0; i < inst->argument_count; ++i)
         {
-            if (!first && !holds_type<base_register>(arg))
+            instruction_argument *arg = inst->arguments + i;
+            argument_type arg_type = inst->argument_types[i];
+
+            if (!first && arg_type != argument_type::Base_Register)
                 f_argument_sep(out);
 
             first = false;
 
-            // i hate variant
-            if (holds_type<string_arg>(arg))
-                format(out, "%s", std::get<string_arg>(arg).data);
-
-            else if (holds_type<mips_register>(arg))
-                f_mips_register_name(out, std::get<mips_register>(arg));
-
-            else if (holds_type<mips_fpu_register>(arg))
-                f_mips_fpu_register_name(out, std::get<mips_fpu_register>(arg));
-
-            else if (holds_type<vfpu_register>(arg))
-                f_vfpu_register_name(out, std::get<vfpu_register>(arg));
-
-            else if (holds_type<vfpu_matrix>(arg))
+            switch (arg_type)
             {
-                auto &mtx = std::get<vfpu_matrix>(arg);
-                format(out, "%s%s", matrix_name(mtx)
-                                  , size_suffix(mtx.size));
-            }
-            else if (holds_type<vfpu_condition>(arg))
-                format(out, "%s", vfpu_condition_name(std::get<vfpu_condition>(arg)));
+            case argument_type::Invalid:
+                format(out, "[?invalid?]");
+                break;
 
-            else if (holds_type<vfpu_constant>(arg))
-                format(out, "%s", vfpu_constant_name(std::get<vfpu_constant>(arg)));
+            case argument_type::MIPS_Register:
+                f_mips_register_name(out, arg->mips_register);
+                break;
 
-            else if (holds_type<vfpu_prefix_array>(arg))
+            case argument_type::MIPS_FPU_Register:
+                f_mips_fpu_register_name(out, arg->mips_fpu_register);
+                break;
+
+            case argument_type::VFPU_Register:
+                f_vfpu_register_name(out, arg->vfpu_register);
+                break;
+
+            case argument_type::VFPU_Matrix:
+                format(out, "%s%s", matrix_name(arg->vfpu_matrix)
+                                  , size_suffix(arg->vfpu_matrix.size));
+                break;
+
+            case argument_type::VFPU_Condition:
+                format(out, "%s", vfpu_condition_name(arg->vfpu_condition));
+                break;
+
+            case argument_type::VFPU_Constant:
+                format(out, "%s", vfpu_constant_name(arg->vfpu_constant));
+                break;
+
+            case argument_type::VFPU_Prefix_Array:
             {
-                auto &arr = std::get<vfpu_prefix_array>(arg).data;
-                format(out, "[%s,%s,%s,%s]", vfpu_prefix_name(arr[0])
-                                           , vfpu_prefix_name(arr[1])
-                                           , vfpu_prefix_name(arr[2])
-                                           , vfpu_prefix_name(arr[3])
+                vfpu_prefix_array *arr = &arg->vfpu_prefix_array;
+                format(out, "[%s,%s,%s,%s]", vfpu_prefix_name(arr->data[0])
+                                           , vfpu_prefix_name(arr->data[1])
+                                           , vfpu_prefix_name(arr->data[2])
+                                           , vfpu_prefix_name(arr->data[3])
                 );
+                break;
             }
-            else if (holds_type<vfpu_destination_prefix_array>(arg))
-            {
-                auto &arr = std::get<vfpu_destination_prefix_array>(arg).data;
-                format(out, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr[0])
-                                           , vfpu_destination_prefix_name(arr[1])
-                                           , vfpu_destination_prefix_name(arr[2])
-                                           , vfpu_destination_prefix_name(arr[3])
-                );
-            }
-            else if (holds_type<vfpu_rotation_array>(arg))
-            {
-                auto &arr = std::get<vfpu_rotation_array>(arg);
-                format(out, "[%s", vfpu_rotation_name(arr.data[0]));
 
-                for (int i = 1; i < arr.size; ++i)
-                    format(out, ",%s", vfpu_rotation_name(arr.data[i]));
+            case argument_type::VFPU_Destination_Prefix_Array:
+            {
+                vfpu_destination_prefix_array *arr = &arg->vfpu_destination_prefix_array;
+                format(out, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr->data[0])
+                                           , vfpu_destination_prefix_name(arr->data[1])
+                                           , vfpu_destination_prefix_name(arr->data[2])
+                                           , vfpu_destination_prefix_name(arr->data[3])
+                );
+                break;
+            }
+
+            case argument_type::VFPU_Rotation_Array:
+            {
+                vfpu_rotation_array *arr = &arg->vfpu_rotation_array;
+                format(out, "[%s", vfpu_rotation_name(arr->data[0]));
+
+                for (int i = 1; i < arr->size; ++i)
+                    format(out, ",%s", vfpu_rotation_name(arr->data[i]));
 
                 format(out, "]");
-            }
-            else if (holds_type<base_register>(arg))
-            {
-                write(out, "(");
-                f_mips_register_name(out, std::get<base_register>(arg).data);
-                write(out, ")");
+                break;
             }
 
-            else if (holds_type<const psp_function*>(arg))
+            case argument_type::PSP_Function_Pointer:
             {
-                const psp_function *sc = std::get<const psp_function*>(arg);
+                const psp_function *sc = arg->psp_function_pointer;
                 format(out, "%s <0x%08x>", sc->name, sc->nid);
+                break;
             }
-            else if (holds_type<jump_address>(arg))
-                f_jump_argument(out, std::get<jump_address>(arg).data, conf);
 
-            else if (holds_type<branch_address>(arg))
-                f_branch_argument(out, std::get<branch_address>(arg).data, conf);
+#define ARG_TYPE_FORMAT(out, arg, ArgumentType, UnionMember, FMT) \
+    case argument_type::ArgumentType: \
+        format(out, FMT, arg->UnionMember.data);\
+        break;
 
-            else if (holds_type<immediate<s32>>(arg))
+            ARG_TYPE_FORMAT(out, arg, Shift, shift, "%#x");
+
+            case argument_type::Coprocessor_Register:
             {
-                s32 d = std::get<immediate<s32>>(arg).data;
+                coprocessor_register *reg = &arg->coprocessor_register;
+                format(out, "[%u, %u]", reg->rd, reg->sel);
+                break;
+            }
+
+            case argument_type::Base_Register:
+                write(out, "(");
+                f_mips_register_name(out, arg->base_register.data);
+                write(out, ")");
+                break;
+
+            case argument_type::Jump_Address:
+                f_jump_argument(out, arg->jump_address.data, conf);
+                break;
+
+            case argument_type::Branch_Address:
+                f_branch_argument(out, arg->branch_address.data, conf);
+                break;
+
+            ARG_TYPE_FORMAT(out, arg, Memory_Offset, memory_offset, "%#x");
+            ARG_TYPE_FORMAT(out, arg, Immediate_u32, immediate_u32, "%#x");
+            case argument_type::Immediate_s32:
+            {
+                s32 d = arg->immediate_s32.data;
+
                 if (d < 0)
                     format(out, "-%#x", -d);
                 else
                     format(out, "%#x", d);
+
+                break;
             }
 
-            else if (holds_type<immediate<s16>>(arg))
+            ARG_TYPE_FORMAT(out, arg, Immediate_u16, immediate_u16, "%#x");
+            case argument_type::Immediate_s16:
             {
-                s16 d = std::get<immediate<s16>>(arg).data;
+                s16 d = arg->immediate_s16.data;
+
                 if (d < 0)
                     format(out, "-%#x", -d);
                 else
                     format(out, "%#x", d);
+
+                break;
             }
 
-            else if ARG_HOLDS_T_FORMAT(out, arg, shift,            "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, memory_offset,    "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u32>,   "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u16>,   "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<u8>,    "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, immediate<float>, "%f")
-            else if ARG_HOLDS_T_FORMAT(out, arg, condition_code,   "(CC[%#x])")
-            else if ARG_HOLDS_T_FORMAT(out, arg, bitfield_pos,     "%#x")
-            else if ARG_HOLDS_T_FORMAT(out, arg, bitfield_size,    "%#x")
-            else if (holds_type<coprocessor_register>(arg))
-            {
-                auto &d = std::get<coprocessor_register>(arg);
-                format(out, "[%u, %u]", d.rd, d.sel);
+            ARG_TYPE_FORMAT(out, arg, Immediate_u8,  immediate_u8,  "%#x");
+            ARG_TYPE_FORMAT(out, arg, Immediate_float, immediate_float, "%f");
+            ARG_TYPE_FORMAT(out, arg, Condition_Code, condition_code, "(CC[%#x])");
+            ARG_TYPE_FORMAT(out, arg, Bitfield_Pos, bitfield_pos, "%#x");
+            ARG_TYPE_FORMAT(out, arg, Bitfield_Size, bitfield_size, "%#x");
+
+            // case argument_type::Extra:
+            ARG_TYPE_FORMAT(out, arg, String, string_argument, "%s");
+
+            default:
+                break;
             }
         }
         

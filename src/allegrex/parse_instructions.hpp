@@ -31,9 +31,12 @@ struct jump_destination
 struct parse_data
 {
     u32 vaddr; // start address
-    std::vector<instruction> instructions;
+    array<instruction> instructions;
     array<jump_destination> *jump_destinations;
 };
+
+void init(parse_data *data);
+void free(parse_data *data);
 
 void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata);
 void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out);

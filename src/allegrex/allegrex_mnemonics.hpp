@@ -7,7 +7,7 @@
 // not called instruction to avoid confusion between instruction struct and mnemonics.
 // also these are just the mnemonics.
 // order matters.
-enum class allegrex_mnemonic : u32
+enum class allegrex_mnemonic : u16
 {
     NOP,
     SLL,

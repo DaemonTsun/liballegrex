@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <string.h>
 
 #include "shl/array.hpp"
 #include "shl/fixed_array.hpp"
@@ -820,6 +821,21 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
     return false;
 }
 
+void init(parse_data *data)
+{
+    assert(data != nullptr);
+
+    data->vaddr = 0;
+    ::init(&data->instructions);
+    data->jump_destinations = nullptr;
+}
+
+void free(parse_data *data)
+{
+    assert(data != nullptr);
+    ::free(&data->instructions);
+}
+
 void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata)
 {
     bool found;
@@ -840,19 +856,20 @@ void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out
     out->vaddr = conf->vaddr;
 
     u32 count = (u32)(sz / sizeof(u32));
-    out->instructions.resize(count);
+    ::resize(&out->instructions, count);
+    memset(out->instructions.data, 0, count * sizeof(instruction));
 
     for (u32 addr = 0x00000000, i = 0; addr < sz; addr += sizeof(u32), ++i)
     {
-        instruction &inst = out->instructions[i];
+        instruction *inst = out->instructions.data + i;
 
         // because all instructions are 32 bit wide, we simply read
         // instead of adjusting stream position to read from.
-        read(in, &inst.opcode);
+        read(in, &inst->opcode);
 
-        inst.address = conf->vaddr + addr;
+        inst->address = conf->vaddr + addr;
 
-        parse_instruction(inst.opcode, &inst, conf, out);
+        parse_instruction(inst->opcode, inst, conf, out);
     }
 }
 

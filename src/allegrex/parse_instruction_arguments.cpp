@@ -39,11 +39,43 @@ constexpr immediate<u32> extend16_immu32(u32 val)
     return immediate<u32>{sign_extend_16_to_u32(val)};
 }
 
-template<typename T>
-void add_argument(T val, instruction *inst)
-{
-    inst->arguments.push_back(val);
-}
+#define DEFINE_ADD_ARGUMENT(T, ArgumentType, UnionMember)\
+    void add_argument(T val, instruction *inst)\
+    {\
+        assert(inst->argument_count < MAX_ARGUMENT_COUNT);\
+        inst->arguments[inst->argument_count].UnionMember = val;\
+        inst->argument_types[inst->argument_count] = argument_type::ArgumentType;\
+        inst->argument_count++;\
+    }
+
+DEFINE_ADD_ARGUMENT(invalid_argument, Invalid, invalid_argument)
+DEFINE_ADD_ARGUMENT(mips_register, MIPS_Register, mips_register)
+DEFINE_ADD_ARGUMENT(mips_fpu_register, MIPS_FPU_Register, mips_fpu_register)
+DEFINE_ADD_ARGUMENT(vfpu_register, VFPU_Register, vfpu_register)
+DEFINE_ADD_ARGUMENT(vfpu_matrix, VFPU_Matrix, vfpu_matrix)
+DEFINE_ADD_ARGUMENT(vfpu_condition, VFPU_Condition, vfpu_condition)
+DEFINE_ADD_ARGUMENT(vfpu_constant, VFPU_Constant, vfpu_constant)
+DEFINE_ADD_ARGUMENT(vfpu_prefix_array, VFPU_Prefix_Array, vfpu_prefix_array)
+DEFINE_ADD_ARGUMENT(vfpu_destination_prefix_array, VFPU_Destination_Prefix_Array, vfpu_destination_prefix_array)
+DEFINE_ADD_ARGUMENT(vfpu_rotation_array, VFPU_Rotation_Array, vfpu_rotation_array)
+DEFINE_ADD_ARGUMENT(const psp_function*, PSP_Function_Pointer, psp_function_pointer)
+DEFINE_ADD_ARGUMENT(shift, Shift, shift)
+DEFINE_ADD_ARGUMENT(coprocessor_register, Coprocessor_Register, coprocessor_register)
+DEFINE_ADD_ARGUMENT(base_register, Base_Register, base_register)
+DEFINE_ADD_ARGUMENT(jump_address, Jump_Address, jump_address)
+DEFINE_ADD_ARGUMENT(branch_address, Branch_Address, branch_address)
+DEFINE_ADD_ARGUMENT(memory_offset, Memory_Offset, memory_offset)
+DEFINE_ADD_ARGUMENT(immediate<u32>, Immediate_u32, immediate_u32)
+DEFINE_ADD_ARGUMENT(immediate<s32>, Immediate_s32, immediate_s32)
+DEFINE_ADD_ARGUMENT(immediate<u16>, Immediate_u16, immediate_u16)
+DEFINE_ADD_ARGUMENT(immediate<s16>, Immediate_s16, immediate_s16)
+DEFINE_ADD_ARGUMENT(immediate<u8>,  Immediate_u8,  immediate_u8)
+DEFINE_ADD_ARGUMENT(immediate<float>, Immediate_float, immediate_float)
+DEFINE_ADD_ARGUMENT(condition_code, Condition_Code, condition_code)
+DEFINE_ADD_ARGUMENT(bitfield_pos, Bitfield_Pos, bitfield_pos)
+DEFINE_ADD_ARGUMENT(bitfield_size, Bitfield_Size, bitfield_size)
+DEFINE_ADD_ARGUMENT(extra, Extra, extra)
+DEFINE_ADD_ARGUMENT(string_argument, String, string_argument)
 
 void add_register_argument(u32 reg, instruction *inst)
 {
@@ -973,7 +1005,7 @@ void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_config *co
     add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 
     if (bitrange(opcode, 1, 1))
-        add_argument(string_arg{"wb"}, inst); // ??
+        add_argument(string_argument{"wb"}, inst); // ??
 }
 
 void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_config *conf, parse_data *pdata)
