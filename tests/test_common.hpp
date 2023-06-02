@@ -44,20 +44,20 @@
     assert_greater_or_equal(inst.argument_count, N+1);\
     assert_equal(inst.argument_types[N], Type);
     
-#define assert_argument_equals(N, ...) \
-    assert_equal(std::get<decltype(__VA_ARGS__)>(inst.arguments.at(N)), (__VA_ARGS__));
+#define assert_argument_equals(N, UnionMember, ...) \
+    assert_equal(inst.arguments[N].UnionMember, (__VA_ARGS__));
     
-#define assert_argument_vfpu_prefix_equals(N, I, X) \
-    assert_equal(std::get<vfpu_prefix_array>(inst.arguments.at(N)).data[I], X);
+#define assert_argument_vfpu_prefix_equals(N, ArrayIndex, Value) \
+    assert_equal(inst.arguments[N].vfpu_prefix_array.data[ArrayIndex], Value);
 
-#define assert_argument_vfpu_destination_prefix_equals(N, I, X) \
-    assert_equal(std::get<vfpu_destination_prefix_array>(inst.arguments.at(N)).data[I], X);
+#define assert_argument_vfpu_destination_prefix_equals(N, ArrayIndex, Value) \
+    assert_equal(inst.arguments[N].vfpu_destination_array.data[ArrayIndex], Value);
     
-#define assert_argument_vfpu_rotation_equals(N, I, X) \
-    assert_equal(std::get<vfpu_rotation_array>(inst.arguments.at(N)).data[I], X);
+#define assert_argument_vfpu_rotation_equals(N, ArrayIndex, Value) \
+    assert_equal(inst.arguments[N].vfpu_rotation_array.data[ArrayIndex], Value);
     
-#define assert_argument_vfpu_rotation_count(N, X) \
-    assert_equal(std::get<vfpu_rotation_array>(inst.arguments.at(N)).size, X);
+#define assert_argument_vfpu_rotation_count(N, Value) \
+    assert_equal(inst.arguments[N].vfpu_rotation_array.size, Value);
     
 #define assert_argument_vfpu_size(SZ) \
     assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
