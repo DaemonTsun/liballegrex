@@ -11,7 +11,7 @@
 // now it's self-generated.
 
 // module Kernel_Library, id 0, 18 functions
-constexpr std::array Kernel_Library0_functions
+constexpr fixed_array Kernel_Library0_functions
 {
     psp_function{ 0x092968f4, "sceKernelCpuSuspendIntr",
                   RET(ARG_U32), NO_ARGS,
@@ -70,7 +70,7 @@ constexpr std::array Kernel_Library0_functions
 };
 
 // module ThreadManForUser, id 1, 146 functions
-constexpr std::array ThreadManForUser1_functions
+constexpr fixed_array ThreadManForUser1_functions
 {
     psp_function{ 0x55c20a00, "sceKernelCreateEventFlag",
                   RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_S32, ARG_SceKernelEventFlagOptParam_PTR),
@@ -513,7 +513,7 @@ constexpr std::array ThreadManForUser1_functions
 };
 
 // module ThreadManForKernel, id 2, 52 functions
-constexpr std::array ThreadManForKernel2_functions
+constexpr fixed_array ThreadManForKernel2_functions
 {
     psp_function{ 0xceadeb47, "sceKernelDelayThread",
                   RET(ARG_S32), ARGS(ARG_SceUInt),
@@ -674,7 +674,7 @@ constexpr std::array ThreadManForKernel2_functions
 };
 
 // module LoadExecForUser, id 3, 6 functions
-constexpr std::array LoadExecForUser3_functions
+constexpr fixed_array LoadExecForUser3_functions
 {
     psp_function{ 0x05572a5f, "sceKernelExitGame",
                   RET(ARG_VOID), NO_ARGS,
@@ -697,7 +697,7 @@ constexpr std::array LoadExecForUser3_functions
 };
 
 // module UtilsForKernel, id 4, 19 functions
-constexpr std::array UtilsForKernel4_functions
+constexpr fixed_array UtilsForKernel4_functions
 {
     psp_function{ 0xc2df770e, "sceKernelIcacheInvalidateRange",
                   RET(ARG_VOID), ARGS(ARG_CONST_VOID_PTR, ARG_U32),
@@ -759,7 +759,7 @@ constexpr std::array UtilsForKernel4_functions
 };
 
 // module SysMemUserForUser, id 5, 29 functions
-constexpr std::array SysMemUserForUser5_functions
+constexpr fixed_array SysMemUserForUser5_functions
 {
     psp_function{ 0xa291f107, "sceKernelMaxFreeMemSize",
                   RET(ARG_SceSize), NO_ARGS,
@@ -851,7 +851,7 @@ constexpr std::array SysMemUserForUser5_functions
 };
 
 // module InterruptManager, id 6, 9 functions
-constexpr std::array InterruptManager6_functions
+constexpr fixed_array InterruptManager6_functions
 {
     psp_function{ 0xca04a2b9, "sceKernelRegisterSubIntrHandler",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_VOID_PTR, ARG_VOID_PTR),
@@ -883,7 +883,7 @@ constexpr std::array InterruptManager6_functions
 };
 
 // module IoFileMgrForUser, id 7, 38 functions
-constexpr std::array IoFileMgrForUser7_functions
+constexpr fixed_array IoFileMgrForUser7_functions
 {
     psp_function{ 0xb29ddf9c, "sceIoDopen",
                   RET(ARG_SceUID), ARGS(ARG_CONST_CHAR_PTR),
@@ -1002,7 +1002,7 @@ constexpr std::array IoFileMgrForUser7_functions
 };
 
 // module ModuleMgrForUser, id 8, 18 functions
-constexpr std::array ModuleMgrForUser8_functions
+constexpr fixed_array ModuleMgrForUser8_functions
 {
     psp_function{ 0x977de386, "sceKernelLoadModule",
                   RET(ARG_SceUID), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceKernelLMOption_PTR),
@@ -1061,7 +1061,7 @@ constexpr std::array ModuleMgrForUser8_functions
 };
 
 // module ModuleMgrForKernel, id 9, 8 functions
-constexpr std::array ModuleMgrForKernel9_functions
+constexpr fixed_array ModuleMgrForKernel9_functions
 {
     psp_function{ 0x50f0c1ec, "sceKernelStartModule",
                   RET(ARG_S32), ARGS(ARG_SceUID, ARG_SceSize, ARG_VOID_PTR, ARG_S32_PTR, ARG_SceKernelSMOption_PTR),
@@ -1090,7 +1090,7 @@ constexpr std::array ModuleMgrForKernel9_functions
 };
 
 // module StdioForUser, id 10, 11 functions
-constexpr std::array StdioForUser10_functions
+constexpr fixed_array StdioForUser10_functions
 {
     psp_function{ 0x172d316e, "sceKernelStdin",
                   RET(ARG_SceUID), NO_ARGS,
@@ -1128,7 +1128,7 @@ constexpr std::array StdioForUser10_functions
 };
 
 // module sceHprm, id 11, 9 functions
-constexpr std::array sceHprm11_functions
+constexpr fixed_array sceHprm11_functions
 {
     psp_function{ 0x089fdfa4, "sceHprm_089fdfa4",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -1160,7 +1160,7 @@ constexpr std::array sceHprm11_functions
 };
 
 // module sceCcc, id 12, 28 functions
-constexpr std::array sceCcc12_functions
+constexpr fixed_array sceCcc12_functions
 {
     psp_function{ 0xb4d1cbbf, "sceCccSetTable",
                   RET(ARG_VOID), ARGS(ARG_U32, ARG_U32),
@@ -1249,7 +1249,7 @@ constexpr std::array sceCcc12_functions
 };
 
 // module sceCtrl, id 13, 17 functions
-constexpr std::array sceCtrl13_functions
+constexpr fixed_array sceCtrl13_functions
 {
     psp_function{ 0x3e65a0ea, "sceCtrlInit",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -1305,7 +1305,7 @@ constexpr std::array sceCtrl13_functions
 };
 
 // module sceDisplay, id 14, 23 functions
-constexpr std::array sceDisplay14_functions
+constexpr fixed_array sceDisplay14_functions
 {
     psp_function{ 0x0e20f177, "sceDisplaySetMode",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32),
@@ -1379,7 +1379,7 @@ constexpr std::array sceDisplay14_functions
 };
 
 // module sceAudio, id 15, 36 functions
-constexpr std::array sceAudio15_functions
+constexpr fixed_array sceAudio15_functions
 {
     psp_function{ 0x01562ba3, "sceAudioOutput2Reserve",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -1492,7 +1492,7 @@ constexpr std::array sceAudio15_functions
 };
 
 // module sceSasCore, id 16, 32 functions
-constexpr std::array sceSasCore16_functions
+constexpr fixed_array sceSasCore16_functions
 {
     psp_function{ 0x42778a9f, "__sceSasInit",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32, ARG_U32, ARG_U32),
@@ -1593,7 +1593,7 @@ constexpr std::array sceSasCore16_functions
 };
 
 // module sceLibFont, id 17, 28 functions
-constexpr std::array sceLibFont17_functions
+constexpr fixed_array sceLibFont17_functions
 {
     psp_function{ 0x67f17ed7, "sceFontNewLib",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32),
@@ -1682,7 +1682,7 @@ constexpr std::array sceLibFont17_functions
 };
 
 // module sceNet, id 18, 8 functions
-constexpr std::array sceNet18_functions
+constexpr fixed_array sceNet18_functions
 {
     psp_function{ 0x39af39a6, "sceNetInit",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32, ARG_S32, ARG_S32),
@@ -1711,7 +1711,7 @@ constexpr std::array sceNet18_functions
 };
 
 // module sceNetResolver, id 19, 11 functions
-constexpr std::array sceNetResolver19_functions
+constexpr fixed_array sceNetResolver19_functions
 {
     psp_function{ 0x224c5f44, "sceNetResolverStartNtoA",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR, ARG_in_addr_PTR),
@@ -1749,7 +1749,7 @@ constexpr std::array sceNetResolver19_functions
 };
 
 // module sceNetInet, id 20, 31 functions
-constexpr std::array sceNetInet20_functions
+constexpr fixed_array sceNetInet20_functions
 {
     psp_function{ 0x17943399, "sceNetInetInit",
                   RET(ARG_S32), NO_ARGS,
@@ -1847,7 +1847,7 @@ constexpr std::array sceNetInet20_functions
 };
 
 // module sceNetApctl, id 21, 25 functions
-constexpr std::array sceNetApctl21_functions
+constexpr fixed_array sceNetApctl21_functions
 {
     psp_function{ 0xcfb957c6, "sceNetApctlConnect",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -1927,7 +1927,7 @@ constexpr std::array sceNetApctl21_functions
 };
 
 // module sceNetAdhoc, id 22, 27 functions
-constexpr std::array sceNetAdhoc22_functions
+constexpr fixed_array sceNetAdhoc22_functions
 {
     psp_function{ 0xe1d621d7, "sceNetAdhocInit",
                   RET(ARG_S32), NO_ARGS,
@@ -2013,7 +2013,7 @@ constexpr std::array sceNetAdhoc22_functions
 };
 
 // module sceNetAdhocMatching, id 23, 18 functions
-constexpr std::array sceNetAdhocMatching23_functions
+constexpr fixed_array sceNetAdhocMatching23_functions
 {
     psp_function{ 0x2a2a1e07, "sceNetAdhocMatchingInit",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -2072,7 +2072,7 @@ constexpr std::array sceNetAdhocMatching23_functions
 };
 
 // module sceNetAdhocDiscover, id 24, 6 functions
-constexpr std::array sceNetAdhocDiscover24_functions
+constexpr fixed_array sceNetAdhocDiscover24_functions
 {
     psp_function{ 0x941b3877, "sceNetAdhocDiscoverInitStart",
                   RET(ARG_S32), ARGS(ARG_U32),
@@ -2095,7 +2095,7 @@ constexpr std::array sceNetAdhocDiscover24_functions
 };
 
 // module sceNetAdhocctl, id 25, 22 functions
-constexpr std::array sceNetAdhocctl25_functions
+constexpr fixed_array sceNetAdhocctl25_functions
 {
     psp_function{ 0xe26f226e, "sceNetAdhocctlInit",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_productStruct_PTR),
@@ -2166,7 +2166,7 @@ constexpr std::array sceNetAdhocctl25_functions
 };
 
 // module sceRtc, id 26, 46 functions
-constexpr std::array sceRtc26_functions
+constexpr fixed_array sceRtc26_functions
 {
     psp_function{ 0xc41c2853, "sceRtcGetTickResolution",
                   RET(ARG_U32), NO_ARGS,
@@ -2309,7 +2309,7 @@ constexpr std::array sceRtc26_functions
 };
 
 // module sceWlanDrv, id 27, 3 functions
-constexpr std::array sceWlanDrv27_functions
+constexpr fixed_array sceWlanDrv27_functions
 {
     psp_function{ 0xd7763699, "sceWlanGetSwitchState",
                   RET(ARG_S32), NO_ARGS,
@@ -2323,7 +2323,7 @@ constexpr std::array sceWlanDrv27_functions
 };
 
 // module sceMpeg, id 28, 59 functions
-constexpr std::array sceMpeg28_functions
+constexpr fixed_array sceMpeg28_functions
 {
     psp_function{ 0xe1ce83a7, "sceMpegGetAtracAu",
                   RET(ARG_S32), ARGS(ARG_SceMpeg_PTR, ARG_SceMpegStream_PTR, ARG_SceMpegAu_PTR, ARG_VOID_PTR),
@@ -2505,7 +2505,7 @@ constexpr std::array sceMpeg28_functions
 };
 
 // module sceMp3, id 29, 24 functions
-constexpr std::array sceMp329_functions
+constexpr fixed_array sceMp329_functions
 {
     psp_function{ 0x07ec321a, "sceMp3ReserveMp3Handle",
                   RET(ARG_S32), ARGS(ARG_SceMp3InitArg_PTR),
@@ -2582,7 +2582,7 @@ constexpr std::array sceMp329_functions
 };
 
 // module sceHttp, id 30, 54 functions
-constexpr std::array sceHttp30_functions
+constexpr fixed_array sceHttp30_functions
 {
     psp_function{ 0xab1abe07, "sceHttpInit",
                   RET(ARG_S32), ARGS(ARG_SceSize),
@@ -2749,7 +2749,7 @@ constexpr std::array sceHttp30_functions
 };
 
 // module scePower, id 31, 60 functions
-constexpr std::array scePower31_functions
+constexpr fixed_array scePower31_functions
 {
     psp_function{ 0x04b7766e, "scePowerRegisterCallback",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_SceUID),
@@ -2934,7 +2934,7 @@ constexpr std::array scePower31_functions
 };
 
 // module sceImpose, id 32, 15 functions
-constexpr std::array sceImpose32_functions
+constexpr fixed_array sceImpose32_functions
 {
     psp_function{ 0x36aa6e91, "sceImposeSetLanguageMode",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32),
@@ -2984,7 +2984,7 @@ constexpr std::array sceImpose32_functions
 };
 
 // module sceSuspendForUser, id 33, 6 functions
-constexpr std::array sceSuspendForUser33_functions
+constexpr fixed_array sceSuspendForUser33_functions
 {
     psp_function{ 0xeadb1bd7, "sceKernelPowerLock",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -3007,7 +3007,7 @@ constexpr std::array sceSuspendForUser33_functions
 };
 
 // module sceGe_user, id 34, 18 functions
-constexpr std::array sceGe_user34_functions
+constexpr fixed_array sceGe_user34_functions
 {
     psp_function{ 0xe47e40e4, "sceGeEdramGetAddr",
                   RET(ARG_VOID_PTR), NO_ARGS,
@@ -3066,7 +3066,7 @@ constexpr std::array sceGe_user34_functions
 };
 
 // module sceUmdUser, id 35, 16 functions
-constexpr std::array sceUmdUser35_functions
+constexpr fixed_array sceUmdUser35_functions
 {
     psp_function{ 0xc6183d47, "sceUmdActivate",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_CONST_CHAR_PTR),
@@ -3119,7 +3119,7 @@ constexpr std::array sceUmdUser35_functions
 };
 
 // module sceDmac, id 36, 2 functions
-constexpr std::array sceDmac36_functions
+constexpr fixed_array sceDmac36_functions
 {
     psp_function{ 0x617f3fe6, "sceDmacMemcpy",
                   RET(ARG_S32), ARGS(ARG_VOID_PTR, ARG_CONST_VOID_PTR, ARG_SceSize),
@@ -3130,7 +3130,7 @@ constexpr std::array sceDmac36_functions
 };
 
 // module sceUtility, id 37, 111 functions
-constexpr std::array sceUtility37_functions
+constexpr fixed_array sceUtility37_functions
 {
     psp_function{ 0x1579a159, "sceUtilityLoadNetModule",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -3468,7 +3468,7 @@ constexpr std::array sceUtility37_functions
 };
 
 // module sceATRAC3plus_Library, id 38, 38 functions
-constexpr std::array sceATRAC3plus_Library38_functions
+constexpr fixed_array sceATRAC3plus_Library38_functions
 {
     psp_function{ 0x7db31251, "sceAtracAddStreamData",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_U32),
@@ -3587,7 +3587,7 @@ constexpr std::array sceATRAC3plus_Library38_functions
 };
 
 // module sceAtrac3plus, id 39, 38 functions
-constexpr std::array sceAtrac3plus39_functions
+constexpr fixed_array sceAtrac3plus39_functions
 {
     psp_function{ 0x7db31251, "sceAtracAddStreamData",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_U32),
@@ -3706,7 +3706,7 @@ constexpr std::array sceAtrac3plus39_functions
 };
 
 // module scePsmf, id 40, 25 functions
-constexpr std::array scePsmf40_functions
+constexpr fixed_array scePsmf40_functions
 {
     psp_function{ 0xc22c8327, "scePsmfSetPsmf",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32),
@@ -3786,7 +3786,7 @@ constexpr std::array scePsmf40_functions
 };
 
 // module scePsmfPlayer, id 41, 29 functions
-constexpr std::array scePsmfPlayer41_functions
+constexpr fixed_array scePsmfPlayer41_functions
 {
     psp_function{ 0x235d8787, "scePsmfPlayerCreate",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32),
@@ -3878,7 +3878,7 @@ constexpr std::array scePsmfPlayer41_functions
 };
 
 // module sceOpenPSID, id 42, 1 functions
-constexpr std::array sceOpenPSID42_functions
+constexpr fixed_array sceOpenPSID42_functions
 {
     psp_function{ 0xc69bebce, "sceOpenPSIDGetOpenPSID",
                   RET(ARG_S32), ARGS(ARG_PspOpenPSID_PTR),
@@ -3886,7 +3886,7 @@ constexpr std::array sceOpenPSID42_functions
 };
 
 // module sceParseUri, id 43, 4 functions
-constexpr std::array sceParseUri43_functions
+constexpr fixed_array sceParseUri43_functions
 {
     psp_function{ 0x49e950ec, "sceUriEscape",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -3903,7 +3903,7 @@ constexpr std::array sceParseUri43_functions
 };
 
 // module sceSsl, id 44, 12 functions
-constexpr std::array sceSsl44_functions
+constexpr fixed_array sceSsl44_functions
 {
     psp_function{ 0x957ecbe2, "sceSslInit",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -3944,7 +3944,7 @@ constexpr std::array sceSsl44_functions
 };
 
 // module sceParseHttp, id 45, 2 functions
-constexpr std::array sceParseHttp45_functions
+constexpr fixed_array sceParseHttp45_functions
 {
     psp_function{ 0x8077a433, "sceParseHttpStatusLine",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -3955,7 +3955,7 @@ constexpr std::array sceParseHttp45_functions
 };
 
 // module sceVaudio, id 46, 8 functions
-constexpr std::array sceVaudio46_functions
+constexpr fixed_array sceVaudio46_functions
 {
     psp_function{ 0x8986295e, "sceVaudioOutputBlocking",
                   RET(ARG_U32), ARGS(ARG_S32, ARG_U32),
@@ -3984,7 +3984,7 @@ constexpr std::array sceVaudio46_functions
 };
 
 // module sceUsbstor, id 47, 1 functions
-constexpr std::array sceUsbstor47_functions
+constexpr fixed_array sceUsbstor47_functions
 {
     psp_function{ 0x60066cfe, "sceUsbstorGetStatus",
                   RET(ARG_S32), NO_ARGS,
@@ -3992,7 +3992,7 @@ constexpr std::array sceUsbstor47_functions
 };
 
 // module sceUsbstorBoot, id 48, 6 functions
-constexpr std::array sceUsbstorBoot48_functions
+constexpr fixed_array sceUsbstorBoot48_functions
 {
     psp_function{ 0xe58818a8, "sceUsbstorBootSetCapacity",
                   RET(ARG_S32), ARGS(ARG_U32),
@@ -4015,7 +4015,7 @@ constexpr std::array sceUsbstorBoot48_functions
 };
 
 // module sceUsb, id 49, 10 functions
-constexpr std::array sceUsb49_functions
+constexpr fixed_array sceUsb49_functions
 {
     psp_function{ 0xae5de6af, "sceUsbStart",
                   RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_VOID_PTR),
@@ -4050,7 +4050,7 @@ constexpr std::array sceUsb49_functions
 };
 
 // module sceChnnlsv, id 50, 6 functions
-constexpr std::array sceChnnlsv50_functions
+constexpr fixed_array sceChnnlsv50_functions
 {
     psp_function{ 0xe7833020, "sceSdSetIndex",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_S32),
@@ -4073,7 +4073,7 @@ constexpr std::array sceChnnlsv50_functions
 };
 
 // module sceNpDrm, id 51, 6 functions
-constexpr std::array sceNpDrm51_functions
+constexpr fixed_array sceNpDrm51_functions
 {
     psp_function{ 0xa1336091, "sceNpDrmSetLicenseeKey",
                   RET(ARG_S32), ARGS(ARG_U32),
@@ -4096,7 +4096,7 @@ constexpr std::array sceNpDrm51_functions
 };
 
 // module scePspNpDrm_user, id 52, 6 functions
-constexpr std::array scePspNpDrm_user52_functions
+constexpr fixed_array scePspNpDrm_user52_functions
 {
     psp_function{ 0xa1336091, "sceNpDrmSetLicenseeKey",
                   RET(ARG_S32), ARGS(ARG_U32),
@@ -4119,7 +4119,7 @@ constexpr std::array scePspNpDrm_user52_functions
 };
 
 // module sceP3da, id 53, 3 functions
-constexpr std::array sceP3da53_functions
+constexpr fixed_array sceP3da53_functions
 {
     psp_function{ 0x374500a5, "sceP3daBridgeInit",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32),
@@ -4133,7 +4133,7 @@ constexpr std::array sceP3da53_functions
 };
 
 // module sceGameUpdate, id 54, 4 functions
-constexpr std::array sceGameUpdate54_functions
+constexpr fixed_array sceGameUpdate54_functions
 {
     psp_function{ 0xcbe69fb3, "sceGameUpdateInit",
                   RET(ARG_U32), NO_ARGS,
@@ -4150,7 +4150,7 @@ constexpr std::array sceGameUpdate54_functions
 };
 
 // module sceDeflt, id 55, 12 functions
-constexpr std::array sceDeflt55_functions
+constexpr fixed_array sceDeflt55_functions
 {
     psp_function{ 0x0ba3b9cc, "sceGzipGetCompressedData",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -4191,7 +4191,7 @@ constexpr std::array sceDeflt55_functions
 };
 
 // module sceMp4, id 56, 39 functions
-constexpr std::array sceMp456_functions
+constexpr fixed_array sceMp456_functions
 {
     psp_function{ 0x68651cbc, "sceMp4Init",
                   RET(ARG_U32), NO_ARGS,
@@ -4313,7 +4313,7 @@ constexpr std::array sceMp456_functions
 };
 
 // module sceAac, id 57, 13 functions
-constexpr std::array sceAac57_functions
+constexpr fixed_array sceAac57_functions
 {
     psp_function{ 0xe0c89aca, "sceAacInit",
                   RET(ARG_U32), ARGS(ARG_U32),
@@ -4357,7 +4357,7 @@ constexpr std::array sceAac57_functions
 };
 
 // module scePauth, id 58, 2 functions
-constexpr std::array scePauth58_functions
+constexpr fixed_array scePauth58_functions
 {
     psp_function{ 0xf7aa47f6, "scePauth_F7AA47F6",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_U32),
@@ -4368,7 +4368,7 @@ constexpr std::array scePauth58_functions
 };
 
 // module sceNp, id 59, 4 functions
-constexpr std::array sceNp59_functions
+constexpr fixed_array sceNp59_functions
 {
     psp_function{ 0x857b47d3, "sceNpInit",
                   RET(ARG_S32), NO_ARGS,
@@ -4385,7 +4385,7 @@ constexpr std::array sceNp59_functions
 };
 
 // module sceNpCommerce2, id 60, 16 functions
-constexpr std::array sceNpCommerce260_functions
+constexpr fixed_array sceNpCommerce260_functions
 {
     psp_function{ 0x005b5f20, "sceNpCommerce2GetProductInfoStart",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -4438,7 +4438,7 @@ constexpr std::array sceNpCommerce260_functions
 };
 
 // module sceNpService, id 61, 5 functions
-constexpr std::array sceNpService61_functions
+constexpr fixed_array sceNpService61_functions
 {
     psp_function{ 0x00acfac3, "sceNpServiceTerm",
                   RET(ARG_S32), NO_ARGS,
@@ -4458,7 +4458,7 @@ constexpr std::array sceNpService61_functions
 };
 
 // module sceNpAuth, id 62, 8 functions
-constexpr std::array sceNpAuth62_functions
+constexpr fixed_array sceNpAuth62_functions
 {
     psp_function{ 0x4ec1f667, "sceNpAuthTerm",
                   RET(ARG_S32), NO_ARGS,
@@ -4487,7 +4487,7 @@ constexpr std::array sceNpAuth62_functions
 };
 
 // module sceMd5, id 63, 4 functions
-constexpr std::array sceMd563_functions
+constexpr fixed_array sceMd563_functions
 {
     psp_function{ 0x19884a15, "sceMd5BlockInit",
                   RET(ARG_S32), ARGS(ARG_U32),
@@ -4504,7 +4504,7 @@ constexpr std::array sceMd563_functions
 };
 
 // module sceJpeg, id 64, 14 functions
-constexpr std::array sceJpeg64_functions
+constexpr fixed_array sceJpeg64_functions
 {
     psp_function{ 0x0425b986, "sceJpegDecompressAllImage",
                   RET(ARG_S32), NO_ARGS,
@@ -4551,7 +4551,7 @@ constexpr std::array sceJpeg64_functions
 };
 
 // module sceAudiocodec, id 65, 7 functions
-constexpr std::array sceAudiocodec65_functions
+constexpr fixed_array sceAudiocodec65_functions
 {
     psp_function{ 0x70a703f8, "sceAudiocodecDecode",
                   RET(ARG_S32), ARGS(ARG_U64_PTR, ARG_S32),
@@ -4577,7 +4577,7 @@ constexpr std::array sceAudiocodec65_functions
 };
 
 // module sceHeap, id 66, 10 functions
-constexpr std::array sceHeap66_functions
+constexpr fixed_array sceHeap66_functions
 {
     psp_function{ 0x0e875980, "sceHeapReallocHeapMemory",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32),
@@ -4612,7 +4612,7 @@ constexpr std::array sceHeap66_functions
 };
 
 // module FakeSysCalls, id 67, 8 functions
-constexpr std::array FakeSysCalls67_functions
+constexpr fixed_array FakeSysCalls67_functions
 {
     psp_function{ 0xc0debabe, "__KernelReturnFromThread",
                   RET(ARG_U32), NO_ARGS,
@@ -4641,7 +4641,7 @@ constexpr std::array FakeSysCalls67_functions
 };
 
 // module UtilsForUser, id 68, 26 functions
-constexpr std::array UtilsForUser68_functions
+constexpr fixed_array UtilsForUser68_functions
 {
     psp_function{ 0x91e4f6a7, "sceKernelLibcClock",
                   RET(ARG_clock_t), NO_ARGS,
@@ -4724,7 +4724,7 @@ constexpr std::array UtilsForUser68_functions
 };
 
 // module KDebugForKernel, id 69, 20 functions
-constexpr std::array KDebugForKernel69_functions
+constexpr fixed_array KDebugForKernel69_functions
 {
     psp_function{ 0xe7a3874d, "sceKernelRegisterAssertHandler",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -4797,7 +4797,7 @@ constexpr std::array KDebugForKernel69_functions
 // module Pspnet_Scan, id 76, 0 functions
 // module Pspnet_Show_MacAddr, id 77, 0 functions
 // module pspeDebug, id 78, 1 functions
-constexpr std::array pspeDebug78_functions
+constexpr fixed_array pspeDebug78_functions
 {
     psp_function{ 0xdeadbeaf, "pspeDebugWrite",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -4805,7 +4805,7 @@ constexpr std::array pspeDebug78_functions
 };
 
 // module StdioForKernel, id 79, 8 functions
-constexpr std::array StdioForKernel79_functions
+constexpr fixed_array StdioForKernel79_functions
 {
     psp_function{ 0x98220f3e, "sceKernelStdoutReopen",
                   RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_S32, ARG_SceMode),
@@ -4834,7 +4834,7 @@ constexpr std::array StdioForKernel79_functions
 };
 
 // module LoadCoreForKernel, id 80, 31 functions
-constexpr std::array LoadCoreForKernel80_functions
+constexpr fixed_array LoadCoreForKernel80_functions
 {
     psp_function{ 0xace23476, "sceKernelCheckPspConfig",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -4932,7 +4932,7 @@ constexpr std::array LoadCoreForKernel80_functions
 };
 
 // module IoFileMgrForKernel, id 81, 33 functions
-constexpr std::array IoFileMgrForKernel81_functions
+constexpr fixed_array IoFileMgrForKernel81_functions
 {
     psp_function{ 0xa905b705, "sceIoCloseAll",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -5036,7 +5036,7 @@ constexpr std::array IoFileMgrForKernel81_functions
 };
 
 // module LoadExecForKernel, id 82, 4 functions
-constexpr std::array LoadExecForKernel82_functions
+constexpr fixed_array LoadExecForKernel82_functions
 {
     psp_function{ 0x4ac57943, "sceKernelRegisterExitCallback",
                   RET(ARG_S32), ARGS(ARG_S32),
@@ -5053,7 +5053,7 @@ constexpr std::array LoadExecForKernel82_functions
 };
 
 // module SysMemForKernel, id 83, 10 functions
-constexpr std::array SysMemForKernel83_functions
+constexpr fixed_array SysMemForKernel83_functions
 {
     psp_function{ 0x636c953b, "sceKernelAllocHeapMemory",
                   RET(ARG_VOID_PTR), ARGS(ARG_SceUID, ARG_SceSize),
@@ -5088,7 +5088,7 @@ constexpr std::array SysMemForKernel83_functions
 };
 
 // module sceMt19937, id 84, 2 functions
-constexpr std::array sceMt1993784_functions
+constexpr fixed_array sceMt1993784_functions
 {
     psp_function{ 0xecf5d379, "sceMt19937Init",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32),
@@ -5099,7 +5099,7 @@ constexpr std::array sceMt1993784_functions
 };
 
 // module SysclibForKernel, id 85, 12 functions
-constexpr std::array SysclibForKernel85_functions
+constexpr fixed_array SysclibForKernel85_functions
 {
     psp_function{ 0xab7592ff, "memcpy",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32),
@@ -5140,7 +5140,7 @@ constexpr std::array SysclibForKernel85_functions
 };
 
 // module sceCtrl_driver, id 86, 17 functions
-constexpr std::array sceCtrl_driver86_functions
+constexpr fixed_array sceCtrl_driver86_functions
 {
     psp_function{ 0x3e65a0ea, "sceCtrlInit",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -5196,7 +5196,7 @@ constexpr std::array sceCtrl_driver86_functions
 };
 
 // module sceDisplay_driver, id 87, 23 functions
-constexpr std::array sceDisplay_driver87_functions
+constexpr fixed_array sceDisplay_driver87_functions
 {
     psp_function{ 0x0e20f177, "sceDisplaySetMode",
                   RET(ARG_S32), ARGS(ARG_S32, ARG_S32, ARG_S32),
@@ -5270,7 +5270,7 @@ constexpr std::array sceDisplay_driver87_functions
 };
 
 // module sceMpegbase, id 88, 6 functions
-constexpr std::array sceMpegbase88_functions
+constexpr fixed_array sceMpegbase88_functions
 {
     psp_function{ 0xbea18f91, "sceMpegBasePESpacketCopy",
                   RET(ARG_U32), ARGS(ARG_U32),
@@ -5293,7 +5293,7 @@ constexpr std::array sceMpegbase88_functions
 };
 
 // module sceUsbGps, id 89, 13 functions
-constexpr std::array sceUsbGps89_functions
+constexpr fixed_array sceUsbGps89_functions
 {
     psp_function{ 0x268f95ca, "sceUsbGpsSetInitDataLocation",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -5337,7 +5337,7 @@ constexpr std::array sceUsbGps89_functions
 };
 
 // module sceLibFttt, id 90, 28 functions
-constexpr std::array sceLibFttt90_functions
+constexpr fixed_array sceLibFttt90_functions
 {
     psp_function{ 0x67f17ed7, "sceFontNewLib",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32),
@@ -5426,7 +5426,7 @@ constexpr std::array sceLibFttt90_functions
 };
 
 // module sceSha256, id 91, 1 functions
-constexpr std::array sceSha25691_functions
+constexpr fixed_array sceSha25691_functions
 {
     psp_function{ 0x318a350c, "sceSha256Digest",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_S32, ARG_U32),
@@ -5434,7 +5434,7 @@ constexpr std::array sceSha25691_functions
 };
 
 // module sceAdler, id 92, 1 functions
-constexpr std::array sceAdler92_functions
+constexpr fixed_array sceAdler92_functions
 {
     psp_function{ 0x9702ef11, "sceAdler32",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_U32, ARG_U32),
@@ -5442,7 +5442,7 @@ constexpr std::array sceAdler92_functions
 };
 
 // module sceSfmt19937, id 93, 6 functions
-constexpr std::array sceSfmt1993793_functions
+constexpr fixed_array sceSfmt1993793_functions
 {
     psp_function{ 0x161aceb2, "sceSfmt19937InitGenRand",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32),
@@ -5465,7 +5465,7 @@ constexpr std::array sceSfmt1993793_functions
 };
 
 // module sceAudioRouting, id 94, 4 functions
-constexpr std::array sceAudioRouting94_functions
+constexpr fixed_array sceAudioRouting94_functions
 {
     psp_function{ 0x39240e7d, "sceAudioRoutingGetMode",
                   RET(ARG_S32), NO_ARGS,
@@ -5482,7 +5482,7 @@ constexpr std::array sceAudioRouting94_functions
 };
 
 // module sceUsbCam, id 95, 50 functions
-constexpr std::array sceUsbCam95_functions
+constexpr fixed_array sceUsbCam95_functions
 {
     psp_function{ 0x03ed7a82, "sceUsbCamSetupMic",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32, ARG_S32),
@@ -5637,7 +5637,7 @@ constexpr std::array sceUsbCam95_functions
 };
 
 // module sceG729, id 96, 12 functions
-constexpr std::array sceG72996_functions
+constexpr fixed_array sceG72996_functions
 {
     psp_function{ 0x13f1028a, "sceG729DecodeExit",
                   RET(ARG_UNKNOWN), NO_ARGS,
@@ -5678,7 +5678,7 @@ constexpr std::array sceG72996_functions
 };
 
 // module sceNetUpnp, id 97, 5 functions
-constexpr std::array sceNetUpnp97_functions
+constexpr fixed_array sceNetUpnp97_functions
 {
     psp_function{ 0x27045362, "sceNetUpnpGetNatInfo",
                   RET(ARG_S32), NO_ARGS,
@@ -5698,7 +5698,7 @@ constexpr std::array sceNetUpnp97_functions
 };
 
 // module sceNetIfhandle, id 98, 2 functions
-constexpr std::array sceNetIfhandle98_functions
+constexpr fixed_array sceNetIfhandle98_functions
 {
     psp_function{ 0xc80181a2, "sceNetGetDropRate",
                   RET(ARG_S32), ARGS(ARG_PTR, ARG_PTR),
@@ -5709,7 +5709,7 @@ constexpr std::array sceNetIfhandle98_functions
 };
 
 // module KUBridge, id 99, 2 functions
-constexpr std::array KUBridge99_functions
+constexpr fixed_array KUBridge99_functions
 {
     psp_function{ 0x4c25ea72, "kuKernelLoadModule",
                   RET(ARG_S32), ARGS(ARG_CONST_CHAR_PTR, ARG_U32, ARG_U32),
@@ -5720,7 +5720,7 @@ constexpr std::array KUBridge99_functions
 };
 
 // module sceUsbAcc, id 100, 2 functions
-constexpr std::array sceUsbAcc100_functions
+constexpr fixed_array sceUsbAcc100_functions
 {
     psp_function{ 0x79a1c743, "sceUsbAccGetAuthStat",
                   RET(ARG_S32), NO_ARGS,
@@ -5731,7 +5731,7 @@ constexpr std::array sceUsbAcc100_functions
 };
 
 // module sceUsbMic, id 101, 7 functions
-constexpr std::array sceUsbMic101_functions
+constexpr fixed_array sceUsbMic101_functions
 {
     psp_function{ 0x06128e42, "sceUsbMicPollInputEnd",
                   RET(ARG_S32), NO_ARGS,
@@ -5757,7 +5757,7 @@ constexpr std::array sceUsbMic101_functions
 };
 
 // module sceOpenPSID_driver, id 102, 2 functions
-constexpr std::array sceOpenPSID_driver102_functions
+constexpr fixed_array sceOpenPSID_driver102_functions
 {
     psp_function{ 0x19d579f0, "sceOpenPSIDGetPSID",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32),
@@ -5768,7 +5768,7 @@ constexpr std::array sceOpenPSID_driver102_functions
 };
 
 // module semaphore, id 103, 2 functions
-constexpr std::array semaphore103_functions
+constexpr fixed_array semaphore103_functions
 {
     psp_function{ 0x4c537c72, "sceUtilsBufferCopyWithRange",
                   RET(ARG_U32), ARGS(ARG_U32, ARG_S32, ARG_U32, ARG_S32, ARG_S32),
@@ -5779,7 +5779,7 @@ constexpr std::array semaphore103_functions
 };
 
 // module sceDdrdb, id 104, 1 functions
-constexpr std::array sceDdrdb104_functions
+constexpr fixed_array sceDdrdb104_functions
 {
     psp_function{ 0xf013f8bf, "sceDdrdb_F013F8BF",
                   RET(ARG_S32), ARGS(ARG_U32, ARG_U32),
@@ -5788,12 +5788,12 @@ constexpr std::array sceDdrdb104_functions
 
 
 #define DEFINE_PSP_MODULE(NUM, NAME)\
-  psp_module{NUM, #NAME, NAME##NUM##_functions.data(), NAME##NUM##_functions.size()}
+  psp_module{NUM, #NAME, NAME##NUM##_functions.data, array_size(&NAME##NUM##_functions)}
 
 #define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\
   psp_module{NUM, #NAME, nullptr, 0}
 
-constexpr std::array _modules
+constexpr fixed_array _modules
 {
     DEFINE_PSP_MODULE(0, Kernel_Library),
     DEFINE_PSP_MODULE(1, ThreadManForUser),

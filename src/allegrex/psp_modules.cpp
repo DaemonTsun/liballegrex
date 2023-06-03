@@ -1,8 +1,8 @@
 
-#include <array>
-
 #include <stdio.h>
 #include <string.h>
+
+#include "shl/fixed_array.hpp"
 
 #include "allegrex/internal/psp_module_function_argument_defs.hpp"
 #include "allegrex/internal/psp_module_function_pspdev_headers.hpp"
@@ -22,12 +22,12 @@ constexpr psp_module unknown_module{0xffff, "unknown_module", &unknown_function,
 
 const psp_module *get_psp_modules()
 {
-    return _modules.data();
+    return _modules.data;
 }
 
 u32 get_psp_module_count()
 {
-    return _modules.size();
+    return array_size(&_modules);
 }
 
 const psp_module *get_psp_module_by_name(const char *mod)
@@ -36,9 +36,9 @@ const psp_module *get_psp_module_by_name(const char *mod)
         return nullptr;
 
     // could be optimized
-    for (const psp_module &md : _modules)
-        if (strcmp(md.name, mod) == 0)
-            return &md;
+    for_array(md, &_modules)
+        if (strcmp(md->name, mod) == 0)
+            return md;
 
     return nullptr;
 }
@@ -95,23 +95,23 @@ const psp_function *get_psp_function_by_name(const char *mod, const char *name)
 
 const psp_function *get_psp_function(u16 mod, u16 fun)
 {
-    if (mod >= _modules.size())
+    if (mod >= array_size(&_modules))
         return &unknown_function;
 
-    const psp_module &m = _modules.at(mod);
+    const psp_module *m = _modules.data + mod;
     
-    if (fun >= m.function_count)
+    if (fun >= m->function_count)
         return &unknown_function;
 
-    return m.functions + fun;
+    return m->functions + fun;
 }
 
 const char *get_psp_module_name(u16 mod)
 {
-    if (mod >= _modules.size())
+    if (mod >= array_size(&_modules))
         return unknown_module.name;
 
-    return _modules.at(mod).name;
+    return _modules[mod].name;
 }
 
 const char *get_psp_function_name(u16 mod, u16 fun)
@@ -124,7 +124,7 @@ void get_psp_function_nid_name(const psp_function *fun, char *dst, u32 sz)
     if (fun == nullptr || dst == nullptr)
         return;
 
-    const psp_module *md = &_modules.at(fun->module_num);
+    const psp_module *md = _modules.data + fun->module_num;
     snprintf(dst, sz, "%s_%08X", md->name, fun->nid);
 }
 
