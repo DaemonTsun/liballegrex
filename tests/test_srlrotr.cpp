@@ -12,14 +12,14 @@ define_test(srl_0)
     assert_mnemonic(SRL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, shift);
-    assert_argument_equals(2, shift{0u});
+    assert_argument_type(2, argument_type::Shift);
+    assert_argument_equals(2, shift, shift{0u});
 }
 
 define_test(srl_1)
@@ -31,9 +31,9 @@ define_test(srl_1)
     assert_mnemonic(SRL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::AT);
-    assert_argument_equals(1, mips_register::ZERO);
-    assert_argument_equals(2, shift{3u});
+    assert_argument_equals(0, mips_register, mips_register::AT);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
+    assert_argument_equals(2, shift, shift{3u});
 }
 
 define_test(srl_2)
@@ -45,9 +45,9 @@ define_test(srl_2)
     assert_mnemonic(SRL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::RA);
-    assert_argument_equals(1, mips_register::RA);
-    assert_argument_equals(2, shift{31u});
+    assert_argument_equals(0, mips_register, mips_register::RA);
+    assert_argument_equals(1, mips_register, mips_register::RA);
+    assert_argument_equals(2, shift, shift{31u});
 }
 
 // rotr rd, rt, sa
@@ -60,14 +60,14 @@ define_test(rotr_0)
     assert_mnemonic(ROTR);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, shift);
-    assert_argument_equals(2, shift{0u});
+    assert_argument_type(2, argument_type::Shift);
+    assert_argument_equals(2, shift, shift{0u});
 }
 
 define_test(rotr_1)
@@ -79,9 +79,9 @@ define_test(rotr_1)
     assert_mnemonic(ROTR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::AT);
-    assert_argument_equals(1, mips_register::ZERO);
-    assert_argument_equals(2, shift{3u});
+    assert_argument_equals(0, mips_register, mips_register::AT);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
+    assert_argument_equals(2, shift, shift{3u});
 }
 
 define_test(rotr_2)
@@ -93,9 +93,9 @@ define_test(rotr_2)
     assert_mnemonic(ROTR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::RA);
-    assert_argument_equals(1, mips_register::RA);
-    assert_argument_equals(2, shift{31u});
+    assert_argument_equals(0, mips_register, mips_register::RA);
+    assert_argument_equals(1, mips_register, mips_register::RA);
+    assert_argument_equals(2, shift, shift{31u});
 }
 
 define_default_test_main();

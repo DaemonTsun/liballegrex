@@ -12,8 +12,8 @@ define_test(j_0)
     assert_mnemonic(J);
     assert_argument_count(1);
 
-    assert_argument_type(0, jump_address);
-    assert_argument_equals(0, jump_address{0});
+    assert_argument_type(0, argument_type::Jump_Address);
+    assert_argument_equals(0, jump_address, jump_address{0});
 }
 
 define_test(j_1)
@@ -25,7 +25,7 @@ define_test(j_1)
     assert_mnemonic(J);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{4});
+    assert_argument_equals(0, jump_address, jump_address{4});
 }
 
 define_test(j_2)
@@ -37,7 +37,7 @@ define_test(j_2)
     assert_mnemonic(J);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0x03fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0x03fffffc});
 }
 
 define_test(j_3)
@@ -49,7 +49,7 @@ define_test(j_3)
     assert_mnemonic(J);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0x13fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0x13fffffc});
 }
 
 define_test(j_4)
@@ -61,7 +61,7 @@ define_test(j_4)
     assert_mnemonic(J);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0xf3fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0xf3fffffc});
 }
 
 // jal address
@@ -74,8 +74,8 @@ define_test(jal_0)
     assert_mnemonic(JAL);
     assert_argument_count(1);
 
-    assert_argument_type(0, jump_address);
-    assert_argument_equals(0, jump_address{0});
+    assert_argument_type(0, argument_type::Jump_Address);
+    assert_argument_equals(0, jump_address, jump_address{0});
 }
 
 define_test(jal_1)
@@ -87,7 +87,7 @@ define_test(jal_1)
     assert_mnemonic(JAL);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{4});
+    assert_argument_equals(0, jump_address, jump_address{4});
 }
 
 define_test(jal_2)
@@ -99,7 +99,7 @@ define_test(jal_2)
     assert_mnemonic(JAL);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0x03fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0x03fffffc});
 }
 
 define_test(jal_3)
@@ -111,7 +111,7 @@ define_test(jal_3)
     assert_mnemonic(JAL);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0x13fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0x13fffffc});
 }
 
 define_test(jal_4)
@@ -123,7 +123,7 @@ define_test(jal_4)
     assert_mnemonic(JAL);
     assert_argument_count(1);
 
-    assert_argument_equals(0, jump_address{0xf3fffffc});
+    assert_argument_equals(0, jump_address, jump_address{0xf3fffffc});
 }
 
 // beq rs, rt, offset
@@ -136,14 +136,14 @@ define_test(beq_0)
     assert_mnemonic(BEQ);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(beq_1)
@@ -155,14 +155,14 @@ define_test(beq_1)
     assert_mnemonic(BEQ);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{8});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{8});
 }
 
 define_test(beq_2)
@@ -174,14 +174,14 @@ define_test(beq_2)
     assert_mnemonic(BEQ);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{0});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{0});
 }
 
 define_test(beq_3)
@@ -193,14 +193,14 @@ define_test(beq_3)
     assert_mnemonic(BEQ);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{36});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{36});
 }
 
 define_test(beq_4)
@@ -213,14 +213,14 @@ define_test(beq_4)
     assert_mnemonic(BEQ);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(beq_5)
@@ -233,8 +233,8 @@ define_test(beq_5)
     assert_mnemonic(B);
     assert_argument_count(1);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4});
 }
 
 // bne rs, rt, offset
@@ -247,14 +247,14 @@ define_test(bne_0)
     assert_mnemonic(BNE);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(bne_1)
@@ -266,14 +266,14 @@ define_test(bne_1)
     assert_mnemonic(BNE);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{8});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{8});
 }
 
 define_test(bne_2)
@@ -285,14 +285,14 @@ define_test(bne_2)
     assert_mnemonic(BNE);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{0});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{0});
 }
 
 define_test(bne_3)
@@ -304,14 +304,14 @@ define_test(bne_3)
     assert_mnemonic(BNE);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{36});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{36});
 }
 
 // blez rs, rt, offset
@@ -324,11 +324,11 @@ define_test(blez_0)
     assert_mnemonic(BLEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(blez_1)
@@ -340,11 +340,11 @@ define_test(blez_1)
     assert_mnemonic(BLEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(blez_2)
@@ -356,11 +356,11 @@ define_test(blez_2)
     assert_mnemonic(BLEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(blez_3)
@@ -372,11 +372,11 @@ define_test(blez_3)
     assert_mnemonic(BLEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgtz rs, rt, offset
@@ -389,11 +389,11 @@ define_test(bgtz_0)
     assert_mnemonic(BGTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgtz_1)
@@ -405,11 +405,11 @@ define_test(bgtz_1)
     assert_mnemonic(BGTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgtz_2)
@@ -421,11 +421,11 @@ define_test(bgtz_2)
     assert_mnemonic(BGTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgtz_3)
@@ -437,11 +437,11 @@ define_test(bgtz_3)
     assert_mnemonic(BGTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // addi rs, rt, imm
@@ -453,14 +453,14 @@ define_test(addi_0)
     assert_mnemonic(ADDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{0});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{0});
 }
 
 define_test(addi_1)
@@ -471,14 +471,14 @@ define_test(addi_1)
     assert_mnemonic(ADDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{1});
 }
 
 define_test(addi_2)
@@ -489,14 +489,14 @@ define_test(addi_2)
     assert_mnemonic(ADDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{-1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{-1});
 }
 
 define_test(addi_3)
@@ -508,14 +508,14 @@ define_test(addi_3)
     assert_mnemonic(ADDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{-1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{-1});
 }
 
 define_test(addi_4)
@@ -527,11 +527,11 @@ define_test(addi_4)
     assert_mnemonic(LI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, immediate<s32>);
-    assert_argument_equals(1, immediate<s32>{-1});
+    assert_argument_type(1, argument_type::Immediate_s32);
+    assert_argument_equals(1, immediate_s32, immediate<s32>{-1});
 }
 
 // addiu rs, rt, imm
@@ -543,14 +543,14 @@ define_test(addiu_0)
     assert_mnemonic(ADDIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{0});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{0});
 }
 
 define_test(addiu_1)
@@ -561,14 +561,14 @@ define_test(addiu_1)
     assert_mnemonic(ADDIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{1});
 }
 
 define_test(addiu_2)
@@ -579,14 +579,14 @@ define_test(addiu_2)
     assert_mnemonic(ADDIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{-1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{-1});
 }
 
 define_test(addiu_3)
@@ -598,14 +598,14 @@ define_test(addiu_3)
     assert_mnemonic(ADDIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{-1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{-1});
 }
 
 define_test(addiu_4)
@@ -617,11 +617,11 @@ define_test(addiu_4)
     assert_mnemonic(LI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, immediate<s32>);
-    assert_argument_equals(1, immediate<s32>{-1});
+    assert_argument_type(1, argument_type::Immediate_s32);
+    assert_argument_equals(1, immediate_s32, immediate<s32>{-1});
 }
 
 // slti rs, rt, imm
@@ -633,14 +633,14 @@ define_test(slti_0)
     assert_mnemonic(SLTI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{0});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{0});
 }
 
 define_test(slti_1)
@@ -651,14 +651,14 @@ define_test(slti_1)
     assert_mnemonic(SLTI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{1});
 }
 
 define_test(slti_2)
@@ -669,14 +669,14 @@ define_test(slti_2)
     assert_mnemonic(SLTI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<s32>);
-    assert_argument_equals(2, immediate<s32>{-1});
+    assert_argument_type(2, argument_type::Immediate_s32);
+    assert_argument_equals(2, immediate_s32, immediate<s32>{-1});
 }
 
 // sltiu rs, rt, imm
@@ -688,14 +688,14 @@ define_test(sltiu_0)
     assert_mnemonic(SLTIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0});
 }
 
 define_test(sltiu_1)
@@ -706,14 +706,14 @@ define_test(sltiu_1)
     assert_mnemonic(SLTIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{1});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{1});
 }
 
 define_test(sltiu_2)
@@ -724,14 +724,14 @@ define_test(sltiu_2)
     assert_mnemonic(SLTIU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0xffffffff});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0xffffffff});
 }
 
 // andi rs, rt, imm
@@ -743,14 +743,14 @@ define_test(andi_0)
     assert_mnemonic(ANDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0});
 }
 
 define_test(andi_1)
@@ -761,14 +761,14 @@ define_test(andi_1)
     assert_mnemonic(ANDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{1});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{1});
 }
 
 define_test(andi_2)
@@ -779,14 +779,14 @@ define_test(andi_2)
     assert_mnemonic(ANDI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0x0000ffff});
 }
 
 // ori rs, rt, imm
@@ -798,14 +798,14 @@ define_test(ori_0)
     assert_mnemonic(ORI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0});
 }
 
 define_test(ori_1)
@@ -816,9 +816,9 @@ define_test(ori_1)
     assert_mnemonic(ORI);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, mips_register::V1);
-    assert_argument_equals(2, immediate<u32>{1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, mips_register, mips_register::V1);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{1});
 }
 
 define_test(ori_2)
@@ -829,9 +829,9 @@ define_test(ori_2)
     assert_mnemonic(ORI);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, mips_register::V1);
-    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, mips_register, mips_register::V1);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0x0000ffff});
 }
 
 define_test(ori_3)
@@ -843,9 +843,9 @@ define_test(ori_3)
     assert_mnemonic(ORI);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, mips_register::V1);
-    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, mips_register, mips_register::V1);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0x0000ffff});
 }
 
 define_test(ori_4)
@@ -857,8 +857,8 @@ define_test(ori_4)
     assert_mnemonic(LI);
     assert_argument_count(2);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, immediate<u32>{0x0000ffff});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, immediate_u32, immediate<u32>{0x0000ffff});
 }
 
 // xori rs, rt, imm
@@ -870,14 +870,14 @@ define_test(xori_0)
     assert_mnemonic(XORI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0});
 }
 
 define_test(xori_1)
@@ -888,14 +888,14 @@ define_test(xori_1)
     assert_mnemonic(XORI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{1});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{1});
 }
 
 define_test(xori_2)
@@ -906,14 +906,14 @@ define_test(xori_2)
     assert_mnemonic(XORI);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V0);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V0);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 
-    assert_argument_type(2, immediate<u32>);
-    assert_argument_equals(2, immediate<u32>{0x0000ffff});
+    assert_argument_type(2, argument_type::Immediate_u32);
+    assert_argument_equals(2, immediate_u32, immediate<u32>{0x0000ffff});
 }
 
 // lui rt, imm
@@ -925,11 +925,11 @@ define_test(lui_0)
     assert_mnemonic(LUI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0});
 }
 
 define_test(lui_1)
@@ -940,8 +940,8 @@ define_test(lui_1)
     assert_mnemonic(LUI);
     assert_argument_count(2);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, immediate<u16>{1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{1});
 }
 
 define_test(lui_2)
@@ -952,8 +952,8 @@ define_test(lui_2)
     assert_mnemonic(LUI);
     assert_argument_count(2);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, immediate<u16>{0xffff});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0xffff});
 }
 
 // beql rs, rt, offset
@@ -966,14 +966,14 @@ define_test(beql_0)
     assert_mnemonic(BEQL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(beql_1)
@@ -985,14 +985,14 @@ define_test(beql_1)
     assert_mnemonic(BEQL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{8});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{8});
 }
 
 define_test(beql_2)
@@ -1004,14 +1004,14 @@ define_test(beql_2)
     assert_mnemonic(BEQL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{0});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{0});
 }
 
 define_test(beql_3)
@@ -1023,14 +1023,14 @@ define_test(beql_3)
     assert_mnemonic(BEQL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{36});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{36});
 }
 
 define_test(beql_4)
@@ -1043,14 +1043,14 @@ define_test(beql_4)
     assert_mnemonic(BEQL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(beql_5)
@@ -1063,8 +1063,8 @@ define_test(beql_5)
     assert_mnemonic(BL);
     assert_argument_count(1);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4});
 }
 
 // bnel rs, rt, offset
@@ -1077,14 +1077,14 @@ define_test(bnel_0)
     assert_mnemonic(BNEL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{4});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{4});
 }
 
 define_test(bnel_1)
@@ -1096,14 +1096,14 @@ define_test(bnel_1)
     assert_mnemonic(BNEL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{8});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{8});
 }
 
 define_test(bnel_2)
@@ -1115,14 +1115,14 @@ define_test(bnel_2)
     assert_mnemonic(BNEL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{0});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{0});
 }
 
 define_test(bnel_3)
@@ -1134,14 +1134,14 @@ define_test(bnel_3)
     assert_mnemonic(BNEL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V0);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V0);
 
-    assert_argument_type(2, branch_address);
-    assert_argument_equals(2, branch_address{36});
+    assert_argument_type(2, argument_type::Branch_Address);
+    assert_argument_equals(2, branch_address, branch_address{36});
 }
 
 // blezl rs, rt, offset
@@ -1154,11 +1154,11 @@ define_test(blezl_0)
     assert_mnemonic(BLEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(blezl_1)
@@ -1170,11 +1170,11 @@ define_test(blezl_1)
     assert_mnemonic(BLEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(blezl_2)
@@ -1186,11 +1186,11 @@ define_test(blezl_2)
     assert_mnemonic(BLEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(blezl_3)
@@ -1202,11 +1202,11 @@ define_test(blezl_3)
     assert_mnemonic(BLEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgtzl rs, rt, offset
@@ -1219,11 +1219,11 @@ define_test(bgtzl_0)
     assert_mnemonic(BGTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgtzl_1)
@@ -1235,11 +1235,11 @@ define_test(bgtzl_1)
     assert_mnemonic(BGTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgtzl_2)
@@ -1251,11 +1251,11 @@ define_test(bgtzl_2)
     assert_mnemonic(BGTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgtzl_3)
@@ -1267,11 +1267,11 @@ define_test(bgtzl_3)
     assert_mnemonic(BGTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // lb rt, offset (base)
@@ -1283,14 +1283,14 @@ define_test(lb_0)
     assert_mnemonic(LB);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lb_1)
@@ -1301,9 +1301,9 @@ define_test(lb_1)
     assert_mnemonic(LB);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lb_2)
@@ -1314,9 +1314,9 @@ define_test(lb_2)
     assert_mnemonic(LB);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lh rt, offset (base)
@@ -1328,14 +1328,14 @@ define_test(lh_0)
     assert_mnemonic(LH);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lh_1)
@@ -1346,9 +1346,9 @@ define_test(lh_1)
     assert_mnemonic(LH);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lh_2)
@@ -1359,9 +1359,9 @@ define_test(lh_2)
     assert_mnemonic(LH);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lwl rt, offset (base)
@@ -1373,14 +1373,14 @@ define_test(lwl_0)
     assert_mnemonic(LWL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lwl_1)
@@ -1391,9 +1391,9 @@ define_test(lwl_1)
     assert_mnemonic(LWL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lwl_2)
@@ -1404,9 +1404,9 @@ define_test(lwl_2)
     assert_mnemonic(LWL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lw rt, offset (base)
@@ -1418,14 +1418,14 @@ define_test(lw_0)
     assert_mnemonic(LW);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lw_1)
@@ -1436,9 +1436,9 @@ define_test(lw_1)
     assert_mnemonic(LW);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lw_2)
@@ -1449,9 +1449,9 @@ define_test(lw_2)
     assert_mnemonic(LW);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lbu rt, offset (base)
@@ -1463,14 +1463,14 @@ define_test(lbu_0)
     assert_mnemonic(LBU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lbu_1)
@@ -1481,9 +1481,9 @@ define_test(lbu_1)
     assert_mnemonic(LBU);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lbu_2)
@@ -1494,9 +1494,9 @@ define_test(lbu_2)
     assert_mnemonic(LBU);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lhu rt, offset (base)
@@ -1508,14 +1508,14 @@ define_test(lhu_0)
     assert_mnemonic(LHU);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lhu_1)
@@ -1526,9 +1526,9 @@ define_test(lhu_1)
     assert_mnemonic(LHU);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lhu_2)
@@ -1539,9 +1539,9 @@ define_test(lhu_2)
     assert_mnemonic(LHU);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lwr rt, offset (base)
@@ -1553,14 +1553,14 @@ define_test(lwr_0)
     assert_mnemonic(LWR);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lwr_1)
@@ -1571,9 +1571,9 @@ define_test(lwr_1)
     assert_mnemonic(LWR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lwr_2)
@@ -1584,9 +1584,9 @@ define_test(lwr_2)
     assert_mnemonic(LWR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // sb rt, offset (base)
@@ -1598,14 +1598,14 @@ define_test(sb_0)
     assert_mnemonic(SB);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sb_1)
@@ -1616,9 +1616,9 @@ define_test(sb_1)
     assert_mnemonic(SB);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sb_2)
@@ -1629,9 +1629,9 @@ define_test(sb_2)
     assert_mnemonic(SB);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // sh rt, offset (base)
@@ -1643,14 +1643,14 @@ define_test(sh_0)
     assert_mnemonic(SH);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sh_1)
@@ -1661,9 +1661,9 @@ define_test(sh_1)
     assert_mnemonic(SH);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sh_2)
@@ -1674,9 +1674,9 @@ define_test(sh_2)
     assert_mnemonic(SH);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // swl rt, offset (base)
@@ -1688,14 +1688,14 @@ define_test(swl_0)
     assert_mnemonic(SWL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(swl_1)
@@ -1706,9 +1706,9 @@ define_test(swl_1)
     assert_mnemonic(SWL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(swl_2)
@@ -1719,9 +1719,9 @@ define_test(swl_2)
     assert_mnemonic(SWL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // sw rt, offset (base)
@@ -1733,14 +1733,14 @@ define_test(sw_0)
     assert_mnemonic(SW);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sw_1)
@@ -1751,9 +1751,9 @@ define_test(sw_1)
     assert_mnemonic(SW);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sw_2)
@@ -1764,9 +1764,9 @@ define_test(sw_2)
     assert_mnemonic(SW);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // swr rt, offset (base)
@@ -1778,14 +1778,14 @@ define_test(swr_0)
     assert_mnemonic(SWR);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(swr_1)
@@ -1796,9 +1796,9 @@ define_test(swr_1)
     assert_mnemonic(SWR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(swr_2)
@@ -1809,9 +1809,9 @@ define_test(swr_2)
     assert_mnemonic(SWR);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // cache op, offset (base)
@@ -1823,14 +1823,14 @@ define_test(cache_0)
     assert_mnemonic(CACHE);
     assert_argument_count(3);
 
-    assert_argument_type(0, immediate<u32>);
-    assert_argument_equals(0, immediate<u32>{0});
+    assert_argument_type(0, argument_type::Immediate_u32);
+    assert_argument_equals(0, immediate_u32, immediate<u32>{0});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(cache_1)
@@ -1841,14 +1841,14 @@ define_test(cache_1)
     assert_mnemonic(CACHE);
     assert_argument_count(3);
 
-    assert_argument_type(0, immediate<u32>);
-    assert_argument_equals(0, immediate<u32>{2});
+    assert_argument_type(0, argument_type::Immediate_u32);
+    assert_argument_equals(0, immediate_u32, immediate<u32>{2});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{1});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // ll rt, offset (base)
@@ -1860,14 +1860,14 @@ define_test(ll_0)
     assert_mnemonic(LL);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(ll_1)
@@ -1878,9 +1878,9 @@ define_test(ll_1)
     assert_mnemonic(LL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(ll_2)
@@ -1891,9 +1891,9 @@ define_test(ll_2)
     assert_mnemonic(LL);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lwc1 ft, offset (base)
@@ -1905,14 +1905,14 @@ define_test(lwc1_0)
     assert_mnemonic(LWC1);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_fpu_register);
-    assert_argument_equals(0, mips_fpu_register::F0);
+    assert_argument_type(0, argument_type::MIPS_FPU_Register);
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F0);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lwc1_1)
@@ -1923,9 +1923,9 @@ define_test(lwc1_1)
     assert_mnemonic(LWC1);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_fpu_register::F2);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lwc1_2)
@@ -1936,9 +1936,9 @@ define_test(lwc1_2)
     assert_mnemonic(LWC1);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_fpu_register::F2);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lv.s vt, offset (base)
@@ -1950,14 +1950,14 @@ define_test(lv_s_0)
     assert_mnemonic(LV_S);
     assert_argument_count(3);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lv_s_1)
@@ -1968,9 +1968,9 @@ define_test(lv_s_1)
     assert_mnemonic(LV_S);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{2, vfpu_size::Single});
-    assert_argument_equals(1, memory_offset{4});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{2, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset, memory_offset{4});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lv_s_2)
@@ -1981,9 +1981,9 @@ define_test(lv_s_2)
     assert_mnemonic(LV_S);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Single});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // lv.q vt, offset (base)
@@ -1995,14 +1995,14 @@ define_test(lv_q_0)
     assert_mnemonic(LV_Q);
     assert_argument_count(3);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Quad});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Quad});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(lv_q_1)
@@ -2013,9 +2013,9 @@ define_test(lv_q_1)
     assert_mnemonic(LV_Q);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{2, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{4});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{2, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{4});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lv_q_2)
@@ -2026,9 +2026,9 @@ define_test(lv_q_2)
     assert_mnemonic(LV_Q);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(lv_q_3)
@@ -2039,11 +2039,11 @@ define_test(lv_q_3)
     assert_mnemonic(LV_Q);
     assert_argument_count(4);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
-    assert_argument_type(3, string_arg);
-    assert_argument_equals(3, string_arg{"wb"});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
+    assert_argument_type(3, argument_type::String);
+    assert_argument_equals(3, string_argument, string_argument{"wb"});
 }
 
 // sc rt, offset (base)
@@ -2055,14 +2055,14 @@ define_test(sc_0)
     assert_mnemonic(SC);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sc_1)
@@ -2073,9 +2073,9 @@ define_test(sc_1)
     assert_mnemonic(SC);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sc_2)
@@ -2086,9 +2086,9 @@ define_test(sc_2)
     assert_mnemonic(SC);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_register::V0);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_register, mips_register::V0);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // swc1 ft, offset (base)
@@ -2100,14 +2100,14 @@ define_test(swc1_0)
     assert_mnemonic(SWC1);
     assert_argument_count(3);
 
-    assert_argument_type(0, mips_fpu_register);
-    assert_argument_equals(0, mips_fpu_register::F0);
+    assert_argument_type(0, argument_type::MIPS_FPU_Register);
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F0);
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(swc1_1)
@@ -2118,9 +2118,9 @@ define_test(swc1_1)
     assert_mnemonic(SWC1);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_fpu_register::F2);
-    assert_argument_equals(1, memory_offset{1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset, memory_offset{1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(swc1_2)
@@ -2131,9 +2131,9 @@ define_test(swc1_2)
     assert_mnemonic(SWC1);
     assert_argument_count(3);
 
-    assert_argument_equals(0, mips_fpu_register::F2);
-    assert_argument_equals(1, memory_offset{-1});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, mips_fpu_register, mips_fpu_register::F2);
+    assert_argument_equals(1, memory_offset, memory_offset{-1});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // sv.s vt, offset (base)
@@ -2145,14 +2145,14 @@ define_test(sv_s_0)
     assert_mnemonic(SV_S);
     assert_argument_count(3);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sv_s_1)
@@ -2163,9 +2163,9 @@ define_test(sv_s_1)
     assert_mnemonic(SV_S);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{2, vfpu_size::Single});
-    assert_argument_equals(1, memory_offset{4});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{2, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset, memory_offset{4});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sv_s_2)
@@ -2176,9 +2176,9 @@ define_test(sv_s_2)
     assert_mnemonic(SV_S);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Single});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Single});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 // sv.q vt, offset (base)
@@ -2190,14 +2190,14 @@ define_test(sv_q_0)
     assert_mnemonic(SV_Q);
     assert_argument_count(3);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Quad});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Quad});
 
-    assert_argument_type(1, memory_offset);
-    assert_argument_equals(1, memory_offset{0});
+    assert_argument_type(1, argument_type::Memory_Offset);
+    assert_argument_equals(1, memory_offset, memory_offset{0});
 
-    assert_argument_type(2, base_register);
-    assert_argument_equals(2, base_register{mips_register::ZERO});
+    assert_argument_type(2, argument_type::Base_Register);
+    assert_argument_equals(2, base_register, base_register{mips_register::ZERO});
 }
 
 define_test(sv_q_1)
@@ -2208,9 +2208,9 @@ define_test(sv_q_1)
     assert_mnemonic(SV_Q);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{2, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{4});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{2, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{4});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sv_q_2)
@@ -2221,9 +2221,9 @@ define_test(sv_q_2)
     assert_mnemonic(SV_Q);
     assert_argument_count(3);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
 }
 
 define_test(sv_q_3)
@@ -2234,11 +2234,11 @@ define_test(sv_q_3)
     assert_mnemonic(SV_Q);
     assert_argument_count(4);
 
-    assert_argument_equals(0, vfpu_register{34, vfpu_size::Quad});
-    assert_argument_equals(1, memory_offset{0});
-    assert_argument_equals(2, base_register{mips_register::V1});
-    assert_argument_type(3, string_arg);
-    assert_argument_equals(3, string_arg{"wb"});
+    assert_argument_equals(0, vfpu_register, vfpu_register{34, vfpu_size::Quad});
+    assert_argument_equals(1, memory_offset, memory_offset{0});
+    assert_argument_equals(2, base_register, base_register{mips_register::V1});
+    assert_argument_type(3, argument_type::String);
+    assert_argument_equals(3, string_argument, string_argument{"wb"});
 }
 
 define_default_test_main();

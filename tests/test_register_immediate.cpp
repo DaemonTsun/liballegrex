@@ -12,11 +12,11 @@ define_test(bltz_0)
     assert_mnemonic(BLTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bltz_1)
@@ -28,11 +28,11 @@ define_test(bltz_1)
     assert_mnemonic(BLTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bltz_2)
@@ -44,11 +44,11 @@ define_test(bltz_2)
     assert_mnemonic(BLTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bltz_3)
@@ -60,11 +60,11 @@ define_test(bltz_3)
     assert_mnemonic(BLTZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgez rs, offset
@@ -77,11 +77,11 @@ define_test(bgez_0)
     assert_mnemonic(BGEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgez_1)
@@ -93,11 +93,11 @@ define_test(bgez_1)
     assert_mnemonic(BGEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgez_2)
@@ -109,11 +109,11 @@ define_test(bgez_2)
     assert_mnemonic(BGEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgez_3)
@@ -125,11 +125,11 @@ define_test(bgez_3)
     assert_mnemonic(BGEZ);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bltzl rs, offset
@@ -142,11 +142,11 @@ define_test(bltzl_0)
     assert_mnemonic(BLTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bltzl_1)
@@ -158,11 +158,11 @@ define_test(bltzl_1)
     assert_mnemonic(BLTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bltzl_2)
@@ -174,11 +174,11 @@ define_test(bltzl_2)
     assert_mnemonic(BLTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bltzl_3)
@@ -190,11 +190,11 @@ define_test(bltzl_3)
     assert_mnemonic(BLTZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgezl rs, offset
@@ -207,11 +207,11 @@ define_test(bgezl_0)
     assert_mnemonic(BGEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgezl_1)
@@ -223,11 +223,11 @@ define_test(bgezl_1)
     assert_mnemonic(BGEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgezl_2)
@@ -239,11 +239,11 @@ define_test(bgezl_2)
     assert_mnemonic(BGEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgezl_3)
@@ -255,11 +255,11 @@ define_test(bgezl_3)
     assert_mnemonic(BGEZL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // tgei rs, immediate
@@ -271,11 +271,11 @@ define_test(tgei_0)
     assert_mnemonic(TGEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{0});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{0});
 }
 
 define_test(tgei_1)
@@ -286,11 +286,11 @@ define_test(tgei_1)
     assert_mnemonic(TGEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{1});
 }
 
 define_test(tgei_2)
@@ -301,11 +301,11 @@ define_test(tgei_2)
     assert_mnemonic(TGEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{-1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{-1});
 }
 
 // tgeiu rs, immediate
@@ -317,11 +317,11 @@ define_test(tgeiu_0)
     assert_mnemonic(TGEIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0});
 }
 
 define_test(tgeiu_1)
@@ -332,11 +332,11 @@ define_test(tgeiu_1)
     assert_mnemonic(TGEIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{1});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{1});
 }
 
 define_test(tgeiu_2)
@@ -347,11 +347,11 @@ define_test(tgeiu_2)
     assert_mnemonic(TGEIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0xffff});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0xffff});
 }
 
 // tlti rs, immediate
@@ -363,11 +363,11 @@ define_test(tlti_0)
     assert_mnemonic(TLTI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{0});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{0});
 }
 
 define_test(tlti_1)
@@ -378,11 +378,11 @@ define_test(tlti_1)
     assert_mnemonic(TLTI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{1});
 }
 
 define_test(tlti_2)
@@ -393,11 +393,11 @@ define_test(tlti_2)
     assert_mnemonic(TLTI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{-1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{-1});
 }
 
 // tltiu rs, immediate
@@ -409,11 +409,11 @@ define_test(tltiu_0)
     assert_mnemonic(TLTIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0});
 }
 
 define_test(tltiu_1)
@@ -424,11 +424,11 @@ define_test(tltiu_1)
     assert_mnemonic(TLTIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{1});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{1});
 }
 
 define_test(tltiu_2)
@@ -439,11 +439,11 @@ define_test(tltiu_2)
     assert_mnemonic(TLTIU);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0xffff});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0xffff});
 }
 
 // teqi rs, immediate
@@ -455,11 +455,11 @@ define_test(teqi_0)
     assert_mnemonic(TEQI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{0});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{0});
 }
 
 define_test(teqi_1)
@@ -470,11 +470,11 @@ define_test(teqi_1)
     assert_mnemonic(TEQI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{1});
 }
 
 define_test(teqi_2)
@@ -485,11 +485,11 @@ define_test(teqi_2)
     assert_mnemonic(TEQI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{-1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{-1});
 }
 
 // tnei rs, immediate
@@ -501,11 +501,11 @@ define_test(tnei_0)
     assert_mnemonic(TNEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{0});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{0});
 }
 
 define_test(tnei_1)
@@ -516,11 +516,11 @@ define_test(tnei_1)
     assert_mnemonic(TNEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{1});
 }
 
 define_test(tnei_2)
@@ -531,11 +531,11 @@ define_test(tnei_2)
     assert_mnemonic(TNEI);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, immediate<s16>);
-    assert_argument_equals(1, immediate<s16>{-1});
+    assert_argument_type(1, argument_type::Immediate_s16);
+    assert_argument_equals(1, immediate_s16, immediate<s16>{-1});
 }
 
 // bltzal rs, offset
@@ -548,11 +548,11 @@ define_test(bltzal_0)
     assert_mnemonic(BLTZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bltzal_1)
@@ -564,11 +564,11 @@ define_test(bltzal_1)
     assert_mnemonic(BLTZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bltzal_2)
@@ -580,11 +580,11 @@ define_test(bltzal_2)
     assert_mnemonic(BLTZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bltzal_3)
@@ -596,11 +596,11 @@ define_test(bltzal_3)
     assert_mnemonic(BLTZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgezal rs, offset
@@ -613,11 +613,11 @@ define_test(bgezal_0)
     assert_mnemonic(BGEZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgezal_1)
@@ -629,11 +629,11 @@ define_test(bgezal_1)
     assert_mnemonic(BGEZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgezal_2)
@@ -645,11 +645,11 @@ define_test(bgezal_2)
     assert_mnemonic(BGEZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgezal_3)
@@ -661,11 +661,11 @@ define_test(bgezal_3)
     assert_mnemonic(BGEZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 define_test(bgezal_4)
@@ -678,11 +678,11 @@ define_test(bgezal_4)
     assert_mnemonic(BGEZAL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 define_test(bgezal_5)
@@ -695,8 +695,8 @@ define_test(bgezal_5)
     assert_mnemonic(BAL);
     assert_argument_count(1);
 
-    assert_argument_type(0, jump_address);
-    assert_argument_equals(0, jump_address{36});
+    assert_argument_type(0, argument_type::Jump_Address);
+    assert_argument_equals(0, jump_address, jump_address{36});
 }
 
 // bltzall rs, offset
@@ -709,11 +709,11 @@ define_test(bltzall_0)
     assert_mnemonic(BLTZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bltzall_1)
@@ -725,11 +725,11 @@ define_test(bltzall_1)
     assert_mnemonic(BLTZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bltzall_2)
@@ -741,11 +741,11 @@ define_test(bltzall_2)
     assert_mnemonic(BLTZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bltzall_3)
@@ -757,11 +757,11 @@ define_test(bltzall_3)
     assert_mnemonic(BLTZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // bgezall rs, offset
@@ -774,11 +774,11 @@ define_test(bgezall_0)
     assert_mnemonic(BGEZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{4});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{4});
 }
 
 define_test(bgezall_1)
@@ -790,11 +790,11 @@ define_test(bgezall_1)
     assert_mnemonic(BGEZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{8});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{8});
 }
 
 define_test(bgezall_2)
@@ -806,11 +806,11 @@ define_test(bgezall_2)
     assert_mnemonic(BGEZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{0});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{0});
 }
 
 define_test(bgezall_3)
@@ -822,11 +822,11 @@ define_test(bgezall_3)
     assert_mnemonic(BGEZALL);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::V1);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::V1);
 
-    assert_argument_type(1, branch_address);
-    assert_argument_equals(1, branch_address{36});
+    assert_argument_type(1, argument_type::Branch_Address);
+    assert_argument_equals(1, branch_address, branch_address{36});
 }
 
 // synci
