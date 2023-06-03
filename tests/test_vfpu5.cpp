@@ -12,7 +12,7 @@ define_test(vpfxs_0)
     assert_mnemonic(VPFXS);
     assert_argument_count(1);
 
-    assert_argument_type(0, vfpu_prefix_array);
+    assert_argument_type(0, argument_type::VFPU_Prefix_Array);
     assert_argument_vfpu_prefix_equals(0, 0, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 1, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 2, vfpu_prefix::X);
@@ -83,7 +83,7 @@ define_test(vpfxs_5)
     assert_mnemonic(VPFXS);
     assert_argument_count(1);
 
-    assert_argument_type(0, vfpu_prefix_array);
+    assert_argument_type(0, argument_type::VFPU_Prefix_Array);
     assert_argument_vfpu_prefix_equals(0, 0, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 1, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 2, vfpu_prefix::X);
@@ -99,7 +99,7 @@ define_test(vpfxt_0)
     assert_mnemonic(VPFXT);
     assert_argument_count(1);
 
-    assert_argument_type(0, vfpu_prefix_array);
+    assert_argument_type(0, argument_type::VFPU_Prefix_Array);
     assert_argument_vfpu_prefix_equals(0, 0, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 1, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 2, vfpu_prefix::X);
@@ -170,7 +170,7 @@ define_test(vpfxt_5)
     assert_mnemonic(VPFXT);
     assert_argument_count(1);
 
-    assert_argument_type(0, vfpu_prefix_array);
+    assert_argument_type(0, argument_type::VFPU_Prefix_Array);
     assert_argument_vfpu_prefix_equals(0, 0, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 1, vfpu_prefix::X);
     assert_argument_vfpu_prefix_equals(0, 2, vfpu_prefix::X);
@@ -186,7 +186,7 @@ define_test(vpfxd_0)
     assert_mnemonic(VPFXD);
     assert_argument_count(1);
 
-    assert_argument_type(0, vfpu_destination_prefix_array);
+    assert_argument_type(0, argument_type::VFPU_Destination_Prefix_Array);
     assert_argument_vfpu_destination_prefix_equals(0, 0, vfpu_destination_prefix::DEFAULT);
     assert_argument_vfpu_destination_prefix_equals(0, 1, vfpu_destination_prefix::DEFAULT);
     assert_argument_vfpu_destination_prefix_equals(0, 2, vfpu_destination_prefix::DEFAULT);
@@ -244,11 +244,11 @@ define_test(viim_0)
     assert_mnemonic(VIIM);
     assert_argument_count(2);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(1, immediate<u16>);
-    assert_argument_equals(1, immediate<u16>{0});
+    assert_argument_type(1, argument_type::Immediate_u16);
+    assert_argument_equals(1, immediate_u16, immediate<u16>{0});
 }
 
 define_test(viim_1)
@@ -259,8 +259,8 @@ define_test(viim_1)
     assert_mnemonic(VIIM);
     assert_argument_count(2);
 
-    assert_argument_equals(0, vfpu_register{3, vfpu_size::Single});
-    assert_argument_equals(1, immediate<u16>{1});
+    assert_argument_equals(0, vfpu_register, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(1, immediate_u16, immediate<u16>{1});
 }
 
 // vfim vd, float16
@@ -272,12 +272,12 @@ define_test(vfim_0)
     assert_mnemonic(VFIM);
     assert_argument_count(2);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(1, immediate<float>);
+    assert_argument_type(1, argument_type::Immediate_float);
     // this is pretty hard to test because of precision
-    assert_argument_equals(1, immediate<float>{0.0f});
+    assert_argument_equals(1, immediate_float, immediate<float>{0.0f});
 }
 
 define_test(vfim_1)
@@ -288,9 +288,9 @@ define_test(vfim_1)
     assert_mnemonic(VFIM);
     assert_argument_count(2);
 
-    assert_argument_equals(0, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{3, vfpu_size::Single});
     // good luck testing this without calling Float16ToFloat32
-    // assert_argument_equals(1, immediate<float>{???});
+    // assert_argument_equals(1, immediate_float, immediate<float>{???});
 }
 
 define_default_test_main();

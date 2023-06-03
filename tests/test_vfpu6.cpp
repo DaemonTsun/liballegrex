@@ -12,14 +12,14 @@ define_test(vmmul_0)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_type(0, vfpu_matrix);
-    assert_argument_equals(0, vfpu_matrix{0, vfpu_size::Pair});
+    assert_argument_type(0, argument_type::VFPU_Matrix);
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{0, vfpu_size::Pair});
 
-    assert_argument_type(1, vfpu_matrix);
-    assert_argument_equals(1, vfpu_matrix{32, vfpu_size::Pair});
+    assert_argument_type(1, argument_type::VFPU_Matrix);
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{32, vfpu_size::Pair});
 
-    assert_argument_type(2, vfpu_matrix);
-    assert_argument_equals(2, vfpu_matrix{0, vfpu_size::Pair});
+    assert_argument_type(2, argument_type::VFPU_Matrix);
+    assert_argument_equals(2, vfpu_matrix, vfpu_matrix{0, vfpu_size::Pair});
 }
 
 define_test(vmmul_1)
@@ -31,9 +31,9 @@ define_test(vmmul_1)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_matrix{34, vfpu_size::Pair});
-    assert_argument_equals(2, vfpu_matrix{3, vfpu_size::Pair});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{34, vfpu_size::Pair});
+    assert_argument_equals(2, vfpu_matrix, vfpu_matrix{3, vfpu_size::Pair});
 }
 
 define_test(vmmul_2)
@@ -45,9 +45,9 @@ define_test(vmmul_2)
     assert_argument_count(3);
     assert_argument_vfpu_size(Triple);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Triple});
-    assert_argument_equals(1, vfpu_matrix{34, vfpu_size::Triple});
-    assert_argument_equals(2, vfpu_matrix{3, vfpu_size::Triple});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Triple});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{34, vfpu_size::Triple});
+    assert_argument_equals(2, vfpu_matrix, vfpu_matrix{3, vfpu_size::Triple});
 }
 
 define_test(vmmul_3)
@@ -59,9 +59,9 @@ define_test(vmmul_3)
     assert_argument_count(3);
     assert_argument_vfpu_size(Quad);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Quad});
-    assert_argument_equals(1, vfpu_matrix{34, vfpu_size::Quad});
-    assert_argument_equals(2, vfpu_matrix{3, vfpu_size::Quad});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Quad});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{34, vfpu_size::Quad});
+    assert_argument_equals(2, vfpu_matrix, vfpu_matrix{3, vfpu_size::Quad});
 }
 
 // vmscl mvd, mvs, vt(single)
@@ -74,14 +74,14 @@ define_test(vmscl_0)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_type(0, vfpu_matrix);
-    assert_argument_equals(0, vfpu_matrix{0, vfpu_size::Pair});
+    assert_argument_type(0, argument_type::VFPU_Matrix);
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{0, vfpu_size::Pair});
 
-    assert_argument_type(1, vfpu_matrix);
-    assert_argument_equals(1, vfpu_matrix{0, vfpu_size::Pair});
+    assert_argument_type(1, argument_type::VFPU_Matrix);
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{0, vfpu_size::Pair});
 
-    assert_argument_type(2, vfpu_register);
-    assert_argument_equals(2, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(2, argument_type::VFPU_Register);
+    assert_argument_equals(2, vfpu_register, vfpu_register{0, vfpu_size::Single});
 }
 
 define_test(vmscl_1)
@@ -93,9 +93,9 @@ define_test(vmscl_1)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_matrix{2, vfpu_size::Pair});
-    assert_argument_equals(2, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{2, vfpu_size::Pair});
+    assert_argument_equals(2, vfpu_register, vfpu_register{3, vfpu_size::Single});
 }
 
 define_test(vmscl_2)
@@ -107,9 +107,9 @@ define_test(vmscl_2)
     assert_argument_count(3);
     assert_argument_vfpu_size(Triple);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Triple});
-    assert_argument_equals(1, vfpu_matrix{2, vfpu_size::Triple});
-    assert_argument_equals(2, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Triple});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{2, vfpu_size::Triple});
+    assert_argument_equals(2, vfpu_register, vfpu_register{3, vfpu_size::Single});
 }
 
 define_test(vmscl_3)
@@ -121,9 +121,9 @@ define_test(vmscl_3)
     assert_argument_count(3);
     assert_argument_vfpu_size(Quad);
 
-    assert_argument_equals(0, vfpu_matrix{1, vfpu_size::Quad});
-    assert_argument_equals(1, vfpu_matrix{2, vfpu_size::Quad});
-    assert_argument_equals(2, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_matrix, vfpu_matrix{1, vfpu_size::Quad});
+    assert_argument_equals(1, vfpu_matrix, vfpu_matrix{2, vfpu_size::Quad});
+    assert_argument_equals(2, vfpu_register, vfpu_register{3, vfpu_size::Single});
 }
 
 // vrot [rot, ...]
@@ -136,13 +136,13 @@ define_test(vrot_0)
     assert_argument_count(3);
     assert_argument_vfpu_size(Single);
 
-    assert_argument_type(0, vfpu_register);
-    assert_argument_equals(0, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(0, argument_type::VFPU_Register);
+    assert_argument_equals(0, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(1, vfpu_register);
-    assert_argument_equals(1, vfpu_register{0, vfpu_size::Single});
+    assert_argument_type(1, argument_type::VFPU_Register);
+    assert_argument_equals(1, vfpu_register, vfpu_register{0, vfpu_size::Single});
 
-    assert_argument_type(2, vfpu_rotation_array);
+    assert_argument_type(2, argument_type::VFPU_Rotation_Array);
     assert_argument_vfpu_rotation_count(2, 1);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::COS);
 }
@@ -156,8 +156,8 @@ define_test(vrot_1)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::COS);
@@ -173,8 +173,8 @@ define_test(vrot_2)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::SIN);
@@ -190,8 +190,8 @@ define_test(vrot_3)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::SIN);
@@ -207,8 +207,8 @@ define_test(vrot_4)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::SIN);
@@ -224,8 +224,8 @@ define_test(vrot_5)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::COS);
@@ -241,8 +241,8 @@ define_test(vrot_6)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::SIN);
@@ -258,8 +258,8 @@ define_test(vrot_7)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::ZERO);
@@ -275,8 +275,8 @@ define_test(vrot_8)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::ZERO);
@@ -292,8 +292,8 @@ define_test(vrot_9)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::COS);
@@ -309,8 +309,8 @@ define_test(vrot_10)
     assert_argument_count(3);
     assert_argument_vfpu_size(Pair);
 
-    assert_argument_equals(0, vfpu_register{1, vfpu_size::Pair});
-    assert_argument_equals(1, vfpu_register{3, vfpu_size::Single});
+    assert_argument_equals(0, vfpu_register, vfpu_register{1, vfpu_size::Pair});
+    assert_argument_equals(1, vfpu_register, vfpu_register{3, vfpu_size::Single});
 
     assert_argument_vfpu_rotation_count(2, 2);
     assert_argument_vfpu_rotation_equals(2, 0, vfpu_rotation::ZERO);

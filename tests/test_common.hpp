@@ -3,6 +3,7 @@
 #include <ostream>
 #include <string.h>
 
+#include "shl/defer.hpp"
 #include "allegrex/parse_instructions.hpp"
 
 #define clear_instruction() \
@@ -18,6 +19,7 @@
     conf.emit_pseudo = false;\
     parse_data pdata;\
     array<jump_destination> jumps{};\
+    defer { free(&jumps); };\
     pdata.jump_destinations = &jumps;
 
 #define emit_pseudoinstructions()\
@@ -51,7 +53,7 @@
     assert_equal(inst.arguments[N].vfpu_prefix_array.data[ArrayIndex], Value);
 
 #define assert_argument_vfpu_destination_prefix_equals(N, ArrayIndex, Value) \
-    assert_equal(inst.arguments[N].vfpu_destination_array.data[ArrayIndex], Value);
+    assert_equal(inst.arguments[N].vfpu_destination_prefix_array.data[ArrayIndex], Value);
     
 #define assert_argument_vfpu_rotation_equals(N, ArrayIndex, Value) \
     assert_equal(inst.arguments[N].vfpu_rotation_array.data[ArrayIndex], Value);
