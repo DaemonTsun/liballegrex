@@ -11,11 +11,11 @@ define_test(bc1f_0)
     assert_mnemonic(BC1F);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4}); // always adds +4 (sizeof(u32))
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4}); // always adds +4 (sizeof(u32))
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{0});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{0});
 }
 
 define_test(bc1f_1)
@@ -26,11 +26,11 @@ define_test(bc1f_1)
     assert_mnemonic(BC1F);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{8});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{8});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{1});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{1});
 }
 
 define_test(bc1f_2)
@@ -41,7 +41,7 @@ define_test(bc1f_2)
     assert_mnemonic(BC1F);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0}); // signed -1 (-4) = 0
+    assert_argument_equals(0, branch_address, branch_address{0}); // signed -1 (-4) = 0
 }
 
 define_test(bc1f_3)
@@ -54,7 +54,7 @@ define_test(bc1f_3)
     assert_argument_count(2);
 
     // relative branch, so have to add address
-    assert_argument_equals(0, branch_address{0x00000014});
+    assert_argument_equals(0, branch_address, branch_address{0x00000014});
 }
 
 // bc1t offset, cc
@@ -66,11 +66,11 @@ define_test(bc1t_0)
     assert_mnemonic(BC1T);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{0});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{0});
 }
 
 define_test(bc1t_1)
@@ -81,11 +81,11 @@ define_test(bc1t_1)
     assert_mnemonic(BC1T);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{8});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{8});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{1});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{1});
 }
 
 define_test(bc1t_2)
@@ -96,7 +96,7 @@ define_test(bc1t_2)
     assert_mnemonic(BC1T);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0});
+    assert_argument_equals(0, branch_address, branch_address{0});
 }
 
 define_test(bc1t_3)
@@ -108,7 +108,7 @@ define_test(bc1t_3)
     assert_mnemonic(BC1T);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0x00000014});
+    assert_argument_equals(0, branch_address, branch_address{0x00000014});
 }
 
 // bc1fl offset, cc
@@ -120,11 +120,11 @@ define_test(bc1fl_0)
     assert_mnemonic(BC1FL);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{0});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{0});
 }
 
 define_test(bc1fl_1)
@@ -135,11 +135,11 @@ define_test(bc1fl_1)
     assert_mnemonic(BC1FL);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{8});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{8});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{1});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{1});
 }
 
 define_test(bc1fl_2)
@@ -150,7 +150,7 @@ define_test(bc1fl_2)
     assert_mnemonic(BC1FL);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0});
+    assert_argument_equals(0, branch_address, branch_address{0});
 }
 
 define_test(bc1fl_3)
@@ -162,7 +162,7 @@ define_test(bc1fl_3)
     assert_mnemonic(BC1FL);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0x00000014});
+    assert_argument_equals(0, branch_address, branch_address{0x00000014});
 }
 
 // bc1tl offset, cc
@@ -174,11 +174,11 @@ define_test(bc1tl_0)
     assert_mnemonic(BC1TL);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{4});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{4});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{0});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{0});
 }
 
 define_test(bc1tl_1)
@@ -189,11 +189,11 @@ define_test(bc1tl_1)
     assert_mnemonic(BC1TL);
     assert_argument_count(2);
 
-    assert_argument_type(0, branch_address);
-    assert_argument_equals(0, branch_address{8});
+    assert_argument_type(0, argument_type::Branch_Address);
+    assert_argument_equals(0, branch_address, branch_address{8});
 
-    assert_argument_type(1, condition_code);
-    assert_argument_equals(1, condition_code{1});
+    assert_argument_type(1, argument_type::Condition_Code);
+    assert_argument_equals(1, condition_code, condition_code{1});
 }
 
 define_test(bc1tl_2)
@@ -204,7 +204,7 @@ define_test(bc1tl_2)
     assert_mnemonic(BC1TL);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0});
+    assert_argument_equals(0, branch_address, branch_address{0});
 }
 
 define_test(bc1tl_3)
@@ -216,7 +216,7 @@ define_test(bc1tl_3)
     assert_mnemonic(BC1TL);
     assert_argument_count(2);
 
-    assert_argument_equals(0, branch_address{0x00000014});
+    assert_argument_equals(0, branch_address, branch_address{0x00000014});
 }
 
 define_default_test_main();

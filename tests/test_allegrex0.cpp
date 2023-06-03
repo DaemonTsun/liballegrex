@@ -11,11 +11,11 @@ define_test(wsbh_0)
     assert_mnemonic(WSBH);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 }
 
 define_test(wsbh_1)
@@ -26,11 +26,11 @@ define_test(wsbh_1)
     assert_mnemonic(WSBH);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::AT);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::AT);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 }
 
 // wsbw rd, rt
@@ -42,11 +42,11 @@ define_test(wsbw_0)
     assert_mnemonic(WSBW);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 }
 
 define_test(wsbw_1)
@@ -57,11 +57,11 @@ define_test(wsbw_1)
     assert_mnemonic(WSBW);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::AT);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::AT);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 }
 
 // seb rd, rt
@@ -73,11 +73,11 @@ define_test(seb_0)
     assert_mnemonic(SEB);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 }
 
 define_test(seb_1)
@@ -88,11 +88,11 @@ define_test(seb_1)
     assert_mnemonic(SEB);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::AT);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::AT);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 }
 
 // bitrev rd, rt
@@ -104,11 +104,11 @@ define_test(bitrev_0)
     assert_mnemonic(BITREV);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 }
 
 define_test(bitrev_1)
@@ -119,11 +119,11 @@ define_test(bitrev_1)
     assert_mnemonic(BITREV);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::AT);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::AT);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 }
 
 // seh rd, rt
@@ -135,11 +135,11 @@ define_test(seh_0)
     assert_mnemonic(SEH);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::ZERO);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::ZERO);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::ZERO);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::ZERO);
 }
 
 define_test(seh_1)
@@ -150,11 +150,11 @@ define_test(seh_1)
     assert_mnemonic(SEH);
     assert_argument_count(2);
 
-    assert_argument_type(0, mips_register);
-    assert_argument_equals(0, mips_register::AT);
+    assert_argument_type(0, argument_type::MIPS_Register);
+    assert_argument_equals(0, mips_register, mips_register::AT);
 
-    assert_argument_type(1, mips_register);
-    assert_argument_equals(1, mips_register::V1);
+    assert_argument_type(1, argument_type::MIPS_Register);
+    assert_argument_equals(1, mips_register, mips_register::V1);
 }
 
 define_default_test_main();
