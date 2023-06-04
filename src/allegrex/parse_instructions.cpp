@@ -785,7 +785,7 @@ constexpr category AllInstructions{
     CATEGORY_SUB_CATEGORIES(AllInstructions)
 };
 
-void populate_instruction(instruction *instr, const instruction_info *info, const parse_config *conf, parse_data *pdata)
+void populate_instruction(instruction *instr, const instruction_info *info, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     instr->mnemonic = info->mnemonic;
     
@@ -793,7 +793,7 @@ void populate_instruction(instruction *instr, const instruction_info *info, cons
         info->argument_parse_function(instr->opcode, instr, conf, pdata);
 }
 
-bool try_parse_category_instruction(u32 opcode, const category *cat, instruction *out, const parse_config *conf, parse_data *pdata)
+bool try_parse_category_instruction(u32 opcode, const category *cat, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     if (cat == nullptr)
         return false;
@@ -821,22 +821,23 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
     return false;
 }
 
-void init(parse_data *data)
+void init(instruction_parse_data *data)
 {
     assert(data != nullptr);
 
     data->vaddr = 0;
+    data->section_index = 0;
     ::init(&data->instructions);
     data->jump_destinations = nullptr;
 }
 
-void free(parse_data *data)
+void free(instruction_parse_data *data)
 {
     assert(data != nullptr);
     ::free(&data->instructions);
 }
 
-void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata)
+void parse_instruction(u32 opcode, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     bool found;
 
@@ -846,30 +847,26 @@ void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, p
         out->mnemonic = allegrex_mnemonic::_UNKNOWN;
 }
 
-void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out)
+void parse_instructions(const char *instructions_data, u64 size, const parse_instructions_config *conf, instruction_parse_data *out)
 {
-    size_t sz = in->size;
-
-    assert(sz % sizeof(u32) == 0);
-    assert(sz <= UINT32_MAX);
+    assert(size % sizeof(u32) == 0);
+    assert(size <= UINT32_MAX);
 
     out->vaddr = conf->vaddr;
 
-    u32 count = (u32)(sz / sizeof(u32));
-    ::resize(&out->instructions, count);
-    memset(out->instructions.data, 0, count * sizeof(instruction));
+    u32 instruction_count = (u32)(size / sizeof(u32));
+    ::resize(&out->instructions, instruction_count);
+    memset(out->instructions.data, 0, instruction_count * sizeof(instruction));
 
-    for (u32 addr = 0x00000000, i = 0; addr < sz; addr += sizeof(u32), ++i)
+    u32 *in_data = (u32*)(instructions_data);
+
+    for (u32 addr = 0x00000000, i = 0; addr < size; addr += sizeof(u32), ++i)
     {
-        instruction *inst = out->instructions.data + i;
+        instruction *out_inst = out->instructions.data + i;
+        out_inst->opcode = in_data[i];
+        out_inst->address = conf->vaddr + addr;
 
-        // because all instructions are 32 bit wide, we simply read
-        // instead of adjusting stream position to read from.
-        read(in, &inst->opcode);
-
-        inst->address = conf->vaddr + addr;
-
-        parse_instruction(inst->opcode, inst, conf, out);
+        parse_instruction(out_inst->opcode, out_inst, conf, out);
     }
 }
 

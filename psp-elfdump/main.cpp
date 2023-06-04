@@ -339,9 +339,9 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
     array<jump_destination> jumps{};
     defer { ::free(&jumps); };
 
-    array<parse_data> pdatas; // just memory management
-    ::init(&pdatas, pspmodule.sections.size);
-    defer { ::free<true>(&pdatas); };
+    array<instruction_parse_data> instruction_datas; // just memory management
+    ::init(&instruction_datas, pspmodule.sections.size);
+    defer { ::free<true>(&instruction_datas); };
 
     dump_config dconf;
     init(&dconf);
@@ -358,26 +358,23 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
 
     for_array(i, sec, &pspmodule.sections)
     {
-        parse_config pconf;
+        parse_instructions_config pconf;
         pconf.log = log;
         pconf.vaddr = sec->vaddr;
         pconf.verbose = args->verbose;
         pconf.emit_pseudo = is_set(args->output_format, mips_format_options::pseudoinstructions);
 
-        parse_data *pdata = pdatas.data + i;
-        init(pdata);
-        pdata->jump_destinations = &jumps;
+        instruction_parse_data *instruction_data = instruction_datas.data + i;
+        init(instruction_data);
+        instruction_data->jump_destinations = &jumps;
+        instruction_data->section_index = i;
 
         if (sec->content_size > 0)
-        {
-            memory_stream mem{};
-            open(&mem, sec->content, sec->content_size);
-            parse_allegrex(&mem, &pconf, pdata);
-        }
+            parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
 
         dump_section *dumpsec = dconf.dump_sections.data + i;
         dumpsec->section = sec;
-        dumpsec->pdata = pdata;
+        dumpsec->instruction_data = instruction_data;
         dumpsec->first_instruction_offset = sec->content_offset;
     }
 
@@ -441,7 +438,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     if (from + sz > in->size)
         throw_error("end offset %x (start %x + size %x) is larger than input file size %x", from + sz, from, sz, in->size);
 
-    parse_config pconf;
+    parse_instructions_config pconf;
     pconf.log = log;
     pconf.vaddr = range->vaddr;
     pconf.verbose = args->verbose;
@@ -455,16 +452,19 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
 
     memory_stream memstr;
     open(&memstr, sz);
+    defer { close(&memstr); };
     
     read_at(in, memstr.data, from, sz);
 
-    parse_data pdata;
+    instruction_parse_data instruction_data;
+    init(&instruction_data);
+    defer { free(&instruction_data); };
+
     array<jump_destination> jumps{};
     defer { ::free(&jumps); };
 
-    pdata.jump_destinations = &jumps;
-    parse_allegrex(&memstr, &pconf, &pdata);
-    close(&memstr);
+    instruction_data.jump_destinations = &jumps;
+    parse_instructions(memstr.data, memstr.size, &pconf, &instruction_data);
     cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
@@ -488,7 +488,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
 
     dump_section *dsec = ::add_at_end(&dconf.dump_sections);
     dsec->section = nullptr;
-    dsec->pdata = &pdata;
+    dsec->instruction_data = &instruction_data;
     dsec->first_instruction_offset = from;
 
     format_dump(args->output_type, &dconf, &out);

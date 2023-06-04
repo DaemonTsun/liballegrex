@@ -95,7 +95,8 @@ struct elf_psp_module
 void init(elf_psp_module *mod);
 void free(elf_psp_module *mod);
 
-// TODO: read from path
+void parse_psp_module_from_elf(const char *path, elf_psp_module *out);
+void parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf);
 void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out);
 void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf);
 void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out);

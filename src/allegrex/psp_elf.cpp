@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "shl/compare.hpp"
+#include "shl/streams.hpp"
 #include "shl/fixed_array.hpp"
 #include "shl/error.hpp"
 #include "shl/defer.hpp"
@@ -547,19 +548,45 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
     _add_prx_imports_and_exports(&ctx, out);
 }
 
+#define DEFAULT_PARSE_ELF_CONFIG(NAME)\
+    file_stream log;\
+    log.handle = stdout;\
+\
+    psp_parse_elf_config NAME;\
+    NAME.section = ""_cs;\
+    NAME.vaddr = INFER_VADDR;\
+    NAME.verbose = false;\
+    NAME.log = &log;
+
+void parse_psp_module_from_elf(const char *path, elf_psp_module *out)
+{
+    assert(path != nullptr);
+    assert(out != nullptr);
+
+    DEFAULT_PARSE_ELF_CONFIG(conf);
+
+    parse_psp_module_from_elf(path, out, &conf);
+}
+
+void parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf)
+{
+    assert(path != nullptr);
+    assert(out != nullptr);
+
+    memory_stream elf_stream;
+    init(&elf_stream);
+    defer { ::close(&elf_stream); };
+
+    read_entire_file(path, &elf_stream);
+    parse_psp_module_from_elf(&elf_stream, out, conf);
+}
+
 void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out)
 {
     assert(elf_data != nullptr);
     assert(out != nullptr);
 
-    file_stream log;
-    log.handle = stdout;
-
-    psp_parse_elf_config conf;
-    conf.section = ""_cs;
-    conf.vaddr = INFER_VADDR;
-    conf.verbose = false;
-    conf.log = &log;
+    DEFAULT_PARSE_ELF_CONFIG(conf);
 
     parse_psp_module_from_elf(elf_data, elf_size, out, &conf);
 }
@@ -583,14 +610,7 @@ void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out)
     assert(elf_stream != nullptr);
     assert(out != nullptr);
 
-    file_stream log;
-    log.handle = stdout;
-
-    psp_parse_elf_config conf;
-    conf.section = ""_cs;
-    conf.vaddr = INFER_VADDR;
-    conf.verbose = false;
-    conf.log = &log;
+    DEFAULT_PARSE_ELF_CONFIG(conf);
 
     parse_psp_module_from_elf(elf_stream, out, &conf);
 }

@@ -244,24 +244,21 @@ void print_cpp_modules(FILE *f)
                "\n"
                "// not auto generated anymore using PPSSPPs HLE modules.\n"
                "// you can generate most of this\n"
-               "// (just iterating moduleDB & formatting print in HLE.cpp)\n"
+               "// (by iterating moduleDB & formatting print in HLE.cpp)\n"
                "// now it's self-generated.\n"
                "\n");
 
 
     for (int i = 0; i < n; ++i)
-    {
-        const psp_module *mod = &mods[i];
-        print_cpp_module_functions(f, mod);
-    }
+        print_cpp_module_functions(f, mods + i);
 
     fprintf(f, "\n#define DEFINE_PSP_MODULE(NUM, NAME)\\\n");
-    fprintf(f, "  psp_module{NUM, #NAME, NAME##NUM##_functions.data(), NAME##NUM##_functions.size()}\n\n");
+    fprintf(f, "  psp_module{NUM, #NAME, NAME##NUM##_functions.data, array_size(&NAME##NUM##_functions)}\n\n");
 
     fprintf(f, "#define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\\\n");
     fprintf(f, "  psp_module{NUM, #NAME, nullptr, 0}\n\n");
 
-    fprintf(f, "constexpr std::array _modules\n{\n");
+    fprintf(f, "constexpr fixed_array _modules\n{\n");
 
     for (int i = 0; i < n; ++i)
     {

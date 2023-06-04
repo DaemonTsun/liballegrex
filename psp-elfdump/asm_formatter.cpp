@@ -30,7 +30,7 @@ void format_name(file_stream *out, const instruction *inst)
 void asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
 {
     assert(dsec != nullptr);
-    assert(dsec->pdata != nullptr);
+    assert(dsec->instruction_data != nullptr);
 
     const elf_section *sec = dsec->section;
     const array<jump_destination> *jumps = conf->jump_destinations;
@@ -53,7 +53,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     if (is_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
-        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->pdata->instructions.size * sizeof(u32);
+        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->instruction_data->instructions.size * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);
@@ -94,14 +94,14 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     {
         // skip symbols that come before this section
         while (jmp_i < jumps->size
-            && jumps->data[jmp_i].address < dsec->pdata->vaddr)
+            && jumps->data[jmp_i].address < dsec->instruction_data->vaddr)
             ++jmp_i;
     }
 
     // do the writing
     format(out, "\n\n/* Disassembly of section %s */\n", sec->name);
 
-    for_array(inst, &dsec->pdata->instructions)
+    for_array(inst, &dsec->instruction_data->instructions)
     {
         bool write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst->address);
 

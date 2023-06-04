@@ -33,7 +33,7 @@ enum class format_type
 struct dump_section
 {
     elf_section *section;
-    parse_data *pdata;
+    instruction_parse_data *instruction_data;
     u32 first_instruction_offset;
 };
 

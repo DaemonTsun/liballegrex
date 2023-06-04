@@ -8,7 +8,7 @@
 
 #include "allegrex/instruction.hpp"
 
-struct parse_config
+struct parse_instructions_config
 {
     u32 vaddr;
     file_stream *log;
@@ -28,16 +28,18 @@ struct jump_destination
     jump_type type;
 };
 
-struct parse_data
+struct instruction_parse_data
 {
-    u32 vaddr; // start address
+    u32 vaddr; // start address, may not be set when parsing ranges
+    u32 section_index; // may not be set when parsing ranges
     array<instruction> instructions;
     array<jump_destination> *jump_destinations;
 };
 
-void init(parse_data *data);
-void free(parse_data *data);
+void init(instruction_parse_data *data);
+void free(instruction_parse_data *data);
 
-void parse_instruction(u32 opcode, instruction *out, const parse_config *conf, parse_data *pdata);
-void parse_allegrex(memory_stream *in, const parse_config *conf, parse_data *out);
+void parse_instruction(u32 opcode, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata);
+// data in BYTES
+void parse_instructions(const char *instruction_data, u64 size, const parse_instructions_config *conf, instruction_parse_data *pdata);
 void cleanup_jumps(array<jump_destination> *jumps);
