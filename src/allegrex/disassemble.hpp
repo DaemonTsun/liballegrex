@@ -20,7 +20,7 @@ struct psp_disassembly
     // an array of all jump destinations (e.g. section starts,
     // functions, branches, etc.) in the disassembled binary, storing
     // addresses and types, sorted by ascending address.
-    array<jump_destination> jump_destinations;
+    jump_destinations jumps;
 };
 
 void init(psp_disassembly *disasm);

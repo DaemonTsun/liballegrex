@@ -828,7 +828,7 @@ void init(instruction_parse_data *data)
     data->vaddr = 0;
     data->section_index = 0;
     ::init(&data->instructions);
-    data->jump_destinations = nullptr;
+    data->jumps = nullptr;
 }
 
 void free(instruction_parse_data *data)
@@ -867,42 +867,5 @@ void parse_instructions(const char *instructions_data, u64 size, const parse_ins
         out_inst->address = conf->vaddr + addr;
 
         parse_instruction(out_inst->opcode, out_inst, conf, out);
-    }
-}
-
-#include "shl/sort.hpp"
-
-int compare_jumps(const jump_destination *l, const jump_destination *r)
-{
-    if (l->address < r->address)
-        return -1;
-
-    if (l->address == r->address)
-    {
-        if (l->type == r->type)
-            return 0;
-
-        if (l->type == jump_type::Jump)
-            return -1;
-    }
-
-    return 1;
-}
-
-void cleanup_jumps(array<jump_destination> *jumps)
-{
-    ::sort(jumps->data, jumps->size, compare_jumps);
-
-    u64 i = 0;
-    while (i < jumps->size - 1)
-    {
-        jump_destination *l = jumps->data + i;
-        jump_destination *r = jumps->data + i + 1;
-
-        if ((l->address == r->address)
-         && (l->type == r->type))
-            ::remove_elements(jumps, i, 1);
-        else
-            i++;
     }
 }

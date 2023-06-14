@@ -9,40 +9,40 @@ void init(psp_disassembly *disasm)
 
     init(&disasm->psp_module);
     ::init(&disasm->instruction_datas);
-    ::init(&disasm->jump_destinations);
+    ::init(&disasm->jumps.data);
 }
 
 void free(psp_disassembly *disasm)
 {
     assert(disasm != nullptr);
 
-    ::free(&disasm->jump_destinations);
+    ::free(&disasm->jumps);
     ::free<true>(&disasm->instruction_datas);
     free(&disasm->psp_module);
 }
 
-void add_symbols_to_jumps(array<jump_destination> *jumps, hash_table<u32, elf_symbol> *syms)
+void add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
-        ::add_at_end(jumps, jump_destination{*k, jump_type::Jump});
+        ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(array<jump_destination> *jumps, array<module_import> *mods)
+void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
+            ::insert_element(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
-void add_exports_to_jumps(array<jump_destination> *jumps, array<module_export> *mods)
+void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
+            ::insert_element(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
@@ -99,15 +99,14 @@ void disassemble_psp_elf(memory_stream *in, psp_disassembly *out)
 
         instruction_parse_data *instruction_data = out->instruction_datas.data + i;
         init(instruction_data);
-        instruction_data->jump_destinations = &out->jump_destinations;
+        instruction_data->jumps = &out->jumps;
         instruction_data->section_index = i;
 
         if (sec->content_size > 0)
             parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
     }
 
-    add_symbols_to_jumps(&out->jump_destinations, &out->psp_module.symbols);
-    add_imports_to_jumps(&out->jump_destinations, &out->psp_module.imported_modules);
-    add_exports_to_jumps(&out->jump_destinations, &out->psp_module.exported_modules);
-    cleanup_jumps(&out->jump_destinations);
+    add_symbols_to_jumps(&out->jumps, &out->psp_module.symbols);
+    add_imports_to_jumps(&out->jumps, &out->psp_module.imported_modules);
+    add_exports_to_jumps(&out->jumps, &out->psp_module.exported_modules);
 }

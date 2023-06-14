@@ -33,7 +33,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     assert(dsec->instruction_data != nullptr);
 
     const elf_section *sec = dsec->section;
-    const array<jump_destination> *jumps = conf->jump_destinations;
+    const jump_destinations *jumps = conf->jumps;
 
     // format functions
     auto f_comment_pos_addr_instr = asm_fmt_comment_pos_addr_instr;
@@ -50,7 +50,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     // prepare
     char comment_format_string[32] = {0};
 
-    if (is_set(conf->format, mips_format_options::comment_pos_addr_instr))
+    if (is_flag_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
         u32 max_instruction_offset = dsec->first_instruction_offset + dsec->instruction_data->instructions.size * sizeof(u32);
@@ -63,7 +63,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         f_comment_pos_addr_instr = nullptr;
     }
 
-    if (is_set(conf->format, mips_format_options::dollar_registers))
+    if (is_flag_set(conf->format, mips_format_options::dollar_registers))
     {
         f_mips_register_name = fmt_dollar_mips_register_name;
         f_mips_fpu_register_name = fmt_dollar_mips_fpu_register_name;
@@ -71,15 +71,15 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         f_vfpu_matrix_name = fmt_dollar_vfpu_matrix_name;
     }
 
-    if (is_set(conf->format, mips_format_options::comma_separate_args))
+    if (is_flag_set(conf->format, mips_format_options::comma_separate_args))
         f_argument_sep = fmt_argument_comma_space;
 
-    if (is_set(conf->format, mips_format_options::function_glabels))
+    if (is_flag_set(conf->format, mips_format_options::function_glabels))
         f_jump_argument = fmt_jump_address_label;
     else
         f_jump_glabel = nullptr;
 
-    if (is_set(conf->format, mips_format_options::labels))
+    if (is_flag_set(conf->format, mips_format_options::labels))
         f_branch_argument = fmt_branch_address_label;
     else
         f_branch_label = nullptr;
@@ -87,13 +87,13 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     u32 pos = dsec->first_instruction_offset;
     u32 jmp_i = 0;
 
-    if (!is_set(conf->format, mips_format_options::function_glabels)
-     && !is_set(conf->format, mips_format_options::labels))
+    if (!is_flag_set(conf->format, mips_format_options::function_glabels)
+     && !is_flag_set(conf->format, mips_format_options::labels))
         jmp_i = UINT32_MAX;
     else
     {
         // skip symbols that come before this section
-        while (jmp_i < jumps->size
+        while (jmp_i < array_size(jumps)
             && jumps->data[jmp_i].address < dsec->instruction_data->vaddr)
             ++jmp_i;
     }
@@ -103,14 +103,14 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
 
     for_array(inst, &dsec->instruction_data->instructions)
     {
-        bool write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst->address);
+        bool write_label = (jmp_i < array_size(jumps)) && (jumps->data[jmp_i].address <= inst->address);
 
         if (write_label)
             write(out, "\n");
 
         while (write_label)
         {
-            jump_destination *jmp = jumps->data + jmp_i;
+            jump_destination *jmp = jumps->data.data + jmp_i;
 
             if (jmp->type == jump_type::Jump)
             {
@@ -124,7 +124,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             }
 
             jmp_i++;
-            write_label = (jmp_i < jumps->size) && (jumps->data[jmp_i].address <= inst->address);
+            write_label = (jmp_i < array_size(jumps)) && (jumps->data[jmp_i].address <= inst->address);
         }
 
         if (f_comment_pos_addr_instr != nullptr)

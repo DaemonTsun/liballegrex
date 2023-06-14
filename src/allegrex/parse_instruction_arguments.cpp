@@ -116,13 +116,13 @@ void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
 void add_jump_address_argument(u32 addr, instruction *inst, instruction_parse_data *pdata)
 {
     add_argument(jump_address{addr}, inst);
-    ::add_at_end(pdata->jump_destinations, jump_destination{addr, jump_type::Jump});
+    ::insert_element(pdata->jumps, jump_destination{addr, jump_type::Jump});
 }
 
 void add_branch_address_argument(u32 addr, instruction *inst, instruction_parse_data *pdata)
 {
     add_argument(branch_address{addr}, inst);
-    ::add_at_end(pdata->jump_destinations, jump_destination{addr, jump_type::Branch});
+    ::insert_element(pdata->jumps, jump_destination{addr, jump_type::Branch});
 }
 
 // argument parse functions

@@ -50,7 +50,7 @@ struct dump_config
     array<module_export> *exported_modules;
 
     // relocations;
-    array<jump_destination> *jump_destinations;
+    jump_destinations *jumps;
     array<dump_section> dump_sections;
 
     prx_sce_module_info *module_info;

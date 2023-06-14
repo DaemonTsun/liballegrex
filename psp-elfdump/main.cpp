@@ -218,42 +218,42 @@ void parse_arguments(int argc, const char **argv, arguments *out)
         // format
         if (arg == "--no-comment"_cs)
         {
-            unset(out->output_format, mips_format_options::comment_pos_addr_instr);
+            unset_flag(out->output_format, mips_format_options::comment_pos_addr_instr);
             ++i;
             continue;
         }
 
         if (arg == "--no-comma-separator"_cs)
         {
-            unset(out->output_format, mips_format_options::comma_separate_args);
+            unset_flag(out->output_format, mips_format_options::comma_separate_args);
             ++i;
             continue;
         }
 
         if (arg == "--no-dollar-registers"_cs)
         {
-            unset(out->output_format, mips_format_options::dollar_registers);
+            unset_flag(out->output_format, mips_format_options::dollar_registers);
             ++i;
             continue;
         }
 
         if (arg == "--no-glabels"_cs)
         {
-            unset(out->output_format, mips_format_options::function_glabels);
+            unset_flag(out->output_format, mips_format_options::function_glabels);
             ++i;
             continue;
         }
 
         if (arg == "--no-labels"_cs)
         {
-            unset(out->output_format, mips_format_options::labels);
+            unset_flag(out->output_format, mips_format_options::labels);
             ++i;
             continue;
         }
 
         if (arg == "--no-pseudoinstructions"_cs)
         {
-            unset(out->output_format, mips_format_options::pseudoinstructions);
+            unset_flag(out->output_format, mips_format_options::pseudoinstructions);
             ++i;
             continue;
         }
@@ -281,28 +281,28 @@ void parse_arguments(int argc, const char **argv, arguments *out)
     }
 }
 
-void add_symbols_to_jumps(array<jump_destination> *jumps, hash_table<u32, elf_symbol> *syms)
+void add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
-        ::add_at_end(jumps, jump_destination{*k, jump_type::Jump});
+        ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(array<jump_destination> *jumps, array<module_import> *mods)
+void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
+            ::insert_element(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
-void add_exports_to_jumps(array<jump_destination> *jumps, array<module_export> *mods)
+void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
         for_array(func, &mod->functions)
-            ::add_at_end(jumps, jump_destination{func->address, jump_type::Jump});
+            ::insert_element(jumps, jump_destination{func->address, jump_type::Jump});
     }
 }
 
@@ -336,7 +336,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
 
     parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf);
 
-    array<jump_destination> jumps{};
+    jump_destinations jumps{};
     defer { ::free(&jumps); };
 
     array<instruction_parse_data> instruction_datas; // just memory management
@@ -362,11 +362,11 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
         pconf.log = log;
         pconf.vaddr = sec->vaddr;
         pconf.verbose = args->verbose;
-        pconf.emit_pseudo = is_set(args->output_format, mips_format_options::pseudoinstructions);
+        pconf.emit_pseudo = is_flag_set(args->output_format, mips_format_options::pseudoinstructions);
 
         instruction_parse_data *instruction_data = instruction_datas.data + i;
         init(instruction_data);
-        instruction_data->jump_destinations = &jumps;
+        instruction_data->jumps = &jumps;
         instruction_data->section_index = i;
 
         if (sec->content_size > 0)
@@ -381,7 +381,6 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
     add_symbols_to_jumps(&jumps, &pspmodule.symbols);
     add_imports_to_jumps(&jumps, &pspmodule.imported_modules);
     add_exports_to_jumps(&jumps, &pspmodule.exported_modules);
-    cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
 
@@ -391,10 +390,17 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
     file_stream out;
     out.handle = outfd;
 
+    // TODO: remove
+    format(&out, "number of jumps: %d\n", array_size(&jumps));
+    for_array(j, &jumps)
+        format(&out, "%s %#x\n", (j->type == jump_type::Jump ? "J" : "B"), j->address);
+
+    return;
+
     if (!is_ok(&out))
         throw_error("could not open output file %s", args->output_file.c_str);
 
-    dconf.jump_destinations = &jumps;
+    dconf.jumps = &jumps;
 
     format_dump(args->output_type, &dconf, &out);
 
@@ -442,7 +448,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     pconf.log = log;
     pconf.vaddr = range->vaddr;
     pconf.verbose = args->verbose;
-    pconf.emit_pseudo = is_set(args->output_format, mips_format_options::pseudoinstructions);
+    pconf.emit_pseudo = is_flag_set(args->output_format, mips_format_options::pseudoinstructions);
 
     if (pconf.vaddr == INFER_VADDR)
         pconf.vaddr = 0;
@@ -460,12 +466,11 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     init(&instruction_data);
     defer { free(&instruction_data); };
 
-    array<jump_destination> jumps{};
+    jump_destinations jumps{};
     defer { ::free(&jumps); };
 
-    instruction_data.jump_destinations = &jumps;
+    instruction_data.jumps = &jumps;
     parse_instructions(memstr.data, memstr.size, &pconf, &instruction_data);
-    cleanup_jumps(&jumps);
 
     FILE *outfd = stdout;
 
@@ -479,7 +484,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
         throw_error("could not open output file %s", args->output_file.c_str);
 
     dump_config dconf;
-    dconf.jump_destinations = &jumps;
+    dconf.jumps = &jumps;
     dconf.log = log;
     dconf.format = args->output_format;
     dconf.module_info = nullptr;

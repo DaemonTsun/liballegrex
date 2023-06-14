@@ -18,9 +18,9 @@
     conf.log = nullptr;\
     conf.emit_pseudo = false;\
     instruction_parse_data instruction_data;\
-    array<jump_destination> jumps{};\
+    jump_destinations jumps{};\
     defer { free(&jumps); };\
-    instruction_data.jump_destinations = &jumps;
+    instruction_data.jumps = &jumps;
 
 #define emit_pseudoinstructions()\
     conf.emit_pseudo = true;
