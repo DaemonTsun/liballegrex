@@ -390,13 +390,6 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
     file_stream out;
     out.handle = outfd;
 
-    // TODO: remove
-    format(&out, "number of jumps: %d\n", array_size(&jumps));
-    for_array(j, &jumps)
-        format(&out, "%s %#x\n", (j->type == jump_type::Jump ? "J" : "B"), j->address);
-
-    return;
-
     if (!is_ok(&out))
         throw_error("could not open output file %s", args->output_file.c_str);
 
