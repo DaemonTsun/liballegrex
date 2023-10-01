@@ -6,11 +6,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <linux/limits.h>
-#include <unistd.h>
 
 #include "shl/error.hpp"
+#include "shl/platform.hpp"
 #include "allegrex/psp_modules.hpp"
+
+#if Windows
+#include <windows.h>
+#define PATH_MAX MAX_PATH
+#elif Linux
+#include <linux/limits.h> // PATH_MAX
+#include <unistd.h>
+#endif
 
 #include "cpp_formatter.hpp"
 
@@ -145,11 +152,22 @@ void load_liballegrex_data()
     lib_data = new liballegrex_data_t;
 
     char pth[PATH_MAX];
+
+#if Windows
+    int result = GetModuleFileName(0, pth, PATH_MAX - 1);
+
+    if (result == 0)
+        throw_error("could not get path");
+
+    strcpy(strrchr(pth, '\\'), "\\..\\..\\src\\allegrex\\internal\\");
+#else
     readlink("/proc/self/exe", pth, PATH_MAX);
 
     // we're assuming we're always in a bin folder which is next to src.
     // yes this is terrible.
     strcpy(strrchr(pth, '/'), "/../../src/allegrex/internal/");
+
+#endif
 
     parse_file(pth, "psp_module_function_argument_defs.hpp", load_function_args);
     parse_file(pth, "psp_module_function_pspdev_headers.hpp", load_pspdev_headers);

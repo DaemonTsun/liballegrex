@@ -22,6 +22,10 @@ constexpr vfpu_size half_size(vfpu_size sz)
     {
     case vfpu_size::Pair: return vfpu_size::Single;
     case vfpu_size::Quad: return vfpu_size::Pair;
+
+    case vfpu_size::Single:
+    case vfpu_size::Triple:
+    case vfpu_size::Invalid:
     default: return vfpu_size::Invalid;
     }
 }
@@ -32,6 +36,10 @@ constexpr vfpu_size double_size(vfpu_size sz)
     {
     case vfpu_size::Single: return vfpu_size::Pair;
     case vfpu_size::Pair: return vfpu_size::Quad;
+
+    case vfpu_size::Triple:
+    case vfpu_size::Quad:
+    case vfpu_size::Invalid:
     default: return vfpu_size::Invalid;
     }
 }

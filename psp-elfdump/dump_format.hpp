@@ -5,7 +5,7 @@
 #include "allegrex/psp_elf.hpp"
 #include "allegrex/parse_instructions.hpp"
 
-enum class mips_format_options
+enum class mips_format_options : u8
 {
     comment_pos_addr_instr = 1 << 0, // e.g. /* 0025B4 08804000 27BDFFD0 */ ...
     dollar_registers       = 1 << 1, // e.g. li $a1, 1

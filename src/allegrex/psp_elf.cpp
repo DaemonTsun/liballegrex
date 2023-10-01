@@ -1,5 +1,4 @@
 
-#include <elf.h>
 #include <assert.h>
 #include <string.h>
 
@@ -8,6 +7,7 @@
 #include "shl/fixed_array.hpp"
 #include "shl/error.hpp"
 #include "shl/defer.hpp"
+#include "shl/platform.hpp"
 
 #include "allegrex/psp_modules.hpp"
 #include "allegrex/internal/psp_module_function_argument_defs.hpp"
@@ -15,6 +15,145 @@
 #include "allegrex/psp_prx.hpp"
 #include "allegrex/prx_decrypt.hpp"
 #include "allegrex/psp_elf.hpp"
+
+
+#if Windows
+#define EI_NIDENT 16
+
+typedef uint32_t Elf32_Addr;
+typedef uint32_t Elf32_Off;
+typedef uint16_t Elf32_Section;
+typedef uint16_t Elf32_Versym;
+typedef unsigned char Elf_Byte;
+typedef uint16_t Elf32_Half;
+typedef int32_t  Elf32_Sword;
+typedef uint32_t Elf32_Word;
+typedef int64_t  Elf32_Sxword;
+typedef uint64_t Elf32_Xword;
+
+typedef struct
+{
+    unsigned char e_ident[EI_NIDENT];
+    uint16_t      e_type;
+    uint16_t      e_machine;
+    uint32_t      e_version;
+    Elf32_Addr    e_entry;
+    Elf32_Off     e_phoff;
+    Elf32_Off     e_shoff;
+    uint32_t      e_flags;
+    uint16_t      e_ehsize;
+    uint16_t      e_phentsize;
+    uint16_t      e_phnum;
+    uint16_t      e_shentsize;
+    uint16_t      e_shnum;
+    uint16_t      e_shstrndx;
+} Elf32_Ehdr;
+
+typedef struct
+{
+    uint32_t   p_type;
+    Elf32_Off  p_offset;
+    Elf32_Addr p_vaddr;
+    Elf32_Addr p_paddr;
+    uint32_t   p_filesz;
+    uint32_t   p_memsz;
+    uint32_t   p_flags;
+    uint32_t   p_align;
+} Elf32_Phdr;
+
+typedef struct
+{
+    uint32_t   sh_name;
+    uint32_t   sh_type;
+    uint32_t   sh_flags;
+    Elf32_Addr sh_addr;
+    Elf32_Off  sh_offset;
+    uint32_t   sh_size;
+    uint32_t   sh_link;
+    uint32_t   sh_info;
+    uint32_t   sh_addralign;
+    uint32_t   sh_entsize;
+} Elf32_Shdr;
+
+typedef struct
+{
+    uint32_t      st_name;
+    Elf32_Addr    st_value;
+    uint32_t      st_size;
+    unsigned char st_info;
+    unsigned char st_other;
+    uint16_t      st_shndx;
+} Elf32_Sym;
+
+typedef struct {
+    Elf32_Addr r_offset;
+    uint32_t   r_info;
+} Elf32_Rel;
+
+#define ELF32_R_SYM(x) ((x) >> 8)
+#define ELF32_R_TYPE(x) ((x) & 0xff)
+
+#define SHT_NULL     0
+#define SHT_PROGBITS 1
+#define SHT_SYMTAB   2
+#define SHT_STRTAB   3
+#define SHT_RELA     4
+#define SHT_HASH     5
+#define SHT_DYNAMIC  6
+#define SHT_NOTE     7
+#define SHT_NOBITS   8
+#define SHT_REL      9
+#define SHT_SHLIB    10
+#define SHT_DYNSYM   11
+#define SHT_NUM      12
+#define SHT_LOPROC   0x70000000
+#define SHT_HIPROC   0x7fffffff
+#define SHT_LOUSER   0x80000000
+#define SHT_HIUSER   0xffffffff
+
+#define EI_MAG0    0
+#define EI_MAG1    1
+#define EI_MAG2    2
+#define EI_MAG3    3
+#define EI_CLASS   4
+#define EI_DATA    5
+#define EI_VERSION 6
+#define EI_OSABI   7
+#define EI_PAD     8
+
+#define ELFCLASSNONE 0
+#define ELFCLASS32   1
+#define ELFCLASS64   2
+#define ELFCLASSNUM  3
+
+#define ELFDATANONE 0
+#define ELFDATA2LSB 1
+#define ELFDATA2MSB 2
+
+#define EV_NONE     0
+#define EV_CURRENT  1
+#define EV_NUM      2
+
+#define SHF_WRITE          0x1
+#define SHF_ALLOC          0x2
+#define SHF_EXECINSTR      0x4
+#define SHF_RELA_LIVEPATCH 0x00100000
+#define SHF_RO_AFTER_INIT  0x00200000
+#define SHF_MASKPROC       0xf0000000
+
+#define SHN_UNDEF     0
+#define SHN_LORESERVE 0xff00
+#define SHN_LOPROC    0xff00
+#define SHN_HIPROC    0xff1f
+#define SHN_LIVEPATCH 0xff20
+#define SHN_ABS       0xfff1
+#define SHN_COMMON    0xfff2
+#define SHN_HIRESERVE 0xffff
+
+#define EM_MIPS		8	
+#else
+#include <elf.h>
+#endif
 
 /*
 #define R_MIPS_26    4
@@ -37,7 +176,7 @@ constexpr fixed_array syslib_variables
     psp_variable{ 0x0f7c276c, "module_start_thread_parameter" },
     psp_variable{ 0xcf0cc697, "module_stop_thread_parameter" },
     psp_variable{ 0xf01d73a7, "module_info" },
-	psp_variable{ 0x11b97506, "module_sdk_version" }
+    psp_variable{ 0x11b97506, "module_sdk_version" }
 };
 
 const psp_function *_get_syslib_function(u32 nid)
@@ -105,10 +244,10 @@ void _add_section_to_symbols(elf_read_ctx *ctx, int section_index, hash_table<u3
 
         const char *sec_string_table = ctx->in->data + strtab_header.sh_offset;
 
-        for (u32 i = 0; i < sec_header.sh_size; i += sizeof(Elf32_Sym))
+        for (u32 j = 0; j < sec_header.sh_size; j += sizeof(Elf32_Sym))
         {
             Elf32_Sym sym;
-            read_at(ctx->in, &sym, sec_header.sh_offset + i);
+            read_at(ctx->in, &sym, sec_header.sh_offset + j);
 
             const char *name = sec_string_table + sym.st_name;
 

@@ -3,11 +3,18 @@
 #include <array>
 #include <string.h>
 
+#include "shl/compiler.hpp"
+
 extern "C"
 {
 #include "libkirk/kirk_engine.h"
 #include "libkirk/SHA1.h"
 }
+
+#if MSVC
+#pragma warning(push)
+#pragma warning(disable : 5264) // unused const variable, disabled because some keys aren't used
+#endif
 
 #include "allegrex/prx_decrypt.hpp"
 
@@ -474,7 +481,7 @@ static std::array<u8, 0x90> expandSeed(const u8 *seed, int key, const u8 *bonusS
 	for (auto i = 0u; i < expandedSeed.size(); i += 0x10)
 {
 		memcpy(expandedSeed.data()+i, seed, 0x10);
-		expandedSeed[i] = i/0x10;
+		expandedSeed[i] = (u8)(i/0x10);
 	}
 
 	kirk7(expandedSeed.data(), expandedSeed.data(), expandedSeed.size(), key);
@@ -1028,3 +1035,7 @@ int pspDecryptPRX(const u8 *inbuf, u8 *outbuf, u32 size, const u8 *seed)
 	
 	return pspDecryptType6(inbuf, outbuf, size);
 }
+
+#if MSVC
+#pragma warning(pop) 
+#endif

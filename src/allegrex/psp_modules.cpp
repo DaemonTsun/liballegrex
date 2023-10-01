@@ -3,12 +3,22 @@
 #include <string.h>
 
 #include "shl/fixed_array.hpp"
+#include "shl/compiler.hpp"
 
 #include "allegrex/internal/psp_module_function_argument_defs.hpp"
 #include "allegrex/internal/psp_module_function_pspdev_headers.hpp"
 #include "allegrex/psp_modules.hpp"
 
+#if MSVC
+#pragma warning(push)
+#pragma warning(disable : 5056) // "deprecated" == operator on array types
+#endif
+
 static_assert(ARGS(a, b, c) == L"abc");
+
+#if MSVC
+#pragma warning(pop)
+#endif
 
 #include "internal/psp_modules.inl"
 
@@ -27,7 +37,7 @@ const psp_module *get_psp_modules()
 
 u32 get_psp_module_count()
 {
-    return array_size(&_modules);
+    return (u32)array_size(&_modules);
 }
 
 const psp_module *get_psp_module_by_name(const char *mod)

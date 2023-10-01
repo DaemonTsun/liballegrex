@@ -53,7 +53,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     if (is_flag_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
-        u32 max_instruction_offset = dsec->first_instruction_offset + dsec->instruction_data->instructions.size * sizeof(u32);
+        u32 max_instruction_offset = dsec->first_instruction_offset + (u32)dsec->instruction_data->instructions.size * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);
@@ -201,8 +201,8 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
                 vfpu_rotation_array *arr = &arg->vfpu_rotation_array;
                 format(out, "[%s", vfpu_rotation_name(arr->data[0]));
 
-                for (int i = 1; i < arr->size; ++i)
-                    format(out, ",%s", vfpu_rotation_name(arr->data[i]));
+                for (int j = 1; j < arr->size; ++j)
+                    format(out, ",%s", vfpu_rotation_name(arr->data[j]));
 
                 format(out, "]");
                 break;
@@ -276,9 +276,10 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             ARG_TYPE_FORMAT(out, arg, Bitfield_Pos, bitfield_pos, "%#x");
             ARG_TYPE_FORMAT(out, arg, Bitfield_Size, bitfield_size, "%#x");
 
-            // case argument_type::Extra:
             ARG_TYPE_FORMAT(out, arg, String, string_argument, "%s");
 
+            case argument_type::Extra:
+            case argument_type::MAX:
             default:
                 break;
             }

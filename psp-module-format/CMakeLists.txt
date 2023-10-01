@@ -6,6 +6,7 @@ add_exe(psp-module-format
     SOURCES_DIR "${ROOT}"
     INCLUDE_DIRS "${CMAKE_SOURCE_DIR}" "${allegrex_SOURCES_DIR}" "${shl_SOURCES_DIR}"
     GENERATE_TARGET_HEADER "${ROOT}/config.hpp"
+    COMPILE_FLAGS Default @MSVC /EHs
     CPP_VERSION 20
     CPP_WARNINGS ALL SANE FATAL
     LIBRARIES kirk ${allegrex_TARGET}

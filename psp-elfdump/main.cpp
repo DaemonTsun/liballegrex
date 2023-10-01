@@ -367,7 +367,7 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
         instruction_parse_data *instruction_data = instruction_datas.data + i;
         init(instruction_data);
         instruction_data->jumps = &jumps;
-        instruction_data->section_index = i;
+        instruction_data->section_index = (u32)i;
 
         if (sec->content_size > 0)
             parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
@@ -432,7 +432,7 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     u32 sz = range->size;
 
     if (sz == INFER_SIZE)
-        sz = in->size - from;
+        sz = (u32)in->size - from;
 
     if (from + sz > in->size)
         throw_error("end offset %x (start %x + size %x) is larger than input file size %x", from + sz, from, sz, in->size);

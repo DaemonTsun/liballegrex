@@ -5788,7 +5788,7 @@ constexpr fixed_array sceDdrdb104_functions
 
 
 #define DEFINE_PSP_MODULE(NUM, NAME)\
-  psp_module{NUM, #NAME, NAME##NUM##_functions.data, array_size(&NAME##NUM##_functions)}
+  psp_module{NUM, #NAME, NAME##NUM##_functions.data, (u32)array_size(&NAME##NUM##_functions)}
 
 #define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\
   psp_module{NUM, #NAME, nullptr, 0}

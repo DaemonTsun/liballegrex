@@ -208,7 +208,7 @@ void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_instructions
 {
     u32 rt = RT(opcode);
     u32 rd = RD(opcode);
-    u8 sa = SA(opcode);
+    u8 sa = (u8)SA(opcode);
 
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
@@ -247,8 +247,8 @@ void arg_parse_RegJumpRdRs(u32 opcode, instruction *inst, const parse_instructio
 void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 code = bitrange(opcode, 6, 25);
-    u16 funcnum = bitrange(code, 0, 11);
-	u16 modulenum = bitrange(code, 12, 19);
+    u16 funcnum = (u16)bitrange(code, 0, 11);
+	u16 modulenum = (u16)bitrange(code, 12, 19);
 
     const psp_function *sc = get_psp_function(modulenum, funcnum);
 
@@ -289,8 +289,8 @@ void arg_parse_RdRt(u32 opcode, instruction *inst, const parse_instructions_conf
 void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 rt = RT(opcode);
-    u8 rd = RD(opcode);
-    u8 sel = bitrange(opcode, 0, 2);
+    u8 rd = (u8)RD(opcode);
+    u8 sel = (u8)bitrange(opcode, 0, 2);
 
     add_register_argument(rt, inst);
     add_argument(coprocessor_register{rd, sel}, inst);
@@ -299,7 +299,7 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_instructio
 void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 rs = RS(opcode);
-    u16 imm = bitrange(opcode, 0, 15);
+    u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
     add_argument(immediate<u16>{imm}, inst);
@@ -308,7 +308,7 @@ void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_instructi
 void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 rs = RS(opcode);
-    s16 imm = bitrange(opcode, 0, 15);
+    s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
     add_argument(immediate<s16>{imm}, inst);
@@ -317,7 +317,7 @@ void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_instructi
 void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 rt = RT(opcode);
-    u16 imm = bitrange(opcode, 0, 15);
+    u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
     add_argument(immediate<u16>{imm}, inst);
@@ -510,7 +510,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_instructions_confi
 
     inst->mnemonic = allegrex_mnemonic::LI;
     u32 rt = RT(opcode);
-    u32 imm = bitrange(opcode, 0, 15);
+    u32 imm = (u32)bitrange(opcode, 0, 15);
     add_register_argument(rt, inst);
     add_argument(immediate<u32>{imm}, inst);
 };
@@ -519,7 +519,7 @@ void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_instruct
 {
     u32 rs = RS(opcode);
     u32 rt = RT(opcode);
-    s16 imm = bitrange(opcode, 0, 15);
+    s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
     add_argument(memory_offset{imm}, inst);
@@ -528,9 +528,9 @@ void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_instruct
 
 void arg_parse_Cache(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
-    s16 off = bitrange(opcode, 0, 15);
+    s16 off = (s16)bitrange(opcode, 0, 15);
     u32 rs = RS(opcode);
-    u32 func = bitrange(opcode, 16, 20);
+    u32 func = (u32)bitrange(opcode, 16, 20);
 
     add_argument(immediate<u32>{func}, inst);
     add_argument(memory_offset{off}, inst);
@@ -571,7 +571,7 @@ void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_instr
     u32 off = inst->address;
     s16 imm = (s16)(bitrange(opcode, 0, 16)) << 2;
     off += imm + sizeof(opcode);
-    u8 cc = bitrange(opcode, 18, 20);
+    u8 cc = (u8)bitrange(opcode, 18, 20);
 
     add_branch_address_argument(off, inst, pdata);
     add_argument(condition_code{cc}, inst);
@@ -581,7 +581,7 @@ void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_instruct
 {
     u32 rs = RS(opcode);
     u32 ft = FT(opcode);
-    s16 imm = bitrange(opcode, 0, 15);
+    s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_fpu_register_argument(ft, inst);
     add_argument(memory_offset{imm}, inst);
@@ -634,7 +634,7 @@ void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_instructions_c
 void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 rt = RT(opcode);
-    u16 unk = bitrange(opcode, 0u, 15u);
+    u16 unk = (u16)bitrange(opcode, 0u, 15u);
 
     add_register_argument(rt, inst);
     add_argument(immediate<u16>{unk}, inst);
@@ -644,7 +644,7 @@ void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_instructions
 {
     // ppsspp
     u32 rt = RT(opcode);
-    u32 vr = bitrange(opcode, 0, 7);
+    u32 vr = (u32)bitrange(opcode, 0, 7);
 
     add_register_argument(rt, inst);
     add_vfpu_register_argument(vr, vfpu_size::Single, inst);
@@ -740,7 +740,7 @@ void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_instru
     vfpu_size sz = get_vfpu_size(opcode);
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
-    u8 imm = bitrange(opcode, 16, 20);
+    u8 imm = (u8)bitrange(opcode, 16, 20);
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, sz, inst);
@@ -827,7 +827,7 @@ void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_instructions
 
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
-    u8 imm = bitrange(opcode, 16, 23);
+    u8 imm = (u8)bitrange(opcode, 16, 23);
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, sz, inst);
@@ -852,7 +852,7 @@ void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_instruction
     u32 vd = VD(opcode);
     u32 vs = VS(opcode);
     // u32 tf = bitrange(opcode, 19, 20);
-    u8 imm = bitrange(opcode, 16, 18);
+    u8 imm = (u8)bitrange(opcode, 16, 18);
 
     if (imm > 6)
     {
@@ -909,7 +909,7 @@ void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_instru
 void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 vt = VT(opcode);
-    u16 imm = bitrange(opcode, 0, 15);
+    u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
     add_argument(immediate<u16>{imm}, inst);
@@ -977,7 +977,7 @@ float Float16ToFloat32(u16 l)
 void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 vt = VT(opcode);
-    u16 imm = bitrange(opcode, 0, 15);
+    u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
     add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
@@ -987,7 +987,7 @@ void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_instructio
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 1) << 5);
-    s16 offset = bitrange(opcode, 2, 15) << 2;
+    s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
     add_argument(memory_offset{offset}, inst);
@@ -998,7 +998,7 @@ void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_instructio
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
-    s16 offset = bitrange(opcode, 2, 15) << 2;
+    s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
     add_argument(memory_offset{offset}, inst);
@@ -1012,7 +1012,7 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_instruct
 {
     u32 rs = RS(opcode);
     u32 vt = bitrange(opcode, 16, 20) | (bitrange(opcode, 0, 0) << 5);
-    s16 offset = bitrange(opcode, 2, 15) << 2;
+    s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
     add_argument(memory_offset{offset}, inst);

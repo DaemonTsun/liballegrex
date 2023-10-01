@@ -100,7 +100,7 @@ void disassemble_psp_elf(memory_stream *in, psp_disassembly *out)
         instruction_parse_data *instruction_data = out->instruction_datas.data + i;
         init(instruction_data);
         instruction_data->jumps = &out->jumps;
-        instruction_data->section_index = i;
+        instruction_data->section_index = (u32)i;
 
         if (sec->content_size > 0)
             parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
