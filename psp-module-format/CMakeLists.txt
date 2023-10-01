@@ -1,7 +1,6 @@
 
 find_package(better REQUIRED NO_DEFAULT_PATH PATHS "${CMAKE_SOURCE_DIR}/ext/better-cmake/cmake")
 
-# psp-module-format
 add_exe(psp-module-format
     VERSION 1.0.0
     SOURCES_DIR "${ROOT}"
