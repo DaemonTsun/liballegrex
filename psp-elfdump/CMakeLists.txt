@@ -11,3 +11,5 @@ add_exe(psp-elfdump
     CPP_WARNINGS ALL SANE FATAL
     LIBRARIES kirk ${allegrex_TARGET}
     )
+
+install_executable(TARGET "psp-elfdump-0.9" NAME "psp-elfdump")
