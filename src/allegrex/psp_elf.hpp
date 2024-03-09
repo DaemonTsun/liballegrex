@@ -4,8 +4,7 @@
 #include "shl/array.hpp"
 #include "shl/string.hpp"
 #include "shl/hash_table.hpp"
-#include "shl/file_stream.hpp"
-#include "shl/memory_stream.hpp"
+#include "shl/streams.hpp"
 #include "shl/number_types.hpp"
 
 #include "allegrex/psp_modules.hpp"
@@ -95,18 +94,18 @@ struct elf_psp_module
 void init(elf_psp_module *mod);
 void free(elf_psp_module *mod);
 
-void parse_psp_module_from_elf(const char *path, elf_psp_module *out);
-void parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf);
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out);
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf);
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out);
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf);
+bool parse_psp_module_from_elf(const char *path, elf_psp_module *out, error *err = nullptr);
+bool parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf, error *err = nullptr);
+bool parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, error *err = nullptr);
+bool parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf, error *err = nullptr);
+bool parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, error *err = nullptr);
+bool parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf, error *err = nullptr);
 
 // parse all information about the elf file
 // its copied to memory if read from file, sorry
 // void read_elf(file_stream *in, const psp_parse_elf_config *conf, elf_psp_module *out);
 // void read_elf(memory_stream *in, const psp_parse_elf_config *conf, elf_psp_module *out);
 
-// returns decrypted size, or 0 if input is regular ELF
-u64 decrypt_elf(file_stream *in, array<u8> *out);
-u64 decrypt_elf(memory_stream *in, array<u8> *out);
+// returns decrypted size, 0 if input is regular ELF, or -1 on error
+s64 decrypt_elf(file_stream *in, array<u8> *out, error *err = nullptr);
+s64 decrypt_elf(memory_stream *in, array<u8> *out, error *err = nullptr);

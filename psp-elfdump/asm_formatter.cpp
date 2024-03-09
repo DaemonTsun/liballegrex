@@ -1,17 +1,17 @@
 
 #include <assert.h>
 
-#include "shl/format.hpp"
+#include "shl/print.hpp"
 #include "allegrex/instruction.hpp"
 #include "psp-elfdump/asm_formatter.hpp"
 
 // asm-specific formatting functions
-inline void asm_fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
+static inline void _asm_fmt_comment_pos_addr_instr(file_stream *out, u32 pos, const instruction *inst, const char *format_string)
 {
-    format(out, format_string, pos, inst->address, inst->opcode);
+    tprint(out->handle, format_string, pos, inst->address, inst->opcode);
 }
 
-void format_name(file_stream *out, const instruction *inst)
+static void _format_name(file_stream *out, const instruction *inst)
 {
     const char *name = get_mnemonic_name(inst->mnemonic);
 
@@ -19,15 +19,15 @@ void format_name(file_stream *out, const instruction *inst)
     {
         vfpu_size sz = get_vfpu_size(inst->opcode);
         const char *suf = size_suffix(sz);
-        auto fullname = tformat("%%\0"_cs, name, suf);
+        auto fullname = tformat("%%"_cs, name, suf);
 
-        format(out, "%-10s", fullname.c_str);
+        tprint(out->handle, "%-10s", fullname);
     }
     else
-        format(out, "%-10s", name);
+        tprint(out->handle, "%-10s", name);
 }
 
-void asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
+static void _asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
 {
     assert(dsec != nullptr);
     assert(dsec->instruction_data != nullptr);
@@ -36,7 +36,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     const jump_destinations *jumps = conf->jumps;
 
     // format functions
-    auto f_comment_pos_addr_instr = asm_fmt_comment_pos_addr_instr;
+    auto f_comment_pos_addr_instr = _asm_fmt_comment_pos_addr_instr;
     auto f_mips_register_name = fmt_mips_register_name;
     auto f_mips_fpu_register_name = fmt_mips_fpu_register_name;
     auto f_vfpu_register_name = fmt_vfpu_register_name;
@@ -48,7 +48,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     auto f_branch_label = fmt_branch_label;
 
     // prepare
-    char comment_format_string[32] = {0};
+    char comment_format_string[32] = R"(/* %0Xx %08x %08x */  )";
 
     if (is_flag_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
@@ -56,7 +56,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         u32 max_instruction_offset = dsec->first_instruction_offset + (u32)dsec->instruction_data->instructions.size * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
-        sprintf(comment_format_string, "/* %%0%ux %%08x %%08x */  ", pos_digits);
+        to_string(comment_format_string + 5, 2, pos_digits);
     }
     else
     {
@@ -99,14 +99,14 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
     }
 
     // do the writing
-    format(out, "\n\n/* Disassembly of section %s */\n", sec->name);
+    tprint(out->handle, "\n\n/* Disassembly of section %s */\n", sec->name);
 
     for_array(inst, &dsec->instruction_data->instructions)
     {
         bool write_label = (jmp_i < array_size(jumps)) && (jumps->data[jmp_i].address <= inst->address);
 
         if (write_label)
-            write(out, "\n");
+            put(out->handle, "\n");
 
         while (write_label)
         {
@@ -130,7 +130,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         if (f_comment_pos_addr_instr != nullptr)
             f_comment_pos_addr_instr(out, pos, inst, comment_format_string);
 
-        format_name(out, inst);
+        _format_name(out, inst);
 
         bool first = true;
         for (int i = 0; i < inst->argument_count; ++i)
@@ -146,7 +146,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             switch (arg_type)
             {
             case argument_type::Invalid:
-                format(out, "[?invalid?]");
+                tprint(out->handle, "[?invalid?]");
                 break;
 
             case argument_type::MIPS_Register:
@@ -162,22 +162,22 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
                 break;
 
             case argument_type::VFPU_Matrix:
-                format(out, "%s%s", matrix_name(arg->vfpu_matrix)
+                tprint(out->handle, "%s%s", matrix_name(arg->vfpu_matrix)
                                   , size_suffix(arg->vfpu_matrix.size));
                 break;
 
             case argument_type::VFPU_Condition:
-                format(out, "%s", vfpu_condition_name(arg->vfpu_condition));
+                tprint(out->handle, "%s", vfpu_condition_name(arg->vfpu_condition));
                 break;
 
             case argument_type::VFPU_Constant:
-                format(out, "%s", vfpu_constant_name(arg->vfpu_constant));
+                tprint(out->handle, "%s", vfpu_constant_name(arg->vfpu_constant));
                 break;
 
             case argument_type::VFPU_Prefix_Array:
             {
                 vfpu_prefix_array *arr = &arg->vfpu_prefix_array;
-                format(out, "[%s,%s,%s,%s]", vfpu_prefix_name(arr->data[0])
+                tprint(out->handle, "[%s,%s,%s,%s]", vfpu_prefix_name(arr->data[0])
                                            , vfpu_prefix_name(arr->data[1])
                                            , vfpu_prefix_name(arr->data[2])
                                            , vfpu_prefix_name(arr->data[3])
@@ -188,7 +188,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             case argument_type::VFPU_Destination_Prefix_Array:
             {
                 vfpu_destination_prefix_array *arr = &arg->vfpu_destination_prefix_array;
-                format(out, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr->data[0])
+                tprint(out->handle, "[%s,%s,%s,%s]", vfpu_destination_prefix_name(arr->data[0])
                                            , vfpu_destination_prefix_name(arr->data[1])
                                            , vfpu_destination_prefix_name(arr->data[2])
                                            , vfpu_destination_prefix_name(arr->data[3])
@@ -199,25 +199,25 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             case argument_type::VFPU_Rotation_Array:
             {
                 vfpu_rotation_array *arr = &arg->vfpu_rotation_array;
-                format(out, "[%s", vfpu_rotation_name(arr->data[0]));
+                tprint(out->handle, "[%s", vfpu_rotation_name(arr->data[0]));
 
                 for (int j = 1; j < arr->size; ++j)
-                    format(out, ",%s", vfpu_rotation_name(arr->data[j]));
+                    tprint(out->handle, ",%s", vfpu_rotation_name(arr->data[j]));
 
-                format(out, "]");
+                tprint(out->handle, "]");
                 break;
             }
 
             case argument_type::PSP_Function_Pointer:
             {
                 const psp_function *sc = arg->psp_function_pointer;
-                format(out, "%s <0x%08x>", sc->name, sc->nid);
+                tprint(out->handle, "%s <0x%08x>", sc->name, sc->nid);
                 break;
             }
 
 #define ARG_TYPE_FORMAT(out, arg, ArgumentType, UnionMember, FMT) \
     case argument_type::ArgumentType: \
-        format(out, FMT, arg->UnionMember.data);\
+        tprint(out->handle, FMT, arg->UnionMember.data);\
         break;
 
             ARG_TYPE_FORMAT(out, arg, Shift, shift, "%#x");
@@ -225,7 +225,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
             case argument_type::Coprocessor_Register:
             {
                 coprocessor_register *reg = &arg->coprocessor_register;
-                format(out, "[%u, %u]", reg->rd, reg->sel);
+                tprint(out->handle, "[%u, %u]", reg->rd, reg->sel);
                 break;
             }
 
@@ -243,16 +243,18 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
                 f_branch_argument(out, arg->branch_address.data, conf);
                 break;
 
-            ARG_TYPE_FORMAT(out, arg, Memory_Offset, memory_offset, "%#x");
+            case argument_type::Memory_Offset:
+                tprint(out->handle, "%#x", (u32)arg->memory_offset.data);
+                break;
             ARG_TYPE_FORMAT(out, arg, Immediate_u32, immediate_u32, "%#x");
             case argument_type::Immediate_s32:
             {
                 s32 d = arg->immediate_s32.data;
 
                 if (d < 0)
-                    format(out, "-%#x", -d);
+                    tprint(out->handle, "-%#x", -d);
                 else
-                    format(out, "%#x", d);
+                    tprint(out->handle, "%#x", d);
 
                 break;
             }
@@ -263,9 +265,9 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
                 s16 d = arg->immediate_s16.data;
 
                 if (d < 0)
-                    format(out, "-%#x", -d);
+                    tprint(out->handle, "-%#x", -d);
                 else
-                    format(out, "%#x", d);
+                    tprint(out->handle, "%#x", d);
 
                 break;
             }
@@ -286,7 +288,7 @@ void asm_format_section(const dump_config *conf, const dump_section *dsec, file_
         }
         
         // end
-        write(out, "\n");
+        put(out->handle, "\n");
         pos += sizeof(u32);
     }
 }
@@ -297,5 +299,5 @@ void asm_format(const dump_config *conf, file_stream *out)
     assert(out != nullptr);
 
     for_array(dsec, &conf->dump_sections)
-        asm_format_section(conf, dsec, out);
+        _asm_format_section(conf, dsec, out);
 }

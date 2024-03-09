@@ -21,14 +21,14 @@ void free(psp_disassembly *disasm)
     free(&disasm->psp_module);
 }
 
-void add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
+static void _add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
         ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
+static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
@@ -37,7 +37,7 @@ void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
     }
 }
 
-void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
+static void _add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
@@ -46,20 +46,22 @@ void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
     }
 }
 
-void disassemble_psp_elf(const char *path, psp_disassembly *out)
+bool disassemble_psp_elf(const char *path, psp_disassembly *out, error *err)
 {
     assert(path != nullptr);
     assert(out != nullptr);
 
-    memory_stream stream;
-    init(&stream);
-    defer { close(&stream); };
+    memory_stream stream{};
 
-    read_entire_file(path, &stream);
-    disassemble_psp_elf(&stream, out);
+    if (!read_entire_file(path, &stream, err))
+        return false;
+
+    defer { free(&stream); };
+
+    return disassemble_psp_elf(&stream, out, err);
 }
 
-void disassemble_psp_elf(char *data, u64 size, psp_disassembly *out)
+bool disassemble_psp_elf(char *data, u64 size, psp_disassembly *out, error *err)
 {
     assert(data != nullptr);
     assert(out != nullptr);
@@ -68,16 +70,16 @@ void disassemble_psp_elf(char *data, u64 size, psp_disassembly *out)
     stream.data = data;
     stream.size = size;
 
-    disassemble_psp_elf(&stream, out);
+    return disassemble_psp_elf(&stream, out, err);
 }
 
-void disassemble_psp_elf(memory_stream *in, psp_disassembly *out)
+bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
 {
     assert(in != nullptr);
     assert(out != nullptr);
 
     file_stream log;
-    log.handle = stdout;
+    log.handle = stdout_handle();
 
     psp_parse_elf_config elfconf;
     elfconf.section = ""_cs;
@@ -85,7 +87,8 @@ void disassemble_psp_elf(memory_stream *in, psp_disassembly *out)
     elfconf.verbose = false;
     elfconf.log = &log;
 
-    parse_psp_module_from_elf(in, &out->psp_module, &elfconf);
+    if (!parse_psp_module_from_elf(in, &out->psp_module, &elfconf, err))
+        return false;
 
     ::resize(&out->instruction_datas, out->psp_module.sections.size);
     
@@ -106,7 +109,9 @@ void disassemble_psp_elf(memory_stream *in, psp_disassembly *out)
             parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
     }
 
-    add_symbols_to_jumps(&out->jumps, &out->psp_module.symbols);
-    add_imports_to_jumps(&out->jumps, &out->psp_module.imported_modules);
-    add_exports_to_jumps(&out->jumps, &out->psp_module.exported_modules);
+    _add_symbols_to_jumps(&out->jumps, &out->psp_module.symbols);
+    _add_imports_to_jumps(&out->jumps, &out->psp_module.imported_modules);
+    _add_exports_to_jumps(&out->jumps, &out->psp_module.exported_modules);
+
+    return true;
 }

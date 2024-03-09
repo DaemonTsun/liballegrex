@@ -6,6 +6,7 @@
 #include "shl/streams.hpp"
 #include "shl/number_types.hpp"
 #include "shl/string.hpp"
+#include "shl/print.hpp"
 #include "shl/error.hpp"
 #include "shl/defer.hpp"
 
@@ -60,7 +61,7 @@ const arguments default_arguments{
     .input_file = ""_cs
 };
 
-void print_usage()
+static void _print_usage()
 {
     puts("Usage: " psp_elfdump_NAME " [-h] [-g] [-o OUTPUT] [-p] [-a VADDR] [-v] OBJFILE\n"
          "\n"
@@ -102,7 +103,17 @@ void print_usage()
          );
 }
 
-void parse_range(disasm_range *r, const char *arg)
+static bool _get_file_stream_or_stdout(const_string file, file_stream *out, error *err)
+{
+    if (is_blank(file))
+        out->handle = stdout_handle();
+    else if (!init(out, file.c_str, MODE_WRITE_TRUNC, PERMISSION_READ | PERMISSION_WRITE, err))
+        return false;
+
+    return true;
+}
+
+static bool _parse_range(disasm_range *r, const char *arg, error *err)
 {
     const char *n = arg;
     const char *colon = strchr(n, ':');
@@ -122,8 +133,12 @@ void parse_range(disasm_range *r, const char *arg)
     if (minus)
     {
         u32 endpos = strtoul(minus + 1, nullptr, 0);
+        
         if (endpos < r->start)
-            throw_error("start offset %x is larger than end offset %x", r->start, endpos);
+        {
+            format_error(err, 1, "start offset %x is larger than end offset %x", r->start, endpos);
+            return false;
+        }
 
         r->size = endpos - r->start;
     }
@@ -131,164 +146,18 @@ void parse_range(disasm_range *r, const char *arg)
         r->size = strtoul(plus + 1, nullptr, 0);
     else
         r->size = INFER_SIZE;
+
+    return true;
 }
 
-void parse_arguments(int argc, const char **argv, arguments *out)
-{
-    ::init(&out->ranges);
-
-    for (int i = 1; i < argc;)
-    {
-        const_string arg = to_const_string(argv[i]);
-
-        if (arg == "-h"_cs || arg == "--help"_cs)
-        {
-            print_usage();
-            exit(EXIT_SUCCESS);
-        }
-
-        if (arg == "-o"_cs || arg == "--output"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the output file", arg.c_str);
-
-            out->output_file = to_const_string(argv[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "--log"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the log file", arg.c_str);
-
-            out->log_file = to_const_string(argv[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "-s"_cs || arg == "--section"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the section name", arg.c_str);
-
-            out->section = to_const_string(argv[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "--dump-decrypt"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the output file", arg.c_str);
-
-            out->decrypted_elf_output = to_const_string(argv[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "-a"_cs || arg == "--vaddr"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the VADDR", arg.c_str);
-
-            out->vaddr = to_unsigned_int(argv[i+1], nullptr, 0);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "-r"_cs)
-        {
-            if (i >= argc - 1)
-                throw_error("%s expects a positional argument: the range", arg.c_str);
-
-            disasm_range *range = ::add_at_end(&out->ranges);
-            parse_range(range, argv[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (arg == "-v"_cs || arg == "--verbose"_cs)
-        {
-            out->verbose = true;
-            ++i;
-            continue;
-        }
-
-        // format
-        if (arg == "--no-comment"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::comment_pos_addr_instr);
-            ++i;
-            continue;
-        }
-
-        if (arg == "--no-comma-separator"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::comma_separate_args);
-            ++i;
-            continue;
-        }
-
-        if (arg == "--no-dollar-registers"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::dollar_registers);
-            ++i;
-            continue;
-        }
-
-        if (arg == "--no-glabels"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::function_glabels);
-            ++i;
-            continue;
-        }
-
-        if (arg == "--no-labels"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::labels);
-            ++i;
-            continue;
-        }
-
-        if (arg == "--no-pseudoinstructions"_cs)
-        {
-            unset_flag(out->output_format, mips_format_options::pseudoinstructions);
-            ++i;
-            continue;
-        }
-
-        // type
-        if (arg == "--asm"_cs)
-        {
-            out->output_type = format_type::Asm;
-            ++i;
-            continue;
-        }
-
-        // etc
-        if (begins_with(arg, "-"_cs))
-            throw_error("unknown argument '%s'", arg.c_str);
-
-        if (is_blank(out->input_file))
-        {
-            out->input_file = arg;
-            ++i;
-            continue;
-        }
-        else
-            throw_error("unexpected argument '%s'", arg.c_str);
-    }
-}
-
-void add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
+static void _add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
         ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
+static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
@@ -297,7 +166,7 @@ void add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
     }
 }
 
-void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
+static void _add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
@@ -306,7 +175,7 @@ void add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
     }
 }
 
-void format_dump(format_type type, const dump_config *dconf, file_stream *out)
+static void _format_dump(format_type type, const dump_config *dconf, file_stream *out)
 {
     switch (type)
     {
@@ -316,16 +185,17 @@ void format_dump(format_type type, const dump_config *dconf, file_stream *out)
     }
 }
 
-void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
+static bool _disassemble_elf(file_stream *in, file_stream *log, const arguments *args, error *err)
 {
-    memory_stream elf_data;
-    init(&elf_data);
-    defer { close(&elf_data); };
+    memory_stream elf_data{};
 
-    read_entire_file(in, &elf_data);
+    if (!read_entire_file(in, &elf_data, err))
+        return false;
+
+    defer { free(&elf_data); };
 
     psp_parse_elf_config rconf;
-    rconf.section = to_const_string(args->section.c_str);
+    rconf.section = args->section;
     rconf.vaddr = args->vaddr;
     rconf.verbose = args->verbose;
     rconf.log = log;
@@ -334,12 +204,13 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
     init(&pspmodule);
     defer { free(&pspmodule); };
 
-    parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf);
+    if (!parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf, err))
+        return false;
 
     jump_destinations jumps{};
     defer { ::free(&jumps); };
 
-    array<instruction_parse_data> instruction_datas; // just memory management
+    array<instruction_parse_data> instruction_datas;
     ::init(&instruction_datas, pspmodule.sections.size);
     defer { ::free<true>(&instruction_datas); };
 
@@ -378,30 +249,25 @@ void disassemble_elf(file_stream *in, file_stream *log, const arguments *args)
         dumpsec->first_instruction_offset = sec->content_offset;
     }
 
-    add_symbols_to_jumps(&jumps, &pspmodule.symbols);
-    add_imports_to_jumps(&jumps, &pspmodule.imported_modules);
-    add_exports_to_jumps(&jumps, &pspmodule.exported_modules);
+    _add_symbols_to_jumps(&jumps, &pspmodule.symbols);
+    _add_imports_to_jumps(&jumps, &pspmodule.imported_modules);
+    _add_exports_to_jumps(&jumps, &pspmodule.exported_modules);
 
-    FILE *outfd = stdout;
+    file_stream out{};
 
-    if (!is_blank(args->output_file))
-        outfd = fopen(args->output_file.c_str, "w");
+    if (!_get_file_stream_or_stdout(args->output_file, &out, err))
+        return false;
 
-    file_stream out;
-    out.handle = outfd;
-
-    if (!is_ok(&out))
-        throw_error("could not open output file %s", args->output_file.c_str);
+    defer { if (out.handle != stdout_handle()) free(&out); };
 
     dconf.jumps = &jumps;
 
-    format_dump(args->output_type, &dconf, &out);
+    _format_dump(args->output_type, &dconf, &out);
 
-    if (outfd != stdout)
-        close(&out);
+    return true;
 }
 
-void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments *args)
+static bool _dump_decrypted_elf(file_stream *in, file_stream *log, const arguments *args, error *err)
 {
     array<u8> decrypted_elf_bytes{};
     defer { free(&decrypted_elf_bytes); };
@@ -410,32 +276,40 @@ void dump_decrypted_elf(file_stream *in, file_stream *log, const arguments *args
 
     if (sz == 0)
     {
-        printf("input file is not encrypted. exiting\n");
-        return;
+        put("input file is not encrypted. exiting\n");
+        return true;
     }
     
-    file_stream out;
-    open(&out, args->decrypted_elf_output.c_str, MODE_WRITE);
-    defer { close(&out); };
+    file_stream out{};
 
-    if (!is_ok(&out))
-        throw_error("could not open dump output file %s", args->decrypted_elf_output.c_str);
+    if (!init(&out, args->decrypted_elf_output.c_str, MODE_WRITE_TRUNC, PERMISSION_READ | PERMISSION_WRITE, err))
+        return false;
 
-    write(&out, decrypted_elf_bytes.data, sz);
+    defer { free(&out); };
 
-    printf("dumped decrypted ELF from %s to %s\n", args->input_file.c_str, args->decrypted_elf_output.c_str);
+    if (write(&out, decrypted_elf_bytes.data, sz, err) < 0)
+        return false;
+
+    tprint("dumped decrypted ELF from % to %\n", args->input_file, args->decrypted_elf_output);
+
+    return true;
 }
 
-void disassemble_range(file_stream *in, file_stream *log, const disasm_range *range, const arguments *args)
+static bool _disassemble_range(file_stream *in, file_stream *out, file_stream *log, const disasm_range *range, const arguments *args, error *err)
 {
     u32 from = range->start;
     u32 sz = range->size;
 
-    if (sz == INFER_SIZE)
-        sz = (u32)in->size - from;
+    u32 in_size = (u32)get_file_size(in);
 
-    if (from + sz > in->size)
-        throw_error("end offset %x (start %x + size %x) is larger than input file size %x", from + sz, from, sz, in->size);
+    if (sz == INFER_SIZE)
+        sz = in_size - from;
+
+    if (from + sz > in_size)
+    {
+        format_error(err, 1, "end offset %x (start %x + size %x) is larger than input file size %x", from + sz, from, sz, in_size);
+        return false;
+    }
 
     parse_instructions_config pconf;
     pconf.log = log;
@@ -447,11 +321,11 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
         pconf.vaddr = 0;
 
     if (args->verbose)
-        format(log, "disassembling range %08x - %08x (size: %08x) with vaddr %08x\n", from, from + sz, sz, pconf.vaddr);
+        tprint(log->handle, "disassembling range %08x - %08x (size: %08x) with vaddr %08x\n", from, from + sz, sz, pconf.vaddr);
 
-    memory_stream memstr;
-    open(&memstr, sz);
-    defer { close(&memstr); };
+    memory_stream memstr{};
+    init(&memstr, sz);
+    defer { free(&memstr); };
     
     read_at(in, memstr.data, from, sz);
 
@@ -463,18 +337,8 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     defer { ::free(&jumps); };
 
     instruction_data.jumps = &jumps;
+
     parse_instructions(memstr.data, memstr.size, &pconf, &instruction_data);
-
-    FILE *outfd = stdout;
-
-    if (!is_blank(args->output_file))
-        outfd = fopen(args->output_file.c_str, "w");
-
-    file_stream out;
-    out.handle = outfd;
-
-    if (!is_ok(&out))
-        throw_error("could not open output file %s", args->output_file.c_str);
 
     dump_config dconf;
     dconf.jumps = &jumps;
@@ -489,69 +353,273 @@ void disassemble_range(file_stream *in, file_stream *log, const disasm_range *ra
     dsec->instruction_data = &instruction_data;
     dsec->first_instruction_offset = from;
 
-    format_dump(args->output_type, &dconf, &out);
+    _format_dump(args->output_type, &dconf, out);
 
     if (args->verbose)
-        write(log, "\n");
+        put(log->handle, "\n");
 
-    if (outfd != stdout)
-        close(&out);
+    return true;
 }
 
-void disassemble_ranges(file_stream *in, file_stream *log, const arguments *args)
+static bool _disassemble_ranges(file_stream *in, file_stream *log, const arguments *args, error *err)
 {
+    file_stream out{};
+
+    if (!_get_file_stream_or_stdout(args->output_file, &out, err))
+        return false;
+
+    defer { if (out.handle != stdout_handle()) free(&out); };
+
     for_array(range, &args->ranges)
-        disassemble_range(in, log, range, args);
+        if (!_disassemble_range(in, &out, log, range, args, err))
+            return false;
+
+    return true;
+}
+
+static bool _psp_elfdump(arguments *args, error *err)
+{
+    if (is_blank(args->input_file))
+    {
+        set_error(err, 1, "Error: expected input file");
+        return false;
+    }
+
+    // get logfile
+    file_stream log{};
+
+    if (is_blank(args->log_file))
+        log.handle = stdout_handle();
+    else
+    {
+        if (!init(&log, args->log_file.c_str, MODE_WRITE, PERMISSION_READ | PERMISSION_WRITE, err))
+            return false;
+
+        seek_from_end(&log, 0);
+    }
+
+    defer { if (log.handle != stdout_handle()) free(&log); };
+
+    file_stream in{};
+
+    if (!init(&in, args->input_file.c_str, MODE_READ, PERMISSION_READ, err))
+        return false;
+
+    defer { free(&in); };
+
+    if (!is_blank(args->decrypted_elf_output))
+    {
+        if (args->input_file == args->decrypted_elf_output)
+        {
+            set_error(err, 1, "Error: decrypted elf target output file is same as input file, aborting\n");
+            return false;
+        }
+
+        return _dump_decrypted_elf(&in, &log, args, err);
+    }
+    else if (args->ranges.size > 0)
+        return _disassemble_ranges(&in, &log, args, err);
+    else
+        return _disassemble_elf(&in, &log, args, err);
+
+    return true;
+}
+
+static bool _parse_arguments(int argc, const char **argv, arguments *out, error *err)
+{
+    ::init(&out->ranges);
+
+    for (int i = 1; i < argc;)
+    {
+        const_string arg = to_const_string(argv[i]);
+
+        if (arg == "-h"_cs || arg == "--help"_cs)
+        {
+            _print_usage();
+            return true;
+        }
+
+        if (arg == "-o"_cs || arg == "--output"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the output file", arg.c_str);
+                return false;
+            }
+
+            out->output_file = to_const_string(argv[i + 1]);
+            i += 2;
+            continue;
+        }
+
+        if (arg == "--log"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the log file", arg.c_str);
+                return false;
+            }
+
+            out->log_file = to_const_string(argv[i + 1]);
+            i += 2;
+            continue;
+        }
+
+        if (arg == "-s"_cs || arg == "--section"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the section name", arg.c_str);
+                return false;
+            }
+
+            out->section = to_const_string(argv[i + 1]);
+            i += 2;
+            continue;
+        }
+
+        if (arg == "--dump-decrypt"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the output file", arg.c_str);
+                return false;
+            }
+
+            out->decrypted_elf_output = to_const_string(argv[i + 1]);
+            i += 2;
+            continue;
+        }
+
+        if (arg == "-a"_cs || arg == "--vaddr"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the VADDR", arg.c_str);
+                return false;
+            }
+
+            out->vaddr = to_unsigned_int(argv[i + 1], nullptr, 0);
+            i += 2;
+            continue;
+        }
+
+        if (arg == "-r"_cs)
+        {
+            if (i >= argc - 1)
+            {
+                format_error(err, 1, "%s expects a positional argument: the range", arg.c_str);
+                return false;
+            }
+
+            disasm_range *range = ::add_at_end(&out->ranges);
+
+            if (!_parse_range(range, argv[i + 1], err))
+                return false;
+
+            i += 2;
+            continue;
+        }
+
+        if (arg == "-v"_cs || arg == "--verbose"_cs)
+        {
+            out->verbose = true;
+            i += 1;
+            continue;
+        }
+
+        // format
+        if (arg == "--no-comment"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::comment_pos_addr_instr);
+            i += 1;
+            continue;
+        }
+
+        if (arg == "--no-comma-separator"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::comma_separate_args);
+            i += 1;
+            continue;
+        }
+
+        if (arg == "--no-dollar-registers"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::dollar_registers);
+            i += 1;
+            continue;
+        }
+
+        if (arg == "--no-glabels"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::function_glabels);
+            i += 1;
+            continue;
+        }
+
+        if (arg == "--no-labels"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::labels);
+            i += 1;
+            continue;
+        }
+
+        if (arg == "--no-pseudoinstructions"_cs)
+        {
+            unset_flag(out->output_format, mips_format_options::pseudoinstructions);
+            i += 1;
+            continue;
+        }
+
+        // type
+        if (arg == "--asm"_cs)
+        {
+            out->output_type = format_type::Asm;
+            i += 1;
+            continue;
+        }
+
+        // etc
+        if (begins_with(arg, "-"_cs))
+        {
+            format_error(err, 1, "unknown argument '%s'", arg.c_str);
+            return false;
+        }
+
+        if (is_blank(out->input_file))
+        {
+            out->input_file = arg;
+            i += 1;
+            continue;
+        }
+        else
+        {
+            format_error(err, 1, "unexpected argument '%s'", arg.c_str);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 int main(int argc, const char **argv)
-try
 {
     arguments args = default_arguments;
+    error err{};
 
-    parse_arguments(argc, argv, &args);
+    if (!_parse_arguments(argc, argv, &args, &err))
+    {
+        tprint("Error: %\n", err.what);
+        return err.error_code;
+    }
+
     defer { ::free(&args.ranges); };
 
-    if (is_blank(args.input_file))
-        throw_error("expected input file");
-
-    // get logfile
-    FILE *logfd = stdout;
-
-    if (!is_blank(args.log_file))
-        logfd = fopen(args.log_file.c_str, "a");
-
-    file_stream log;
-    defer { if (log.handle != stdout) close(&log); };
-
-    log.handle = logfd;
-
-    if (!is_ok(&log))
-        throw_error("could not open file to log %s", args.log_file.c_str);
-
-    file_stream in;
-    open(&in, args.input_file.c_str, "rb");
-    defer { close(&in); };
-
-    if (!is_ok(&in))
-        throw_error("could not open input file %s", args.input_file.c_str);
-
-    if (!is_blank(args.decrypted_elf_output))
+    if (!_psp_elfdump(&args, &err))
     {
-        if (args.input_file == args.decrypted_elf_output)
-            throw_error("decrypted elf target output file is same as input file, aborting");
-
-        dump_decrypted_elf(&in, &log, &args);
+        tprint("Error: %\n", err.what);
+        return err.error_code;
     }
-    else if (!args.ranges.size == 0)
-        disassemble_ranges(&in, &log, &args);
-    else
-        disassemble_elf(&in, &log, &args);
 
     return 0;
-}
-catch (error &e)
-{
-    fprintf(stderr, "error: %s\n", e.what);
-    return 1;
 }

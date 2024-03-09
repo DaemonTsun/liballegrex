@@ -1,15 +1,15 @@
-// the list of modules included by src/psp_modules.cpp.
-// see src/psp_modules.hpp for the structure of modules
-// and functions.
+/* The list of modules included by src/allegrex/psp_modules.cpp.
+See src/allegrex/psp_modules.hpp for the structure of modules
+and functions.
 
-// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
-// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
+https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp
+https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp
 
-// not auto generated anymore using PPSSPPs HLE modules.
-// you can generate most of this
-// (just iterating moduleDB & formatting print in HLE.cpp)
-// now it's self-generated.
-
+Not auto generated anymore using PPSSPPs HLE modules.
+You can generate most of this by iterating moduleDB & formatting print in HLE.cpp.
+Now it's self-generated, i.e. this file is parsed by psp-module-format and
+regenerated using the compiled information from liballegrex.
+*/
 // module Kernel_Library, id 0, 18 functions
 constexpr fixed_array Kernel_Library0_functions
 {

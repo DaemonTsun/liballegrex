@@ -26,6 +26,6 @@ struct psp_disassembly
 void init(psp_disassembly *disasm);
 void free(psp_disassembly *disasm);
 
-void disassemble_psp_elf(const char *path, psp_disassembly *out);
-void disassemble_psp_elf(char *data, u64 size, psp_disassembly *out);
-void disassemble_psp_elf(memory_stream *in, psp_disassembly *out);
+bool disassemble_psp_elf(const char *path, psp_disassembly *out, error *err);
+bool disassemble_psp_elf(char *data, u64 size, psp_disassembly *out, error *err);
+bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err);

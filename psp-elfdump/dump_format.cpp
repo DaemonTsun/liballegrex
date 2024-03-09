@@ -1,5 +1,7 @@
 
 #include <assert.h>
+
+#include "shl/print.hpp"
 #include "psp-elfdump/dump_format.hpp"
 
 static_assert(hex_digits(0x00000000) == 0);
@@ -53,57 +55,57 @@ const char *lookup_address_name(u32 addr, const dump_config *conf)
 
 void fmt_mips_register_name(file_stream *out, mips_register reg)
 {
-    format(out, "%s", register_name(reg));
+    tprint(out->handle, "%s", register_name(reg));
 }
 
 void fmt_dollar_mips_register_name(file_stream *out, mips_register reg)
 {
-    format(out, "$%s", register_name(reg));
+    tprint(out->handle, "$%s", register_name(reg));
 }
 
 void fmt_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
 {
-    format(out, "%s", register_name(reg));
+    tprint(out->handle, "%s", register_name(reg));
 }
 
 void fmt_dollar_mips_fpu_register_name(file_stream *out, mips_fpu_register reg)
 {
-    format(out, "$%s", register_name(reg));
+    tprint(out->handle, "$%s", register_name(reg));
 }
 
 void fmt_vfpu_register_name(file_stream *out, vfpu_register reg)
 {
-    format(out, "%s%s", register_name(reg), size_suffix(reg.size));
+    tprint(out->handle, "%s%s", register_name(reg), size_suffix(reg.size));
 }
 
 void fmt_dollar_vfpu_register_name(file_stream *out, vfpu_register reg)
 {
-    format(out, "$%s%s", register_name(reg), size_suffix(reg.size));
+    tprint(out->handle, "$%s%s", register_name(reg), size_suffix(reg.size));
 }
 
 void fmt_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
 {
-    format(out, "%s%s", matrix_name(mtx), size_suffix(mtx.size));
+    tprint(out->handle, "%s%s", matrix_name(mtx), size_suffix(mtx.size));
 }
 
 void fmt_dollar_vfpu_matrix_name(file_stream *out, vfpu_matrix mtx)
 {
-    format(out, "$%s%s", matrix_name(mtx), size_suffix(mtx.size));
+    tprint(out->handle, "$%s%s", matrix_name(mtx), size_suffix(mtx.size));
 }
 
 void fmt_argument_space(file_stream *out)
 {
-    write(out, " ");
+    put(out->handle, " ");
 }
 
 void fmt_argument_comma_space(file_stream *out)
 {
-    write(out, ", ");
+    put(out->handle, ", ");
 }
 
 void fmt_jump_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    format(out, "0x%08x", address);
+    tprint(out->handle, "0x%08x", address);
 }
 
 void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *conf)
@@ -111,21 +113,21 @@ void fmt_jump_address_label(file_stream *out, u32 address, const dump_config *co
     const char *name = lookup_address_name(address, conf);
 
     if (name != nullptr)
-        format(out, "%s", name);
+        tprint(out->handle, "%s", name);
     else
-        format(out, "func_%08x", address);
+        tprint(out->handle, "func_%08x", address);
 }
 
 void fmt_branch_address_number(file_stream *out, u32 address, const dump_config *conf)
 {
-    format(out, "0x%08x", address);
+    tprint(out->handle, "0x%08x", address);
 }
 
 void fmt_branch_address_label(file_stream *out, u32 address, const dump_config *conf)
 {
     // we could use symbols for lookup, but these are just branch
     // labels, not jumps usually.
-    format(out, ".L%08x", address);
+    tprint(out->handle, ".L%08x", address);
 }
 
 void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
@@ -133,14 +135,14 @@ void fmt_jump_glabel(file_stream *out, u32 address, const dump_config *conf)
     const char *name = lookup_address_name(address, conf);
 
     if (name != nullptr)
-        format(out, "glabel %s\n", name);
+        tprint(out->handle, "glabel %s\n", name);
     else
-        format(out, "glabel func_%08x\n", address);
+        tprint(out->handle, "glabel func_%08x\n", address);
 }
 
 void fmt_branch_label(file_stream *out, u32 address, const dump_config *conf)
 {
     // same thing as before, these are branches, not jumps.
     // address name lookup is probably not necessary.
-    format(out, ".L%08x:\n", address);
+    tprint(out->handle, ".L%08x:\n", address);
 }

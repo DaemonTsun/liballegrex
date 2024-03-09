@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <stdio.h>
-#include "shl/number_types.hpp"
+#include "shl/io.hpp"
 
-void print_modules(FILE *f);
+void print_modules(io_handle h);

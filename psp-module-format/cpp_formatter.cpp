@@ -1,13 +1,15 @@
 
-#include <map>
-#include <unordered_map>
-#include <string>
-
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
+#include "shl/string.hpp"
+#include "shl/set.hpp"
+#include "shl/hash_table.hpp"
 #include "shl/error.hpp"
+#include "shl/streams.hpp"
+#include "shl/print.hpp"
+#include "shl/defer.hpp"
 #include "shl/platform.hpp"
 #include "allegrex/psp_modules.hpp"
 
@@ -23,29 +25,63 @@
 
 // cpp formatter
 
-struct liballegrex_data_t
+struct _parsed_function_arg
 {
-    std::map<psp_function_arg_t, std::string> function_args;
-    std::unordered_map<std::string, std::string> headers;
+    psp_function_arg_t arg;
+    const_string name;
 };
 
-static liballegrex_data_t *lib_data = nullptr;
-
-typedef void (*parse_handler)(const char *);
-
-void load_function_args(const char *content)
+template<>
+inline int compare_ascending_p(const _parsed_function_arg *l, const _parsed_function_arg *r)
 {
-    while (*content)
+    return compare_ascending(l->arg, r->arg);
+    return compare_ascending(*((u32*)l), *((u32*)r));
+}
+
+static inline int _parsed_function_arg_indexer(const psp_function_arg_t *l, const _parsed_function_arg *r)
+{
+    return compare_ascending(*l, r->arg);
+}
+
+struct _parsed_liballegrex_data
+{
+    memory_stream functions_file_content;
+    memory_stream headers_file_content;
+    set<_parsed_function_arg> function_args;
+    hash_table<const_string, const_string> headers;
+};
+
+void free(_parsed_liballegrex_data *data)
+{
+    if (data == nullptr)
+        return;
+
+    free(&data->functions_file_content);   
+    free(&data->headers_file_content);
+    free(&data->function_args);   
+    free(&data->headers);
+}
+
+static void _load_function_args(_parsed_liballegrex_data *data)
+{
+    const char *content = data->functions_file_content.data;
+    u64 i = 0;
+
+    while (i < data->functions_file_content.size)
     {
         if (strncmp(content, "#define", 7) != 0)
         {
             while (*content != '\n' && *content)
-                ++content;
+            {
+                content++;
+                i += 1;
+            }
 
             if (*content == '\0')
                 break;
 
-            ++content;
+            content++;
+            i += 1;
             continue;
         }
 
@@ -55,41 +91,50 @@ void load_function_args(const char *content)
         if (arg == nullptr || spc == nullptr)
             break;
 
-        std::string argname(arg, spc - arg);
+        const_string argname{arg, (u64)(spc - arg)};
 
         const char *nm = strstr(spc, "\\x") + 2;
 
-        psp_function_arg_t val = static_cast<psp_function_arg_t>(strtol(nm, nullptr, 16));
+        psp_function_arg_t val = static_cast<psp_function_arg_t>(to_unsigned_int(nm, nullptr, 16));
 
-        lib_data->function_args[val] = argname;
+        insert_element(&data->function_args, _parsed_function_arg{val, argname});
 
-        ++content;
+        content++;
+        i += 1;
     }
 }
 
-void load_pspdev_headers(const char *content)
+static void _load_pspdev_headers(_parsed_liballegrex_data *data)
 {
-    while (*content)
+    const char *content = data->headers_file_content.data;
+    u64 i = 0;
+
+    while (i < data->headers_file_content.size)
     {
         if (strncmp(content, "const char * const", 18) != 0)
         {
             while (*content != '\n' && *content)
-                ++content;
+            {
+                content++;
+                i += 1;
+            }
 
             if (*content == '\0')
                 break;
 
-            ++content;
+            content++;
+            i += 1;
             continue;
         }
 
-        content += 19; // length of const char * const 
+        content += 19; // length of "const char * const "
+        i += 19;
         const char *eq = strstr(content, " = ");
 
         if (eq == nullptr)
             break;
 
-        std::string header_var_name(content, eq - content);
+        const_string header_var_name{content, (u64)(eq - content)};
 
         const char *qt1 = strstr(eq, "\"");
 
@@ -103,186 +148,177 @@ void load_pspdev_headers(const char *content)
         if (qt2 == nullptr)
             break;
 
-        std::string header_file(qt1, qt2 - qt1);
+        const_string header_file{qt1, (u64)(qt2 - qt1)};
 
-        lib_data->headers[header_file] = header_var_name;
+        data->headers[header_file] = header_var_name;
 
-        ++content;
+        content++;
+        i += 1;
     }
 }
 
-void parse_file(const char *path, const char *filename, parse_handler handler)
+static bool _load_liballegrex_data(_parsed_liballegrex_data *out, error *err)
 {
-    char arg_def_file_path[PATH_MAX];
-    strcpy(arg_def_file_path, path);
-    strcpy(arg_def_file_path + strlen(path), filename);
-
-    FILE *f = fopen(arg_def_file_path, "r");
-
-    if (f == nullptr)
-        throw_error("could not open file %s", arg_def_file_path);
-
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char *content = reinterpret_cast<char*>(malloc(fsize + 1));
-    fread(content, fsize, 1, f);
-    fclose(f);
-
-    try
-    {
-        handler(content);
-    }
-    catch (...)
-    {
-        free(content);
-        throw;
-        return;
-    }
-
-    free(content);
-}
-
-void load_liballegrex_data()
-{
-    if (lib_data)
-        return;
-
-    lib_data = new liballegrex_data_t;
-
-    char pth[PATH_MAX];
+    sys_char pth[PATH_MAX] = {};
 
 #if Windows
-    int result = GetModuleFileName(0, pth, PATH_MAX - 1);
+    int result = (int)GetModuleFileNameA(0, pth, PATH_MAX - 1);
 
     if (result == 0)
-        throw_error("could not get path");
+    {
+        set_GetLastError_error(err);
+        return false;
+    }
 
     strcpy(strrchr(pth, '\\'), "\\..\\..\\src\\allegrex\\internal\\");
 #else
-    readlink("/proc/self/exe", pth, PATH_MAX);
+    if (readlink("/proc/self/exe", pth, PATH_MAX) == -1)
+    {
+        set_errno_error(err);
+        return false;
+    }
 
     // we're assuming we're always in a bin folder which is next to src.
     // yes this is terrible.
     strcpy(strrchr(pth, '/'), "/../../src/allegrex/internal/");
-
 #endif
 
-    parse_file(pth, "psp_module_function_argument_defs.hpp", load_function_args);
-    parse_file(pth, "psp_module_function_pspdev_headers.hpp", load_pspdev_headers);
+    u64 len = string_length(pth);
+    assert((len + 40) < PATH_MAX);
+    strcpy(pth + len, "psp_module_function_argument_defs.hpp");
+
+    if (!read_entire_file(pth, &out->functions_file_content, err))
+        return false;
+
+    strcpy(pth + len, "psp_module_function_pspdev_headers.hpp");
+
+    if (!read_entire_file(pth, &out->headers_file_content, err))
+        return false;
+
+    _load_function_args(out);
+    _load_pspdev_headers(out);
+
+    return true;
 }
 
-const char *get_cpp_psp_func_argument_name(psp_function_arg_t arg)
+static const_string _get_cpp_psp_func_argument_name(_parsed_liballegrex_data *data, psp_function_arg_t arg)
 {
-    auto it = lib_data->function_args.find(arg);
+    _parsed_function_arg *p = search(&data->function_args, arg, _parsed_function_arg_indexer);
 
-    assert(it != lib_data->function_args.end());
-    return it->second.c_str();
+    if (p == nullptr)
+        return const_string{"", 0};
+
+    return p->name;
 }
 
-void print_cpp_module_function_args(FILE *f, const psp_function_arg_t *args)
+static void _print_cpp_module_function_args(io_handle h, _parsed_liballegrex_data *data, const psp_function_arg_t *args)
 {
     auto *arg = args;
 
-    if (!*arg)
+    if (*arg == 0)
     {
-        fprintf(f, "NO_ARGS");
+        put(h, "NO_ARGS");
         return;
     }
     
-    fprintf(f, "ARGS(");
-    bool first = true;
+    put(h, "ARGS(");
 
-    while (*arg)
+    tprint(h, "%", _get_cpp_psp_func_argument_name(data, *arg));
+
+    arg++;
+
+    while (*arg != 0)
     {
-        if (first)
-            first = false;
-        else
-            fprintf(f, ", ");
-
-        fprintf(f, "%s", get_cpp_psp_func_argument_name(*arg));
+        tprint(h, ", %", _get_cpp_psp_func_argument_name(data, *arg));
         ++arg;
     }
 
-    fprintf(f, ")");
+    put(h, ")");
 }
 
-const char *get_cpp_pspdev_header_file_var(const char *header_file)
+static const_string _get_cpp_pspdev_header_file_var(_parsed_liballegrex_data *data, const char *header_file)
 {
-    auto it = lib_data->headers.find(std::string(header_file));
+    const_string *ret = search_by_hash(&data->headers, hash(header_file));
 
-    assert(it != lib_data->headers.end());
-    return it->second.c_str();
+    if (ret == nullptr)
+        return const_string{"", 0};
+
+    return *ret;
 }
 
-void print_cpp_module_function(FILE *f, const psp_function *func, bool last)
+static void _print_cpp_module_function(io_handle h, _parsed_liballegrex_data *data, const psp_function *func, bool last)
 {
-    fprintf(f, "    psp_function{ 0x%08x, \"%s\",\n", func->nid, func->name);
-    fprintf(f, "                  RET(%s), ", get_cpp_psp_func_argument_name(func->ret));
-    print_cpp_module_function_args(f, func->args);
-    fprintf(f, ",\n");
-    fprintf(f, "                  %s, %u, %u }%s\n", get_cpp_pspdev_header_file_var(func->header_file), func->module_num, func->function_num, last ? "" : ",");
+    tprint(h, "    psp_function{ 0x%08x, \"%s\",\n", func->nid, func->name);
+    tprint(h, "                  RET(%s), ", _get_cpp_psp_func_argument_name(data, func->ret));
+    _print_cpp_module_function_args(h, data, func->args);
+    tprint(h, ",\n");
+    tprint(h, "                  %, %, % }%s\n", _get_cpp_pspdev_header_file_var(data, func->header_file),
+                                                 func->module_num,
+                                                 func->function_num,
+                                                 last ? "" : ",");
 }
 
-void print_cpp_module_functions(FILE *f, const psp_module *mod)
+static void _print_cpp_module_functions(io_handle h, _parsed_liballegrex_data *data, const psp_module *mod)
 {
-    fprintf(f, "// module %s, id %u, %u functions\n", mod->name, mod->module_num, mod->function_count);
+    tprint(h, "// module %s, id %, % functions\n", mod->name, mod->module_num, mod->function_count);
 
     if (mod->function_count == 0)
         return;
 
-    fprintf(f, "constexpr std::array %s%u_functions\n{\n", mod->name, mod->module_num);
+    tprint(h, "constexpr fixed_array %s%_functions\n{\n", mod->name, mod->module_num);
 
     for (int i = 0; i < mod->function_count; ++i)
-        print_cpp_module_function(f, mod->functions + i, i+1 == mod->function_count);
+        _print_cpp_module_function(h, data, mod->functions + i, (i + 1) == mod->function_count);
 
-    fprintf(f, "};\n\n");
+    tprint(h, "};\n\n");
 }
 
-void print_cpp_module(FILE *f, const psp_module *mod, bool last)
+static void _print_cpp_module(io_handle h, const psp_module *mod, bool last)
 {
-    fprintf(f, "    %s", mod->function_count > 0 ? "DEFINE_PSP_MODULE" : "DEFINE_EMPTY_PSP_MODULE");
-    fprintf(f, "(%u, %s)%s\n", mod->module_num, mod->name, last ? "" : ",");
+    tprint(h, "    %s", mod->function_count > 0 ? "DEFINE_PSP_MODULE" : "DEFINE_EMPTY_PSP_MODULE");
+    tprint(h, "(%, %s)%s\n", mod->module_num, mod->name, last ? "" : ",");
 }
 
-void print_cpp_modules(FILE *f)
+bool print_cpp_modules(io_handle h, error *err)
 {
-    load_liballegrex_data();
+    _parsed_liballegrex_data data{};
+    defer { free(&data); };
 
-    auto n = get_psp_module_count();
+    if (!_load_liballegrex_data(&data, err))
+        return false;
+
     const psp_module *mods = get_psp_modules();
+    u32 mod_count = get_psp_module_count();
 
-    fprintf(f, "// the list of modules included by src/psp_modules.cpp.\n"
-               "// see src/psp_modules.hpp for the structure of modules\n"
-               "// and functions.\n"
-               "\n"
-               "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp\n"
-               "// https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp\n"
-               "\n"
-               "// not auto generated anymore using PPSSPPs HLE modules.\n"
-               "// you can generate most of this\n"
-               "// (by iterating moduleDB & formatting print in HLE.cpp)\n"
-               "// now it's self-generated.\n"
-               "\n");
+    tprint(h, "/* The list of modules included by src/allegrex/psp_modules.cpp.\n"
+              "See src/allegrex/psp_modules.hpp for the structure of modules\n"
+              "and functions.\n"
+              "\n"
+              "https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLE.cpp\n"
+              "https://github.com/hrydgard/ppsspp/blob/master/Core/HLE/HLETables.cpp\n"
+              "\n"
+              "Not auto generated anymore using PPSSPPs HLE modules.\n"
+              "You can generate most of this by iterating moduleDB & formatting print in HLE.cpp.\n"
+              "Now it's self-generated, i.e. this file is parsed by psp-module-format and\n"
+              "regenerated using the compiled information from liballegrex.\n"
+              "*/\n");
 
 
-    for (int i = 0; i < n; ++i)
-        print_cpp_module_functions(f, mods + i);
+    for (u32 i = 0; i < mod_count; ++i)
+        _print_cpp_module_functions(h, &data, mods + i);
 
-    fprintf(f, "\n#define DEFINE_PSP_MODULE(NUM, NAME)\\\n");
-    fprintf(f, "  psp_module{NUM, #NAME, NAME##NUM##_functions.data, array_size(&NAME##NUM##_functions)}\n\n");
+    tprint(h, "\n#define DEFINE_PSP_MODULE(NUM, NAME)\\\n");
+    tprint(h, "  psp_module{NUM, #NAME, NAME##NUM##_functions.data, (u32)array_size(&NAME##NUM##_functions)}\n\n");
 
-    fprintf(f, "#define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\\\n");
-    fprintf(f, "  psp_module{NUM, #NAME, nullptr, 0}\n\n");
+    tprint(h, "#define DEFINE_EMPTY_PSP_MODULE(NUM, NAME)\\\n");
+    tprint(h, "  psp_module{NUM, #NAME, nullptr, 0}\n\n");
 
-    fprintf(f, "constexpr fixed_array _modules\n{\n");
+    tprint(h, "constexpr fixed_array _modules\n{\n");
 
-    for (int i = 0; i < n; ++i)
-    {
-        const psp_module *mod = &mods[i];
-        print_cpp_module(f, mod, i+1 == n);
-    }
+    for (u32 i = 0; i < mod_count; ++i)
+        _print_cpp_module(h, mods + i, (i + 1) == mod_count);
 
-    fprintf(f, "};\n");
+    tprint(h, "};\n");
+
+    return true;
 }

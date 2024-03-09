@@ -6,6 +6,7 @@
 #include "shl/streams.hpp"
 #include "shl/fixed_array.hpp"
 #include "shl/error.hpp"
+#include "shl/print.hpp"
 #include "shl/defer.hpp"
 #include "shl/platform.hpp"
 
@@ -197,7 +198,8 @@ const psp_variable *_get_syslib_variable(u32 nid)
     return nullptr;
 }
 
-#define log(CONF, ...) {if (CONF != nullptr && CONF->verbose && CONF->log != nullptr) {format(CONF->log,__VA_ARGS__);}};
+#define log(CONF, ...) \
+    { if (CONF != nullptr && CONF->verbose && CONF->log != nullptr) { tprint(CONF->log->handle, __VA_ARGS__); }};
 
 template<typename T>
 void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
@@ -579,7 +581,7 @@ void free(elf_psp_module *mod)
     ::free(&mod->imports);
 }
 
-void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
+bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
 {
     memory_stream in{};
     in.data = out->elf_data;
@@ -588,17 +590,26 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
     Elf32_Ehdr elf_header;
 
     if (in.size < sizeof(Elf32_Ehdr))
-        throw_error("input is not an ELF file");
+    {
+        set_error(err, 1, "input is not an ELF file");
+        return false;
+    }
 
     read(&in, &elf_header);
 
     if (strncmp((const char*)elf_header.e_ident, "\x7f" "ELF", 4))
-        throw_error("input is not an ELF file");
+    {
+        set_error(err, 1, "input is not an ELF file");
+        return false;
+    }
 
     // we want little endian
     if (elf_header.e_ident[EI_DATA] != ELFDATA2LSB
      || elf_header.e_machine != EM_MIPS)
-        throw_error("input is not little-endian MIPS");
+    {
+        set_error(err, 1, "input is not little-endian MIPS");
+        return false;
+    }
 
     log(conf, "%s\n", "got little-endian mips");
 
@@ -608,7 +619,8 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
         // can have strange sections (e.g. MHFU has ~600 sections, a lot of them empty)
         // so we usually rely on the name given by command line args, or disassemble
         // all executable sections instead.
-        throw_error("no section header table index found");
+        set_error(err, 1, "no section header table index found");
+        return false;
     }
 
     const char *string_table_ptr = _get_string_table(&in, &elf_header);
@@ -643,9 +655,15 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
     if (section_indices.size == 0)
     {
         if (::is_blank(conf->section))
-            throw_error("no executable sections found in input file");
+        {
+            set_error(err, 1, "no executable sections found in input file");
+            return false;
+        }
         else
-            throw_error("section '%s' not found in input file", conf->section.c_str);
+        {
+            format_error(err, 1, "section '%s' not found in input file", conf->section.c_str);
+            return false;
+        }
     }
 
     elf_read_ctx ctx;
@@ -685,11 +703,13 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
     }
 
     _add_prx_imports_and_exports(&ctx, out);
+
+    return true;
 }
 
 #define DEFAULT_PARSE_ELF_CONFIG(NAME)\
     file_stream log;\
-    log.handle = stdout;\
+    log.handle = stdout_handle();\
 \
     psp_parse_elf_config NAME;\
     NAME.section = ""_cs;\
@@ -697,40 +717,42 @@ void _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf)
     NAME.verbose = false;\
     NAME.log = &log;
 
-void parse_psp_module_from_elf(const char *path, elf_psp_module *out)
+bool parse_psp_module_from_elf(const char *path, elf_psp_module *out, error *err)
 {
     assert(path != nullptr);
     assert(out != nullptr);
 
     DEFAULT_PARSE_ELF_CONFIG(conf);
 
-    parse_psp_module_from_elf(path, out, &conf);
+    return parse_psp_module_from_elf(path, out, &conf, err);
 }
 
-void parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf)
+bool parse_psp_module_from_elf(const char *path, elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
 {
     assert(path != nullptr);
     assert(out != nullptr);
 
-    memory_stream elf_stream;
-    init(&elf_stream);
-    defer { ::close(&elf_stream); };
+    memory_stream elf_stream{};
 
-    read_entire_file(path, &elf_stream);
-    parse_psp_module_from_elf(&elf_stream, out, conf);
+    if (!read_entire_file(path, &elf_stream, err))
+        return false;
+
+    defer { ::free(&elf_stream); };
+
+    return parse_psp_module_from_elf(&elf_stream, out, conf, err);
 }
 
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out)
+bool parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, error *err)
 {
     assert(elf_data != nullptr);
     assert(out != nullptr);
 
     DEFAULT_PARSE_ELF_CONFIG(conf);
 
-    parse_psp_module_from_elf(elf_data, elf_size, out, &conf);
+    return parse_psp_module_from_elf(elf_data, elf_size, out, &conf, err);
 }
 
-void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf)
+bool parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
 {
     assert(elf_data != nullptr);
     assert(out != nullptr);
@@ -738,38 +760,41 @@ void parse_psp_module_from_elf(char *elf_data, u64 elf_size, elf_psp_module *out
     memory_stream in;
     in.data = elf_data;
     in.size = elf_size;
-    in.block_size = 1;
     in.position = 0;
 
-    parse_psp_module_from_elf(&in, out, conf);
+    return parse_psp_module_from_elf(&in, out, conf, err);
 }
 
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out)
+bool parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, error *err)
 {
     assert(elf_stream != nullptr);
     assert(out != nullptr);
 
     DEFAULT_PARSE_ELF_CONFIG(conf);
 
-    parse_psp_module_from_elf(elf_stream, out, &conf);
+    return parse_psp_module_from_elf(elf_stream, out, &conf, err);
 }
 
-void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf)
+bool parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
 {
     assert(elf_stream != nullptr);
     assert(out != nullptr);
 
     array<u8> decrypted_elf{};
 
-    if (decrypt_elf(elf_stream, &decrypted_elf))
+    s64 sz = decrypt_elf(elf_stream, &decrypted_elf, err);
+
+    if (sz < 0)
+        return false;
+
+    if (sz > 0)
     {
         log(conf, "ELF is encrypted and has been decrypted.\n");
 
         out->elf_data = (char*)decrypted_elf.data;
         out->elf_size = decrypted_elf.size;
 
-        _read_elf(out, conf);
-        return;
+        return _read_elf(out, conf, err);
     }
 
     free(&decrypted_elf);
@@ -779,24 +804,27 @@ void parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, c
     out->elf_size = elf_stream->size;
     copy_memory(elf_stream->data, out->elf_data, elf_stream->size);
 
-    _read_elf(out, conf);
+    return _read_elf(out, conf, err);
 }
 
-u64 decrypt_elf(file_stream *in, array<u8> *out)
+s64 decrypt_elf(file_stream *in, array<u8> *out, error *err)
 {
     memory_stream memstr;
-    open(&memstr, in->size);
-    defer { close(&memstr); };
+    init(&memstr, get_file_size(in));
+    defer { free(&memstr); };
 
-    read_at(in, memstr.data, 0, in->size);
+    read_at(in, memstr.data, 0, in->cached_size);
 
-    return decrypt_elf(&memstr, out);
+    return decrypt_elf(&memstr, out, err);
 }
 
-u64 decrypt_elf(memory_stream *in, array<u8> *out)
+s64 decrypt_elf(memory_stream *in, array<u8> *out, error *err)
 {
     if (in->size < sizeof(Elf32_Ehdr))
-        throw_error("input is not an ELF file");
+    {
+        set_error(err, 1, "input is not an ELF file");
+        return -1;
+    }
 
     char magic[4];
     read(in, magic, 4);
@@ -807,7 +835,8 @@ u64 decrypt_elf(memory_stream *in, array<u8> *out)
         if (strncmp(magic, "~PSP", 4))
         {
             // nope, not encrypted either
-            throw_error("input is not an ELF file and is not encrypted");
+            set_error(err, 1, "input is not an ELF file and is not encrypted");
+            return -1;
         }
 
         // ok its encrypted, attempt decrypt
@@ -822,7 +851,10 @@ u64 decrypt_elf(memory_stream *in, array<u8> *out)
                                            phead.psp_size);
 
         if (decrypted_size < 0)
-            throw_error("could not decrypt input file");
+        {
+            set_error(err, 1, "could not decrypt input file");
+            return -1;
+        }
 
         /* TODO: implement gzip
         const auto isGzip = phead.comp_attribute & 1;

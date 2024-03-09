@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <stdio.h>
+#include "shl/io.hpp"
 
-void print_cpp_modules(FILE *f);
+bool print_cpp_modules(io_handle h, error *err);
 
