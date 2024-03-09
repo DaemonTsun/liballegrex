@@ -1,13 +1,11 @@
 
-#include <algorithm>
-#include <ostream>
-#include <string.h>
-
+#include "t1/t1.hpp"
 #include "shl/defer.hpp"
+#include "shl/memory.hpp"
 #include "allegrex/parse_instructions.hpp"
 
 #define clear_instruction() \
-    memset(&inst, 0, sizeof(instruction));\
+    fill_memory(&inst, 0);\
     inst.mnemonic = allegrex_mnemonic::_UNKNOWN;\
 
 #define setup_test_variables() \
@@ -36,11 +34,13 @@
     assert_equal(inst.argument_count, N);
     
 #define assert_argument_non_extra_count(N) \
-    u32 _count = 0;\
-    for (u32 nonextra_it = 0; nonextra_it < inst.argument_count; ++nonextra_it)\
-        if (inst.argument_types[nonextra_it] != argument_type::Extra)\
-            _count++;\
-    assert_equal(_count, N);
+    if constexpr(u32 _count = 0; true)\
+    {\
+        for (u32 nonextra_it = 0; nonextra_it < inst.argument_count; ++nonextra_it)\
+            if (inst.argument_types[nonextra_it] != argument_type::Extra)\
+                _count++;\
+        assert_equal(_count, N);\
+    }
     
 #define assert_argument_type(N, Type) \
     assert_greater_or_equal(inst.argument_count, N+1);\
@@ -64,144 +64,56 @@
 #define assert_argument_vfpu_size(SZ) \
     assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
 
-std::ostream &operator<<(std::ostream &lhs, allegrex_mnemonic rhs)
+define_t1_to_string(allegrex_mnemonic x, "%s", get_mnemonic_name(x));
+define_t1_to_string(mips_register x, "%s", register_name(x));
+define_t1_to_string(base_register x, "%s", register_name(x.data));
+define_t1_to_string(mips_fpu_register x, "%s", register_name(x));
+define_t1_to_string(vfpu_size x, "%s", size_suffix(x));
+define_t1_to_string(vfpu_register x, "%s", register_name(x));
+define_t1_to_string(vfpu_matrix x, "%s", matrix_name(x));
+define_t1_to_string(vfpu_condition x, "%s", vfpu_condition_name(x));
+define_t1_to_string(shift x, "%d", (int)(x.data));
+define_t1_to_string(memory_offset x, "%u", x.data);
+define_t1_to_string(extra x, "%d", (int)(x.data));
+define_t1_to_string(branch_address x, "%x", x.data);
+define_t1_to_string(jump_address x, "%x", x.data);
+define_t1_to_string(condition_code x, "%d", (int)(x.data));
+define_t1_to_string(bitfield_pos x, "pos(%d)", (int)(x.data));
+define_t1_to_string(bitfield_size x, "size(%d)", (int)(x.data));
+define_t1_to_string(vfpu_prefix x, "%s", vfpu_prefix_name(x));
+define_t1_to_string(vfpu_prefix_array x, "[%x,%x,%x,%x]", (u8)x.data[0]
+                                                        , (u8)x.data[1]
+                                                        , (u8)x.data[2]
+                                                        , (u8)x.data[3]);
+
+define_t1_to_string(vfpu_destination_prefix x, "%s", vfpu_destination_prefix_name(x));
+define_t1_to_string(vfpu_destination_prefix_array x, "[%x,%x,%x,%x]", (u8)x.data[0]
+                                                                    , (u8)x.data[1]
+                                                                    , (u8)x.data[2]
+                                                                    , (u8)x.data[3]);
+
+define_t1_to_string(vfpu_rotation x, "%s", vfpu_rotation_name(x));
+
+[[maybe_unused]] t1_string _t1_to_string(vfpu_rotation_array x)
 {
-    return lhs << get_mnemonic_name(rhs);
+    switch (x.size)
+    {
+    case 1: return t1_tprintf("[%x]",          (u8)x.data[0]);
+    case 2: return t1_tprintf("[%x,%x]",       (u8)x.data[0], (u8)x.data[1]);
+    case 3: return t1_tprintf("[%x,%x,%x]",    (u8)x.data[0], (u8)x.data[1], (u8)x.data[2]);
+    case 4: return t1_tprintf("[%x,%x,%x,%x]", (u8)x.data[0], (u8)x.data[1], (u8)x.data[2], (u8)x.data[3]);
+    default: return t1_tprintf("[]");
+    }
 }
 
-std::ostream &operator<<(std::ostream &lhs, mips_register rhs)
-{
-    return lhs << register_name(rhs);
-}
+define_t1_to_string(immediate<u8> x,  "%u", x.data);
+define_t1_to_string(immediate<u16> x, "%u", x.data);
+define_t1_to_string(immediate<u32> x, "%u", x.data);
+define_t1_to_string(immediate<s16> x, "%d", x.data);
+define_t1_to_string(immediate<s32> x, "%d", x.data);
 
-std::ostream &operator<<(std::ostream &lhs, base_register rhs)
-{
-    return lhs << register_name(rhs.data);
-}
-
-std::ostream &operator<<(std::ostream &lhs, mips_fpu_register rhs)
-{
-    return lhs << register_name(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_size rhs)
-{
-    return lhs << size_suffix(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_register rhs)
-{
-    return lhs << register_name(rhs) << rhs.size;
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_matrix rhs)
-{
-    return lhs << matrix_name(rhs) << rhs.size;
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_condition rhs)
-{
-    return lhs << vfpu_condition_name(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, shift rhs)
-{
-    return lhs << static_cast<int>(rhs.data);
-}
-
-std::ostream &operator<<(std::ostream &lhs, memory_offset rhs)
-{
-    return lhs << rhs.data;
-}
-
-std::ostream &operator<<(std::ostream &lhs, extra rhs)
-{
-    return lhs << static_cast<int>(rhs.data);
-}
-
-std::ostream &operator<<(std::ostream &lhs, branch_address rhs)
-{
-    return lhs << std::hex << rhs.data;
-}
-
-std::ostream &operator<<(std::ostream &lhs, jump_address rhs)
-{
-    return lhs << std::hex << rhs.data;
-}
-
-std::ostream &operator<<(std::ostream &lhs, condition_code rhs)
-{
-    return lhs << static_cast<int>(rhs.data);
-}
-
-std::ostream &operator<<(std::ostream &lhs, bitfield_pos rhs)
-{
-    return lhs << "pos(" << static_cast<int>(rhs.data) << ")";
-}
-
-std::ostream &operator<<(std::ostream &lhs, bitfield_size rhs)
-{
-    return lhs << "size(" << static_cast<int>(rhs.data) << ")";
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_prefix rhs)
-{
-    return lhs << vfpu_prefix_name(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_prefix_array rhs)
-{
-    return lhs << '[' << rhs.data[0]
-               << ',' << rhs.data[1]
-               << ',' << rhs.data[2]
-               << ',' << rhs.data[3]
-               << ']';
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_destination_prefix rhs)
-{
-    return lhs << vfpu_destination_prefix_name(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_destination_prefix_array rhs)
-{
-    return lhs << '[' << rhs.data[0]
-               << ',' << rhs.data[1]
-               << ',' << rhs.data[2]
-               << ',' << rhs.data[3]
-               << ']';
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_rotation rhs)
-{
-    return lhs << vfpu_rotation_name(rhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, vfpu_rotation_array rhs)
-{
-    lhs << '[' << rhs.data[0];
-
-    for (int i = 1; i < rhs.size; ++i)
-        lhs << ',' << rhs.data[i];
-
-    return lhs << ']';
-}
-
-template<typename T>
-std::ostream &operator<<(std::ostream &lhs, immediate<T> rhs)
-{
-    return lhs << rhs.data;
-}
-
-std::ostream &operator<<(std::ostream &lhs, coprocessor_register rhs)
-{
-    return lhs << '[' << static_cast<int>(rhs.rd) << ", " << static_cast<int>(rhs.sel) << ']';
-}
-
-std::ostream &operator<<(std::ostream &lhs, string_argument rhs)
-{
-    return lhs << rhs.data;
-}
+define_t1_to_string(coprocessor_register x, "[%d, %d]", (int)x.rd, (int)x.sel);
+define_t1_to_string(string_argument x, "%s", x.data);
 
 bool operator==(const shift &lhs, const shift &rhs)
 {

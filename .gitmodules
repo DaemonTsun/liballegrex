@@ -4,3 +4,6 @@
 [submodule "ext/better-cmake"]
 	path = ext/better-cmake
 	url = https://github.com/daemontsun/better-cmake.git
+[submodule "ext/t1"]
+	path = ext/t1
+	url = https://github.com/daemontsun/t1
