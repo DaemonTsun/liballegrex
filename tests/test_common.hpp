@@ -114,6 +114,8 @@ define_t1_to_string(immediate<s32> x, "%d", x.data);
 
 define_t1_to_string(coprocessor_register x, "[%d, %d]", (int)x.rd, (int)x.sel);
 define_t1_to_string(string_argument x, "%s", x.data);
+define_t1_to_string(const psp_module *x, "%p", x);
+define_t1_to_string(const psp_function *x, "%p", x);
 
 bool operator==(const shift &lhs, const shift &rhs)
 {

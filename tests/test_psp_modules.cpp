@@ -1,6 +1,6 @@
 
 #include <t1/t1.hpp>
-#include <string.h>
+#include "tests/test_common.hpp"
 
 #include "allegrex/psp_modules.hpp"
 
