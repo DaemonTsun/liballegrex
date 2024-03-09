@@ -94,7 +94,7 @@ const psp_function *get_psp_function_by_name(const char *mod, const char *name)
         if (strcmp(f->name, name) == 0)
             return f;
 
-        get_psp_function_nid_name(f, nidname);
+        get_psp_function_nid_name(f, nidname, 256);
 
         if (strcmp(nidname, name) == 0)
             return f;

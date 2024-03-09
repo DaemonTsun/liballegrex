@@ -44,5 +44,5 @@ const psp_function *get_psp_function(u16 mod, u16 fun);
 const char *get_psp_module_name(u16 mod);
 const char *get_psp_function_name(u16 mod, u16 fun);
 
-void get_psp_function_nid_name(const psp_function *fun, char *dst, u32 sz = -1);
+void get_psp_function_nid_name(const psp_function *fun, char *dst, u32 max_sz = 256);
 const char *get_psp_function_arg_name(psp_function_arg_t arg);
