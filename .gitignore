@@ -1,5 +1,6 @@
 tags
 bin/
+bin-r/
 *.swp
 instruction_test/instructions
 instruction_test/*.o

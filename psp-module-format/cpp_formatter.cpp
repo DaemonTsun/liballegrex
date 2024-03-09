@@ -35,7 +35,6 @@ template<>
 inline int compare_ascending_p(const _parsed_function_arg *l, const _parsed_function_arg *r)
 {
     return compare_ascending(l->arg, r->arg);
-    return compare_ascending(*((u32*)l), *((u32*)r));
 }
 
 static inline int _parsed_function_arg_indexer(const psp_function_arg_t *l, const _parsed_function_arg *r)
@@ -159,7 +158,7 @@ static void _load_pspdev_headers(_parsed_liballegrex_data *data)
 
 static bool _load_liballegrex_data(_parsed_liballegrex_data *out, error *err)
 {
-    sys_char pth[PATH_MAX] = {};
+    char pth[PATH_MAX] = {};
 
 #if Windows
     int result = (int)GetModuleFileNameA(0, pth, PATH_MAX - 1);

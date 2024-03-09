@@ -381,7 +381,7 @@ static bool _psp_elfdump(arguments *args, error *err)
 {
     if (is_blank(args->input_file))
     {
-        set_error(err, 1, "Error: expected input file");
+        set_error(err, 1, "expected input file");
         return false;
     }
 
@@ -411,7 +411,7 @@ static bool _psp_elfdump(arguments *args, error *err)
     {
         if (args->input_file == args->decrypted_elf_output)
         {
-            set_error(err, 1, "Error: decrypted elf target output file is same as input file, aborting\n");
+            set_error(err, 1, "decrypted elf target output file is same as input file, aborting\n");
             return false;
         }
 
