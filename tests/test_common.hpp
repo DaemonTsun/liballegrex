@@ -31,7 +31,7 @@
     assert_equal(inst.mnemonic, allegrex_mnemonic::MNEM);
     
 #define assert_argument_count(N) \
-    assert_equal(inst.argument_count, N);
+    assert_equal(inst.argument_count, (u32)N);
     
 #define assert_argument_non_extra_count(N) \
     if constexpr(u32 _count = 0; true)\
@@ -39,11 +39,11 @@
         for (u32 nonextra_it = 0; nonextra_it < inst.argument_count; ++nonextra_it)\
             if (inst.argument_types[nonextra_it] != argument_type::Extra)\
                 _count++;\
-        assert_equal(_count, N);\
+        assert_equal(_count, (u32)N);\
     }
     
 #define assert_argument_type(N, Type) \
-    assert_greater_or_equal(inst.argument_count, N+1);\
+    assert_greater_or_equal(inst.argument_count, (u32)N+1);\
     assert_equal(inst.argument_types[N], Type);
     
 #define assert_argument_equals(N, UnionMember, ...) \
@@ -59,7 +59,7 @@
     assert_equal(inst.arguments[N].vfpu_rotation_array.data[ArrayIndex], Value);
     
 #define assert_argument_vfpu_rotation_count(N, Value) \
-    assert_equal(inst.arguments[N].vfpu_rotation_array.size, Value);
+    assert_equal(inst.arguments[N].vfpu_rotation_array.size, (u64)Value);
     
 #define assert_argument_vfpu_size(SZ) \
     assert_equal(get_vfpu_size(inst.opcode), vfpu_size::SZ);
@@ -185,7 +185,7 @@ bool operator==(const vfpu_matrix &lhs, const vfpu_matrix &rhs)
 
 bool operator==(const vfpu_prefix_array &lhs, const vfpu_prefix_array &rhs)
 {
-    for (int i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
         if (lhs.data[i] != rhs.data[i])
             return false;
 
@@ -194,7 +194,7 @@ bool operator==(const vfpu_prefix_array &lhs, const vfpu_prefix_array &rhs)
 
 bool operator==(const vfpu_destination_prefix_array &lhs, const vfpu_destination_prefix_array &rhs)
 {
-    for (int i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
         if (lhs.data[i] != rhs.data[i])
             return false;
 
@@ -206,7 +206,7 @@ bool operator==(const vfpu_rotation_array &lhs, const vfpu_rotation_array &rhs)
     if (lhs.size != rhs.size)
         return false;
 
-    for (int i = 0; i < lhs.size; ++i)
+    for (u32 i = 0; i < lhs.size; ++i)
         if (lhs.data[i] != rhs.data[i])
             return false;
 

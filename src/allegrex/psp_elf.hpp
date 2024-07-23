@@ -10,7 +10,7 @@
 #include "allegrex/psp_modules.hpp"
 #include "allegrex/psp_prx.hpp"
 
-#define INFER_VADDR UINT32_MAX
+#define INFER_VADDR max_value(u32)
 
 struct psp_parse_elf_config
 {

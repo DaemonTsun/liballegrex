@@ -64,7 +64,7 @@ const psp_function *get_psp_function_by_nid(const char *mod, u32 nid)
         return nullptr;
 
     // could be optimized even more
-    for (int i = 0; i < md->function_count; ++i)
+    for (u32 i = 0; i < md->function_count; ++i)
     {
         const psp_function *f = md->functions + i;
 
@@ -87,7 +87,7 @@ const psp_function *get_psp_function_by_name(const char *mod, const char *name)
 
     char nidname[256];
 
-    for (int i = 0; i < md->function_count; ++i)
+    for (u32 i = 0; i < md->function_count; ++i)
     {
         const psp_function *f = md->functions + i;
 

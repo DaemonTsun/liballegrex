@@ -32,7 +32,7 @@ define_test(get_psp_function_by_nid)
 
     assert_not_equal(fun, nullptr);
     assert_str_equal(fun->name, "sceKernelCpuSuspendIntr");
-    assert_equal(fun->nid, 0x092968f4);
+    assert_equal(fun->nid, 0x092968f4u);
 }
 
 define_test(get_psp_function_by_name)

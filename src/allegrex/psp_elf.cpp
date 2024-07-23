@@ -559,7 +559,8 @@ void free(elf_psp_module *mod)
 {
     assert(mod != nullptr);
 
-    free_memory(mod->elf_data);
+    if (mod->elf_data != nullptr)
+        dealloc(mod->elf_data, mod->elf_size);
 
     ::free(&mod->relocations);
     ::free(&mod->sections);
@@ -589,7 +590,7 @@ bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, error *err
 
     Elf32_Ehdr elf_header;
 
-    if (in.size < sizeof(Elf32_Ehdr))
+    if (in.size < (s64)sizeof(Elf32_Ehdr))
     {
         set_error(err, 1, "input is not an ELF file");
         return false;
@@ -800,7 +801,7 @@ bool parse_psp_module_from_elf(memory_stream *elf_stream, elf_psp_module *out, c
     free(&decrypted_elf);
 
     // elf is not encrypted, copy it to the module
-    out->elf_data = allocate_memory<char>(elf_stream->size);
+    out->elf_data = alloc<char>(elf_stream->size);
     out->elf_size = elf_stream->size;
     copy_memory(elf_stream->data, out->elf_data, elf_stream->size);
 
@@ -820,7 +821,7 @@ s64 decrypt_elf(file_stream *in, array<u8> *out, error *err)
 
 s64 decrypt_elf(memory_stream *in, array<u8> *out, error *err)
 {
-    if (in->size < sizeof(Elf32_Ehdr))
+    if (in->size < (s64)sizeof(Elf32_Ehdr))
     {
         set_error(err, 1, "input is not an ELF file");
         return -1;

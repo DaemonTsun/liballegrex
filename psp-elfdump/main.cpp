@@ -17,7 +17,7 @@
 #include "psp-elfdump/asm_formatter.hpp"
 #include "psp-elfdump/config.hpp"
 
-#define INFER_SIZE UINT32_MAX
+#define INFER_SIZE max_value(u32)
 
 struct disasm_range
 {
@@ -107,7 +107,7 @@ static bool _get_file_stream_or_stdout(const_string file, file_stream *out, erro
 {
     if (is_blank(file))
         out->handle = stdout_handle();
-    else if (!init(out, file.c_str, MODE_WRITE_TRUNC, PERMISSION_READ | PERMISSION_WRITE, err))
+    else if (!init(out, file.c_str, OPEN_MODE_WRITE_TRUNC, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
         return false;
 
     return true;
@@ -282,7 +282,7 @@ static bool _dump_decrypted_elf(file_stream *in, file_stream *log, const argumen
     
     file_stream out{};
 
-    if (!init(&out, args->decrypted_elf_output.c_str, MODE_WRITE_TRUNC, PERMISSION_READ | PERMISSION_WRITE, err))
+    if (!init(&out, args->decrypted_elf_output.c_str, OPEN_MODE_WRITE_TRUNC, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
         return false;
 
     defer { free(&out); };
@@ -392,7 +392,7 @@ static bool _psp_elfdump(arguments *args, error *err)
         log.handle = stdout_handle();
     else
     {
-        if (!init(&log, args->log_file.c_str, MODE_WRITE, PERMISSION_READ | PERMISSION_WRITE, err))
+        if (!init(&log, args->log_file.c_str, OPEN_MODE_WRITE, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
             return false;
 
         seek_from_end(&log, 0);
@@ -402,7 +402,7 @@ static bool _psp_elfdump(arguments *args, error *err)
 
     file_stream in{};
 
-    if (!init(&in, args->input_file.c_str, MODE_READ, PERMISSION_READ, err))
+    if (!init(&in, args->input_file.c_str, OPEN_MODE_READ, OPEN_PERMISSION_READ, err))
         return false;
 
     defer { free(&in); };

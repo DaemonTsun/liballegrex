@@ -798,7 +798,7 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
     if (cat == nullptr)
         return false;
 
-    for (int i = 0; i < cat->sub_category_count; ++i)
+    for (u64 i = 0; i < cat->sub_category_count; ++i)
         if (try_parse_category_instruction(opcode, cat->sub_categories[i], out, conf, pdata))
             return true;
 
@@ -807,7 +807,7 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
     if (mop < cat->min || mop > cat->max)
         return false;
 
-    for (int i = 0; i < cat->instruction_count; ++i)
+    for (u64 i = 0; i < cat->instruction_count; ++i)
     {
         const instruction_info &instr = cat->instructions[i];
 
@@ -850,7 +850,7 @@ void parse_instruction(u32 opcode, instruction *out, const parse_instructions_co
 void parse_instructions(const char *instructions_data, u64 size, const parse_instructions_config *conf, instruction_parse_data *out)
 {
     assert(size % sizeof(u32) == 0);
-    assert(size <= UINT32_MAX);
+    assert(size <= max_value(u32));
 
     out->vaddr = conf->vaddr;
 

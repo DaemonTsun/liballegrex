@@ -15,14 +15,14 @@ add_lib(allegrex STATIC
     INCLUDE_DIRS "${ROOT}"
     GENERATE_TARGET_HEADER "${ROOT}/src/allegrex/liballegrex_info.hpp"
     CPP_VERSION 20
-    CPP_WARNINGS ALL SANE FATAL
+    CPP_WARNINGS ALL SANE FATAL @GNU -Wno-address
     LIBRARIES kirk
     EXT
-        LIB shl 0.9.1 "${ROOT}/ext/shl" INCLUDE LINK GIT_SUBMODULE
+        LIB shl 0.9.4 "${ROOT}/ext/shl" INCLUDE LINK GIT_SUBMODULE
     TESTS "${ROOT}/tests"
     )
 
-set(shl_SOURCES_DIR "${shl-0.9.1_SOURCES_DIR}")
+set(shl_SOURCES_DIR "${shl-0.9.4_SOURCES_DIR}")
 
 exit_if_included()
 

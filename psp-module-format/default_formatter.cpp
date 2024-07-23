@@ -34,7 +34,7 @@ void print_module(io_handle h, const psp_module *mod)
 {
     tprint(h, "% %s\n", mod->module_num, mod->name);
 
-    for (int i = 0; i < mod->function_count; ++i)
+    for (u32 i = 0; i < mod->function_count; ++i)
         print_module_function(h, mod->functions + i);
 }
 

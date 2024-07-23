@@ -9,7 +9,7 @@ void init(psp_disassembly *disasm)
 
     init(&disasm->psp_module);
     ::init(&disasm->instruction_datas);
-    ::init(&disasm->jumps.data);
+    ::init(&disasm->jumps);
 }
 
 void free(psp_disassembly *disasm)

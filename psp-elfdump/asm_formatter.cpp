@@ -89,7 +89,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
 
     if (!is_flag_set(conf->format, mips_format_options::function_glabels)
      && !is_flag_set(conf->format, mips_format_options::labels))
-        jmp_i = UINT32_MAX;
+        jmp_i = max_value(u32);
     else
     {
         // skip symbols that come before this section
@@ -110,7 +110,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
 
         while (write_label)
         {
-            jump_destination *jmp = jumps->data.data + jmp_i;
+            jump_destination *jmp = jumps->data + jmp_i;
 
             if (jmp->type == jump_type::Jump)
             {
@@ -133,7 +133,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
         _format_name(out, inst);
 
         bool first = true;
-        for (int i = 0; i < inst->argument_count; ++i)
+        for (u32 i = 0; i < inst->argument_count; ++i)
         {
             instruction_argument *arg = inst->arguments + i;
             argument_type arg_type = inst->argument_types[i];
@@ -201,7 +201,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
                 vfpu_rotation_array *arr = &arg->vfpu_rotation_array;
                 tprint(out->handle, "[%s", vfpu_rotation_name(arr->data[0]));
 
-                for (int j = 1; j < arr->size; ++j)
+                for (u32 j = 1; j < arr->size; ++j)
                     tprint(out->handle, ",%s", vfpu_rotation_name(arr->data[j]));
 
                 tprint(out->handle, "]");

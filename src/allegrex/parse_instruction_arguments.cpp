@@ -919,7 +919,7 @@ float Float16ToFloat32(u16 l)
 {
     // https://github.com/hrydgard/ppsspp/blob/748eef05d0c64b7aa5be6714fa52fa84a5977f05/Core/MIPS/MIPSVFPUUtils.cpp#L616
     union float2int {
-        uint32_t i;
+        u32 i;
         float f;
     };
 

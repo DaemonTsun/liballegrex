@@ -64,7 +64,7 @@ void free(_parsed_liballegrex_data *data)
 static void _load_function_args(_parsed_liballegrex_data *data)
 {
     const char *content = data->functions_file_content.data;
-    u64 i = 0;
+    s64 i = 0;
 
     while (i < data->functions_file_content.size)
     {
@@ -90,7 +90,7 @@ static void _load_function_args(_parsed_liballegrex_data *data)
         if (arg == nullptr || spc == nullptr)
             break;
 
-        const_string argname{arg, (u64)(spc - arg)};
+        const_string argname{arg, spc - arg};
 
         const char *nm = strstr(spc, "\\x") + 2;
 
@@ -106,7 +106,7 @@ static void _load_function_args(_parsed_liballegrex_data *data)
 static void _load_pspdev_headers(_parsed_liballegrex_data *data)
 {
     const char *content = data->headers_file_content.data;
-    u64 i = 0;
+    s64 i = 0;
 
     while (i < data->headers_file_content.size)
     {
@@ -133,7 +133,7 @@ static void _load_pspdev_headers(_parsed_liballegrex_data *data)
         if (eq == nullptr)
             break;
 
-        const_string header_var_name{content, (u64)(eq - content)};
+        const_string header_var_name{content, eq - content};
 
         const char *qt1 = strstr(eq, "\"");
 
@@ -147,7 +147,7 @@ static void _load_pspdev_headers(_parsed_liballegrex_data *data)
         if (qt2 == nullptr)
             break;
 
-        const_string header_file{qt1, (u64)(qt2 - qt1)};
+        const_string header_file{qt1, qt2 - qt1};
 
         data->headers[header_file] = header_var_name;
 
@@ -266,7 +266,7 @@ static void _print_cpp_module_functions(io_handle h, _parsed_liballegrex_data *d
 
     tprint(h, "constexpr fixed_array %s%_functions\n{\n", mod->name, mod->module_num);
 
-    for (int i = 0; i < mod->function_count; ++i)
+    for (u32 i = 0; i < mod->function_count; ++i)
         _print_cpp_module_function(h, data, mod->functions + i, (i + 1) == mod->function_count);
 
     tprint(h, "};\n\n");
