@@ -21,74 +21,74 @@
 #if Windows
 #define EI_NIDENT 16
 
-typedef uint32_t Elf32_Addr;
-typedef uint32_t Elf32_Off;
-typedef uint16_t Elf32_Section;
-typedef uint16_t Elf32_Versym;
-typedef unsigned char Elf_Byte;
-typedef uint16_t Elf32_Half;
-typedef int32_t  Elf32_Sword;
-typedef uint32_t Elf32_Word;
-typedef int64_t  Elf32_Sxword;
-typedef uint64_t Elf32_Xword;
+typedef u32 Elf32_Addr;
+typedef u32 Elf32_Off;
+typedef u16 Elf32_Section;
+typedef u16 Elf32_Versym;
+typedef  u8 Elf_Byte;
+typedef u16 Elf32_Half;
+typedef s32 Elf32_Sword;
+typedef u32 Elf32_Word;
+typedef s64 Elf32_Sxword;
+typedef u64 Elf32_Xword;
 
 typedef struct
 {
-    unsigned char e_ident[EI_NIDENT];
-    uint16_t      e_type;
-    uint16_t      e_machine;
-    uint32_t      e_version;
-    Elf32_Addr    e_entry;
-    Elf32_Off     e_phoff;
-    Elf32_Off     e_shoff;
-    uint32_t      e_flags;
-    uint16_t      e_ehsize;
-    uint16_t      e_phentsize;
-    uint16_t      e_phnum;
-    uint16_t      e_shentsize;
-    uint16_t      e_shnum;
-    uint16_t      e_shstrndx;
+    u8  e_ident[EI_NIDENT];
+    u16 e_type;
+    u16 e_machine;
+    u32 e_version;
+    Elf32_Addr e_entry;
+    Elf32_Off  e_phoff;
+    Elf32_Off  e_shoff;
+    u32 e_flags;
+    u16 e_ehsize;
+    u16 e_phentsize;
+    u16 e_phnum;
+    u16 e_shentsize;
+    u16 e_shnum;
+    u16 e_shstrndx;
 } Elf32_Ehdr;
 
 typedef struct
 {
-    uint32_t   p_type;
+    u32 p_type;
     Elf32_Off  p_offset;
     Elf32_Addr p_vaddr;
     Elf32_Addr p_paddr;
-    uint32_t   p_filesz;
-    uint32_t   p_memsz;
-    uint32_t   p_flags;
-    uint32_t   p_align;
+    u32 p_filesz;
+    u32 p_memsz;
+    u32 p_flags;
+    u32 p_align;
 } Elf32_Phdr;
 
 typedef struct
 {
-    uint32_t   sh_name;
-    uint32_t   sh_type;
-    uint32_t   sh_flags;
+    u32 sh_name;
+    u32 sh_type;
+    u32 sh_flags;
     Elf32_Addr sh_addr;
     Elf32_Off  sh_offset;
-    uint32_t   sh_size;
-    uint32_t   sh_link;
-    uint32_t   sh_info;
-    uint32_t   sh_addralign;
-    uint32_t   sh_entsize;
+    u32 sh_size;
+    u32 sh_link;
+    u32 sh_info;
+    u32 sh_addralign;
+    u32 sh_entsize;
 } Elf32_Shdr;
 
 typedef struct
 {
-    uint32_t      st_name;
+    u32 st_name;
     Elf32_Addr    st_value;
-    uint32_t      st_size;
-    unsigned char st_info;
-    unsigned char st_other;
-    uint16_t      st_shndx;
+    u32 st_size;
+    u8  st_info;
+    u8  st_other;
+    u16 st_shndx;
 } Elf32_Sym;
 
 typedef struct {
     Elf32_Addr r_offset;
-    uint32_t   r_info;
+    u32   r_info;
 } Elf32_Rel;
 
 #define ELF32_R_SYM(x) ((x) >> 8)
