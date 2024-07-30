@@ -10,7 +10,7 @@ project_author("DaemonTsun")
 add_subdirectory(libkirk)
 
 add_lib(allegrex STATIC
-    VERSION 1.0.3
+    VERSION 1.0.4
     SOURCES_DIR "${ROOT}/src/"
     INCLUDE_DIRS "${ROOT}"
     GENERATE_TARGET_HEADER "${ROOT}/src/allegrex/liballegrex_info.hpp"

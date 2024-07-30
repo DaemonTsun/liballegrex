@@ -4,9 +4,9 @@
 #include "shl/enum_flag.hpp"
 #include "shl/number_types.hpp"
 
-// not called instruction to avoid confusion between instruction struct and mnemonics.
+// Not called instruction to avoid confusion between instruction struct and mnemonics.
 // also these are just the mnemonics.
-// order matters.
+// Order matters.
 enum class allegrex_mnemonic : u16
 {
     NOP,
@@ -299,10 +299,10 @@ enum class allegrex_mnemonic : u16
 
 DEFINE_ENUM_VALUE(allegrex_mnemonic);
 
-// may include VFPU vector size suffixes if suffix is fixed for instruction
+// May include VFPU vector size suffixes if suffix is fixed for instruction,
 // otherwise check requires_vfpu_suffix to see if suffix is necessary.
 const char *get_mnemonic_name(allegrex_mnemonic mne);
 
-// returns true if the mnemonic needs a size suffix, false otherwise.
-// returns false on instructions that have a fixed size, e.g. vhftm2 (always pair)
+// Returns true if the mnemonic needs a size suffix, false otherwise.
+// Returns false on instructions that have a fixed size, e.g. vhftm2 (always pair)
 bool requires_vfpu_suffix(allegrex_mnemonic mne);

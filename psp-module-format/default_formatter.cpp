@@ -5,7 +5,7 @@
 #include "default_formatter.hpp"
 
 // default formatter
-void print_module_function_args(io_handle h, const psp_function_arg_t *args)
+static void _print_module_function_args(io_handle h, const psp_function_arg_t *args)
 {
     auto *arg = args;
     bool first = true;
@@ -22,20 +22,20 @@ void print_module_function_args(io_handle h, const psp_function_arg_t *args)
     }
 }
 
-void print_module_function(io_handle h, const psp_function *func)
+static void _print_module_function(io_handle h, const psp_function *func)
 {
     tprint(h, "  0x%08x %s %s(", func->nid, get_psp_function_arg_name(func->ret), func->name);
-    print_module_function_args(h, func->args);
+    _print_module_function_args(h, func->args);
     tprint(h, ")\n");
     tprint(h, "  %s, % % \n\n", func->header_file, func->module_num, func->function_num);
 }
 
-void print_module(io_handle h, const psp_module *mod)
+static void _print_module(io_handle h, const psp_module *mod)
 {
     tprint(h, "% %s\n", mod->module_num, mod->name);
 
     for (u32 i = 0; i < mod->function_count; ++i)
-        print_module_function(h, mod->functions + i);
+        _print_module_function(h, mod->functions + i);
 }
 
 void print_modules(io_handle h)
@@ -44,5 +44,5 @@ void print_modules(io_handle h)
     const psp_module *mods = get_psp_modules();
 
     for (u32 i = 0; i < n; ++i)
-        print_module(h, mods + i);
+        _print_module(h, mods + i);
 }

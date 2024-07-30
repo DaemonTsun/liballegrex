@@ -40,7 +40,7 @@ constexpr immediate<u32> extend16_immu32(u32 val)
 }
 
 #define DEFINE_ADD_ARGUMENT(T, ArgumentType, UnionMember)\
-    void add_argument(T val, instruction *inst)\
+    static void _add_argument(T val, instruction *inst)\
     {\
         assert(inst->argument_count < MAX_ARGUMENT_COUNT);\
         inst->arguments[inst->argument_count].UnionMember = val;\
@@ -48,61 +48,61 @@ constexpr immediate<u32> extend16_immu32(u32 val)
         inst->argument_count++;\
     }
 
-DEFINE_ADD_ARGUMENT(invalid_argument, Invalid, invalid_argument)
-DEFINE_ADD_ARGUMENT(mips_register, MIPS_Register, mips_register)
-DEFINE_ADD_ARGUMENT(mips_fpu_register, MIPS_FPU_Register, mips_fpu_register)
-DEFINE_ADD_ARGUMENT(vfpu_register, VFPU_Register, vfpu_register)
-DEFINE_ADD_ARGUMENT(vfpu_matrix, VFPU_Matrix, vfpu_matrix)
-DEFINE_ADD_ARGUMENT(vfpu_condition, VFPU_Condition, vfpu_condition)
-DEFINE_ADD_ARGUMENT(vfpu_constant, VFPU_Constant, vfpu_constant)
-DEFINE_ADD_ARGUMENT(vfpu_prefix_array, VFPU_Prefix_Array, vfpu_prefix_array)
+DEFINE_ADD_ARGUMENT(invalid_argument,   Invalid,            invalid_argument)
+DEFINE_ADD_ARGUMENT(mips_register,      MIPS_Register,      mips_register)
+DEFINE_ADD_ARGUMENT(mips_fpu_register,  MIPS_FPU_Register,  mips_fpu_register)
+DEFINE_ADD_ARGUMENT(vfpu_register,      VFPU_Register,      vfpu_register)
+DEFINE_ADD_ARGUMENT(vfpu_matrix,        VFPU_Matrix,        vfpu_matrix)
+DEFINE_ADD_ARGUMENT(vfpu_condition,     VFPU_Condition,     vfpu_condition)
+DEFINE_ADD_ARGUMENT(vfpu_constant,      VFPU_Constant,      vfpu_constant)
+DEFINE_ADD_ARGUMENT(vfpu_prefix_array,  VFPU_Prefix_Array,  vfpu_prefix_array)
 DEFINE_ADD_ARGUMENT(vfpu_destination_prefix_array, VFPU_Destination_Prefix_Array, vfpu_destination_prefix_array)
-DEFINE_ADD_ARGUMENT(vfpu_rotation_array, VFPU_Rotation_Array, vfpu_rotation_array)
+DEFINE_ADD_ARGUMENT(vfpu_rotation_array, VFPU_Rotation_Array,  vfpu_rotation_array)
 DEFINE_ADD_ARGUMENT(const psp_function*, PSP_Function_Pointer, psp_function_pointer)
-DEFINE_ADD_ARGUMENT(shift, Shift, shift)
+DEFINE_ADD_ARGUMENT(shift,              Shift,              shift)
 DEFINE_ADD_ARGUMENT(coprocessor_register, Coprocessor_Register, coprocessor_register)
-DEFINE_ADD_ARGUMENT(base_register, Base_Register, base_register)
-DEFINE_ADD_ARGUMENT(jump_address, Jump_Address, jump_address)
-DEFINE_ADD_ARGUMENT(branch_address, Branch_Address, branch_address)
-DEFINE_ADD_ARGUMENT(memory_offset, Memory_Offset, memory_offset)
-DEFINE_ADD_ARGUMENT(immediate<u32>, Immediate_u32, immediate_u32)
-DEFINE_ADD_ARGUMENT(immediate<s32>, Immediate_s32, immediate_s32)
-DEFINE_ADD_ARGUMENT(immediate<u16>, Immediate_u16, immediate_u16)
-DEFINE_ADD_ARGUMENT(immediate<s16>, Immediate_s16, immediate_s16)
-DEFINE_ADD_ARGUMENT(immediate<u8>,  Immediate_u8,  immediate_u8)
-DEFINE_ADD_ARGUMENT(immediate<float>, Immediate_float, immediate_float)
-DEFINE_ADD_ARGUMENT(condition_code, Condition_Code, condition_code)
-DEFINE_ADD_ARGUMENT(bitfield_pos, Bitfield_Pos, bitfield_pos)
-DEFINE_ADD_ARGUMENT(bitfield_size, Bitfield_Size, bitfield_size)
-DEFINE_ADD_ARGUMENT(extra, Extra, extra)
-DEFINE_ADD_ARGUMENT(string_argument, String, string_argument)
+DEFINE_ADD_ARGUMENT(base_register,      Base_Register,      base_register)
+DEFINE_ADD_ARGUMENT(jump_address,       Jump_Address,       jump_address)
+DEFINE_ADD_ARGUMENT(branch_address,     Branch_Address,     branch_address)
+DEFINE_ADD_ARGUMENT(memory_offset,      Memory_Offset,      memory_offset)
+DEFINE_ADD_ARGUMENT(immediate<u32>,     Immediate_u32,      immediate_u32)
+DEFINE_ADD_ARGUMENT(immediate<s32>,     Immediate_s32,      immediate_s32)
+DEFINE_ADD_ARGUMENT(immediate<u16>,     Immediate_u16,      immediate_u16)
+DEFINE_ADD_ARGUMENT(immediate<s16>,     Immediate_s16,      immediate_s16)
+DEFINE_ADD_ARGUMENT(immediate<u8>,      Immediate_u8,       immediate_u8)
+DEFINE_ADD_ARGUMENT(immediate<float>,   Immediate_float,    immediate_float)
+DEFINE_ADD_ARGUMENT(condition_code,     Condition_Code,     condition_code)
+DEFINE_ADD_ARGUMENT(bitfield_pos,       Bitfield_Pos,       bitfield_pos)
+DEFINE_ADD_ARGUMENT(bitfield_size,      Bitfield_Size,      bitfield_size)
+DEFINE_ADD_ARGUMENT(extra,              Extra,              extra)
+DEFINE_ADD_ARGUMENT(string_argument,    String,             string_argument)
 
 void add_register_argument(u32 reg, instruction *inst)
 {
     assert(reg < 32);
 
-    add_argument(static_cast<mips_register>(reg), inst);
+    _add_argument(static_cast<mips_register>(reg), inst);
 }
 
 void add_fpu_register_argument(u32 reg, instruction *inst)
 {
     assert(reg < 32);
 
-    add_argument(static_cast<mips_fpu_register>(reg), inst);
+    _add_argument(static_cast<mips_fpu_register>(reg), inst);
 }
 
 void add_vfpu_register_argument(u32 reg, vfpu_size size, instruction *inst)
 {
     assert(reg < 256);
 
-    add_argument(vfpu_register{static_cast<u8>(reg), size}, inst);
+    _add_argument(vfpu_register{static_cast<u8>(reg), size}, inst);
 }
 
 void add_vfpu_matrix_argument(u32 mtx, vfpu_size size, instruction *inst)
 {
     assert(mtx < 128);
 
-    add_argument(vfpu_matrix{static_cast<u8>(mtx), size}, inst);
+    _add_argument(vfpu_matrix{static_cast<u8>(mtx), size}, inst);
 }
 
 void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
@@ -115,13 +115,13 @@ void add_vfpu_register_argument(u32 reg, u32 size, instruction *inst)
 
 void add_jump_address_argument(u32 addr, instruction *inst, instruction_parse_data *pdata)
 {
-    add_argument(jump_address{addr}, inst);
+    _add_argument(jump_address{addr}, inst);
     ::insert_element(pdata->jumps, jump_destination{addr, jump_type::Jump});
 }
 
 void add_branch_address_argument(u32 addr, instruction *inst, instruction_parse_data *pdata)
 {
-    add_argument(branch_address{addr}, inst);
+    _add_argument(branch_address{addr}, inst);
     ::insert_element(pdata->jumps, jump_destination{addr, jump_type::Branch});
 }
 
@@ -153,7 +153,7 @@ void arg_parse_AdduOr(u32 opcode, instruction *inst, const parse_instructions_co
     {
         inst->mnemonic = allegrex_mnemonic::LI;
         add_register_argument(rd, inst);
-        add_argument(immediate<s16>{0}, inst);
+        _add_argument(immediate<s16>{0}, inst);
         return;
     }
     else if (rs == 0)
@@ -201,7 +201,7 @@ void arg_parse_RsRtCode(u32 opcode, instruction *inst, const parse_instructions_
 
     add_register_argument(rs, inst);
     add_register_argument(rt, inst);
-    add_argument(extra{code}, inst);
+    _add_argument(extra{code}, inst);
 };
 
 void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -212,7 +212,7 @@ void arg_parse_RdRtShift(u32 opcode, instruction *inst, const parse_instructions
 
     add_register_argument(rd, inst);
     add_register_argument(rt, inst);
-    add_argument(shift{sa}, inst);
+    _add_argument(shift{sa}, inst);
 };
 
 void arg_parse_VarShift(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -252,15 +252,15 @@ void arg_parse_Syscall(u32 opcode, instruction *inst, const parse_instructions_c
 
     const psp_function *sc = get_psp_function(modulenum, funcnum);
 
-    add_argument(sc, inst);
-    add_argument(extra{code}, inst);
+    _add_argument(sc, inst);
+    _add_argument(extra{code}, inst);
 };
 
 void arg_parse_Sync(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
 {
     u32 stype = bitrange(opcode, 6, 10);
 
-    add_argument(extra{stype}, inst);
+    _add_argument(extra{stype}, inst);
 };
 
 void arg_parse_Rs(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -293,7 +293,7 @@ void arg_parse_Cop0RtRdSel(u32 opcode, instruction *inst, const parse_instructio
     u8 sel = (u8)bitrange(opcode, 0, 2);
 
     add_register_argument(rt, inst);
-    add_argument(coprocessor_register{rd, sel}, inst);
+    _add_argument(coprocessor_register{rd, sel}, inst);
 };
 
 void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -302,7 +302,7 @@ void arg_parse_RsImmediateU(u32 opcode, instruction *inst, const parse_instructi
     u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
-    add_argument(immediate<u16>{imm}, inst);
+    _add_argument(immediate<u16>{imm}, inst);
 };
 
 void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -311,7 +311,7 @@ void arg_parse_RsImmediateS(u32 opcode, instruction *inst, const parse_instructi
     s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_register_argument(rs, inst);
-    add_argument(immediate<s16>{imm}, inst);
+    _add_argument(immediate<s16>{imm}, inst);
 };
 
 void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -320,7 +320,7 @@ void arg_parse_RtImmediateU(u32 opcode, instruction *inst, const parse_instructi
     u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
-    add_argument(immediate<u16>{imm}, inst);
+    _add_argument(immediate<u16>{imm}, inst);
 };
 
 void arg_parse_RsBranchAddress(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -442,7 +442,7 @@ void arg_parse_RtRsSignExtendedImmediateU(u32 opcode, instruction *inst, const p
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(extend16_immu32(imm), inst);
+    _add_argument(extend16_immu32(imm), inst);
 };
 
 void arg_parse_RtRsImmediateU(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -453,7 +453,7 @@ void arg_parse_RtRsImmediateU(u32 opcode, instruction *inst, const parse_instruc
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(immediate<u32>{imm}, inst);
+    _add_argument(immediate<u32>{imm}, inst);
 };
 
 void arg_parse_RtRsImmediateS(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -464,7 +464,7 @@ void arg_parse_RtRsImmediateS(u32 opcode, instruction *inst, const parse_instruc
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(extend16_imms32(imm), inst);
+    _add_argument(extend16_imms32(imm), inst);
 };
 
 void arg_parse_Addi(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -488,7 +488,7 @@ void arg_parse_Addi(u32 opcode, instruction *inst, const parse_instructions_conf
     u32 rt = RT(opcode);
     u32 imm = bitrange(opcode, 0, 15);
     add_register_argument(rt, inst);
-    add_argument(extend16_imms32(imm), inst);
+    _add_argument(extend16_imms32(imm), inst);
 };
 
 void arg_parse_Ori(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -512,7 +512,7 @@ void arg_parse_Ori(u32 opcode, instruction *inst, const parse_instructions_confi
     u32 rt = RT(opcode);
     u32 imm = (u32)bitrange(opcode, 0, 15);
     add_register_argument(rt, inst);
-    add_argument(immediate<u32>{imm}, inst);
+    _add_argument(immediate<u32>{imm}, inst);
 };
 
 void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -522,8 +522,8 @@ void arg_parse_RsRtMemOffset(u32 opcode, instruction *inst, const parse_instruct
     s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_register_argument(rt, inst);
-    add_argument(memory_offset{imm}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(memory_offset{imm}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
 void arg_parse_Cache(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -532,9 +532,9 @@ void arg_parse_Cache(u32 opcode, instruction *inst, const parse_instructions_con
     u32 rs = RS(opcode);
     u32 func = (u32)bitrange(opcode, 16, 20);
 
-    add_argument(immediate<u32>{func}, inst);
-    add_argument(memory_offset{off}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(immediate<u32>{func}, inst);
+    _add_argument(memory_offset{off}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
 void arg_parse_Ext(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -547,8 +547,8 @@ void arg_parse_Ext(u32 opcode, instruction *inst, const parse_instructions_confi
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(bitfield_pos{pos}, inst);
-    add_argument(bitfield_size{sz}, inst);
+    _add_argument(bitfield_pos{pos}, inst);
+    _add_argument(bitfield_size{sz}, inst);
 }
 
 void arg_parse_Ins(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -562,8 +562,8 @@ void arg_parse_Ins(u32 opcode, instruction *inst, const parse_instructions_confi
 
     add_register_argument(rt, inst);
     add_register_argument(rs, inst);
-    add_argument(bitfield_pos{pos}, inst);
-    add_argument(bitfield_size{sz}, inst);
+    _add_argument(bitfield_pos{pos}, inst);
+    _add_argument(bitfield_size{sz}, inst);
 }
 
 void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -574,7 +574,7 @@ void arg_parse_FPUBranchAddress(u32 opcode, instruction *inst, const parse_instr
     u8 cc = (u8)bitrange(opcode, 18, 20);
 
     add_branch_address_argument(off, inst, pdata);
-    add_argument(condition_code{cc}, inst);
+    _add_argument(condition_code{cc}, inst);
 };
 
 void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -584,8 +584,8 @@ void arg_parse_RsFtMemOffset(u32 opcode, instruction *inst, const parse_instruct
     s16 imm = (s16)bitrange(opcode, 0, 15);
 
     add_fpu_register_argument(ft, inst);
-    add_argument(memory_offset{imm}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(memory_offset{imm}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 };
 
 void arg_parse_FPUFdFsFt(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -618,7 +618,7 @@ void arg_parse_FPUCompare(u32 opcode, instruction *inst, const parse_instruction
 
     add_fpu_register_argument(fs, inst);
     add_fpu_register_argument(ft, inst);
-    add_argument(extra{cc}, inst);
+    _add_argument(extra{cc}, inst);
 }
 
 void arg_parse_FPURtFs(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -637,7 +637,7 @@ void arg_parse_VFPU_Cop2(u32 opcode, instruction *inst, const parse_instructions
     u16 unk = (u16)bitrange(opcode, 0u, 15u);
 
     add_register_argument(rt, inst);
-    add_argument(immediate<u16>{unk}, inst);
+    _add_argument(immediate<u16>{unk}, inst);
 }
 
 void arg_parse_VFPU_MFTV(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -694,7 +694,7 @@ void arg_parse_VFPU_Vcrs(u32 opcode, instruction *inst, const parse_instructions
     u32 vt = VT(opcode);
 
     if (sz != vfpu_size::Triple)
-        add_argument(invalid_argument{"vector size not triple"}, inst);
+        _add_argument(invalid_argument{"vector size not triple"}, inst);
     else
     {
         add_vfpu_register_argument(vd, sz, inst);
@@ -710,7 +710,7 @@ void arg_parse_VFPU_Vcmp(u32 opcode, instruction *inst, const parse_instructions
     u32 vt = VT(opcode);
     u32 cond = bitrange(opcode, 0, 3);
 
-    add_argument(static_cast<vfpu_condition>(cond), inst);
+    _add_argument(static_cast<vfpu_condition>(cond), inst);
     add_vfpu_register_argument(vs, sz, inst);
     add_vfpu_register_argument(vt, sz, inst);
 }
@@ -744,7 +744,7 @@ void arg_parse_VFPU_Vd_Vs_Imm5(u32 opcode, instruction *inst, const parse_instru
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, sz, inst);
-    add_argument(immediate<u8>{imm}, inst);
+    _add_argument(immediate<u8>{imm}, inst);
 }
 
 void arg_parse_VFPU_Vd(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -831,7 +831,7 @@ void arg_parse_VFPU_Vwbn(u32 opcode, instruction *inst, const parse_instructions
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, sz, inst);
-    add_argument(immediate<u8>{imm}, inst);
+    _add_argument(immediate<u8>{imm}, inst);
 }
 
 void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -842,7 +842,7 @@ void arg_parse_VFPU_Vcst(u32 opcode, instruction *inst, const parse_instructions
     u32 constant = bitrange(opcode, 16, 20);
 
     add_vfpu_register_argument(vd, sz, inst);
-    add_argument(static_cast<vfpu_constant>(constant), inst);
+    _add_argument(static_cast<vfpu_constant>(constant), inst);
 }
 
 void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -856,13 +856,13 @@ void arg_parse_VFPU_Vcmov(u32 opcode, instruction *inst, const parse_instruction
 
     if (imm > 6)
     {
-        add_argument(invalid_argument{"invalid immediate"}, inst);
+        _add_argument(invalid_argument{"invalid immediate"}, inst);
         return;
     }
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, sz, inst);
-    add_argument(immediate<u8>{imm}, inst);
+    _add_argument(immediate<u8>{imm}, inst);
 }
 
 void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -886,7 +886,7 @@ void arg_parse_VFPU_PrefixST(u32 opcode, instruction *inst, const parse_instruct
         arr.data[i] = static_cast<vfpu_prefix>(pfx);
     }
 
-    add_argument(arr, inst);
+    _add_argument(arr, inst);
 }
 
 void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -903,7 +903,7 @@ void arg_parse_VFPU_PrefixDest(u32 opcode, instruction *inst, const parse_instru
         arr.data[i] = static_cast<vfpu_destination_prefix>(pfx);
     }
 
-    add_argument(arr, inst);
+    _add_argument(arr, inst);
 }
 
 void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -912,10 +912,10 @@ void arg_parse_VFPU_Viim(u32 opcode, instruction *inst, const parse_instructions
     u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
-    add_argument(immediate<u16>{imm}, inst);
+    _add_argument(immediate<u16>{imm}, inst);
 }
 
-float Float16ToFloat32(u16 l)
+static float Float16ToFloat32(u16 l)
 {
     // https://github.com/hrydgard/ppsspp/blob/748eef05d0c64b7aa5be6714fa52fa84a5977f05/Core/MIPS/MIPSVFPUUtils.cpp#L616
     union float2int {
@@ -980,7 +980,7 @@ void arg_parse_VFPU_Vfim(u32 opcode, instruction *inst, const parse_instructions
     u16 imm = (u16)bitrange(opcode, 0, 15);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
-    add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
+    _add_argument(immediate<float>{Float16ToFloat32(imm)}, inst);
 }
 
 void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -990,8 +990,8 @@ void arg_parse_VFPU_LvSv_S(u32 opcode, instruction *inst, const parse_instructio
     s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Single, inst);
-    add_argument(memory_offset{offset}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(memory_offset{offset}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
 void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -1001,11 +1001,11 @@ void arg_parse_VFPU_LvSv_Q(u32 opcode, instruction *inst, const parse_instructio
     s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
-    add_argument(memory_offset{offset}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(memory_offset{offset}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 
     if (bitrange(opcode, 1, 1))
-        add_argument(string_argument{"wb"}, inst); // ??
+        _add_argument(string_argument{"wb"}, inst); // ??
 }
 
 void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -1015,8 +1015,8 @@ void arg_parse_VFPU_LvSv_LRQ(u32 opcode, instruction *inst, const parse_instruct
     s16 offset = (s16)(bitrange(opcode, 2, 15) << 2);
 
     add_vfpu_register_argument(vt, vfpu_size::Quad, inst);
-    add_argument(memory_offset{offset}, inst);
-    add_argument(base_register{static_cast<mips_register>(rs)}, inst);
+    _add_argument(memory_offset{offset}, inst);
+    _add_argument(base_register{static_cast<mips_register>(rs)}, inst);
 }
 
 void arg_parse_VFPU_MVd(u32 opcode, instruction *inst, const parse_instructions_config *conf, instruction_parse_data *pdata)
@@ -1123,5 +1123,5 @@ void arg_parse_VFPU_Vrot(u32 opcode, instruction *inst, const parse_instructions
 
     add_vfpu_register_argument(vd, sz, inst);
     add_vfpu_register_argument(vs, vfpu_size::Single, inst);
-    add_argument(arr, inst);
+    _add_argument(arr, inst);
 }

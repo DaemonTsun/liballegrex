@@ -1,7 +1,7 @@
 
 #include "allegrex/mips_registers.hpp"
 
-const char *register_names[] = {
+static const char *_register_names[] = {
     "zero",     // 0
     "at",       // 1
     "v0", "v1", // 2-3
@@ -16,7 +16,7 @@ const char *register_names[] = {
     "ra"  // 31
 };
 
-const char *fpu_register_names[] = {
+static const char *_fpu_register_names[] = {
     "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
     "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
     "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
@@ -25,11 +25,11 @@ const char *fpu_register_names[] = {
 
 const char *register_name(mips_register reg)
 {
-    return register_names[value(reg)];
+    return _register_names[value(reg)];
 }
 
 const char *register_name(mips_fpu_register reg)
 {
-    return fpu_register_names[value(reg)];
+    return _fpu_register_names[value(reg)];
 }
 

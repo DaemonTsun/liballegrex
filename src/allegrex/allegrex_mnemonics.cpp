@@ -1,7 +1,7 @@
 
 #include "allegrex/allegrex_mnemonics.hpp"
 
-const char *mnemonic_names[] = {
+static const char *_mnemonic_names[] = {
     "nop",
     "sll",
     "srl",
@@ -296,7 +296,7 @@ const char *get_mnemonic_name(allegrex_mnemonic mne)
     if (i >= value(allegrex_mnemonic::_MAX))
         i = value(allegrex_mnemonic::_UNKNOWN);
 
-    return mnemonic_names[i];
+    return _mnemonic_names[i];
 }
 
 bool requires_vfpu_suffix(allegrex_mnemonic mne)

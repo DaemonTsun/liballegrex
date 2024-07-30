@@ -4,7 +4,7 @@
 #include "allegrex/allegrex_vfpu.hpp"
 
 #define MAX_CONTROL_REGISTERS 16
-const char *vfpu_control_register_names[] = {
+static const char *_vfpu_control_register_names[] = {
     "SPFX",
     "TPFX",
     "DPFX",
@@ -23,7 +23,7 @@ const char *vfpu_control_register_names[] = {
     "RCX7", 
 };
 
-const char *vfpu_register_names[4][128] = {
+static const char *_vfpu_register_names[4][128] = {
     { // Single
         "S000", // 0
         "S010", // 1
@@ -555,7 +555,7 @@ const char *register_name(vfpu_register reg)
     if (reg.size == vfpu_size::Single)
     {
         if (reg.num >= 128 && reg.num < 128 + MAX_CONTROL_REGISTERS)
-            return vfpu_control_register_names[reg.num - 128];
+            return _vfpu_control_register_names[reg.num - 128];
         else if (reg.num == 255)
             return "(interlock)";
     }
@@ -565,10 +565,10 @@ const char *register_name(vfpu_register reg)
         return "?";
     }
 
-	return vfpu_register_names[value(reg.size)][reg.num]; 
+	return _vfpu_register_names[value(reg.size)][reg.num]; 
 }
 
-const char *vfpu_matrix_names[3][128] = {
+static const char *_vfpu_matrix_names[3][128] = {
     { // Pair
         "M000", // 0
         "M010", // 1
@@ -970,14 +970,14 @@ const char *matrix_name(vfpu_matrix mat)
         return "?";
     }
 
-	return vfpu_matrix_names[value(mat.size)-1][mat.num]; 
+	return _vfpu_matrix_names[value(mat.size)-1][mat.num]; 
 }
 
-const char *vfpu_size_names[] = {".s", ".p", ".t", ".q", "%"};
+static const char *_vfpu_size_names[] = {".s", ".p", ".t", ".q", "%"};
 
 const char *size_suffix(vfpu_size sz)
 {
-    return vfpu_size_names[value(sz)];
+    return _vfpu_size_names[value(sz)];
 }
 
 const char *size_suffix(u32 opcode)
@@ -985,13 +985,17 @@ const char *size_suffix(u32 opcode)
     return size_suffix(get_vfpu_size(opcode));
 }
 
-const char *vfpu_condition_names[] = {"FL","EQ","LT","LE","TR","NE","GE","GT","EZ","EN","EI","ES","NZ","NN","NI","NS"};
+static const char *_vfpu_condition_names[] = {
+    "FL","EQ","LT","LE","TR","NE","GE","GT",
+    "EZ","EN","EI","ES","NZ","NN","NI","NS"
+};
+
 const char *vfpu_condition_name(vfpu_condition cond)
 {
-    return vfpu_condition_names[value(cond)];
+    return _vfpu_condition_names[value(cond)];
 }
 
-const char *vfpu_constant_names[] = {
+static const char *_vfpu_constant_names[] = {
     "(undefined)",
     "MaxFloat",
     "Sqrt(2)",
@@ -1016,10 +1020,10 @@ const char *vfpu_constant_names[] = {
 
 const char *vfpu_constant_name(vfpu_constant constant)
 {
-    return vfpu_constant_names[value(constant)];
+    return _vfpu_constant_names[value(constant)];
 }
 
-const char *vfpu_prefix_names[] = {
+static const char *_vfpu_prefix_names[] = {
     "x",
     "y",
     "z",
@@ -1049,10 +1053,10 @@ const char *vfpu_prefix_names[] = {
 const char *vfpu_prefix_name(vfpu_prefix pfx)
 {
     assert(value(pfx) < value(vfpu_prefix::_MAX));
-    return vfpu_prefix_names[value(pfx)];
+    return _vfpu_prefix_names[value(pfx)];
 }
 
-const char *vfpu_destination_prefix_names[] = {
+static const char *_vfpu_destination_prefix_names[] = {
     "",
     "0:1",
     "X",
@@ -1066,10 +1070,10 @@ const char *vfpu_destination_prefix_names[] = {
 const char *vfpu_destination_prefix_name(vfpu_destination_prefix pfx)
 {
     assert(value(pfx) < value(vfpu_destination_prefix::_MAX));
-    return vfpu_destination_prefix_names[value(pfx)];
+    return _vfpu_destination_prefix_names[value(pfx)];
 }
 
-const char *vfpu_rotation_names[] = {
+static const char *_vfpu_rotation_names[] = {
     "0",
     "c",
     "s",
@@ -1080,5 +1084,5 @@ const char *vfpu_rotation_name(vfpu_rotation rot)
 {
     assert(value(rot) < value(vfpu_rotation::_MAX));
 
-    return vfpu_rotation_names[value(rot)];
+    return _vfpu_rotation_names[value(rot)];
 }
