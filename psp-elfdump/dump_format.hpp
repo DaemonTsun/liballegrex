@@ -33,8 +33,10 @@ enum class format_type
 struct dump_section
 {
     elf_section *section;
-    instruction_parse_data *instruction_data;
-    u32 first_instruction_offset;
+    u32 first_instruction_offset; // within elf
+    instruction *instructions;
+    s32 instruction_count;
+    s32 instruction_start_index;
 };
 
 // we don't just add a pointer to a elf_psp_module here because we don't
@@ -50,7 +52,8 @@ struct dump_config
     array<module_export> *exported_modules;
 
     // relocations;
-    jump_destinations *jumps;
+    jump_destination *jumps;
+    s32 jump_count;
     array<dump_section> dump_sections;
 
     prx_sce_module_info *module_info;

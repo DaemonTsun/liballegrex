@@ -14,18 +14,14 @@
     parse_instructions_config conf;\
     conf.vaddr = 0;\
     conf.log = nullptr;\
-    conf.emit_pseudo = false;\
-    instruction_parse_data instruction_data;\
-    jump_destinations jumps{};\
-    defer { free(&jumps); };\
-    instruction_data.jumps = &jumps;
+    conf.emit_pseudo = false;
 
 #define emit_pseudoinstructions()\
     conf.emit_pseudo = true;
     
 #define parse_opcode(OPCODE) \
     inst.opcode = OPCODE;\
-    parse_instruction(OPCODE, &inst, &conf, &instruction_data);
+    parse_instruction(OPCODE, &inst, nullptr, &conf);
     
 #define assert_mnemonic(MNEM) \
     assert_equal(inst.mnemonic, allegrex_mnemonic::MNEM);

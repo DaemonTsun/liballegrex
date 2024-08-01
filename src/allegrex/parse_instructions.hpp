@@ -30,8 +30,6 @@ struct jump_destination
     jump_type type;
 };
 
-typedef set<jump_destination> jump_destinations;
-
 template<>
 constexpr int compare_ascending_p(const jump_destination *l, const jump_destination *r)
 {
@@ -50,17 +48,26 @@ constexpr int compare_ascending_p(const jump_destination *l, const jump_destinat
     return 1;
 }
 
-struct instruction_parse_data
+template<>
+constexpr int compare_ascending_p(const u32 *l, const jump_destination *r)
 {
-    u32 vaddr; // start address, may not be set when parsing ranges
-    u32 section_index; // may not be set when parsing ranges
-    array<instruction> instructions;
-    jump_destinations *jumps;
-};
+    return compare_ascending_p(l, &r->address);
+}
 
-void init(instruction_parse_data *data);
-void free(instruction_parse_data *data);
+template<>
+constexpr int compare_ascending_p(const jump_destination *l, const u32 *r)
+{
+    return compare_ascending_p(&l->address, r);
+}
 
-void parse_instruction(u32 opcode, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata);
-// data in BYTES
-void parse_instructions(const char *instruction_data, u64 size, const parse_instructions_config *conf, instruction_parse_data *pdata);
+/* Parses a single instruction.
+If the instruction is a jump or a branch, optionally adds the jump to out_jumps if out_jumps
+is not nullptr.
+*/
+void parse_instruction(u32 opcode, instruction *out, set<jump_destination> *out_jumps, const parse_instructions_config *conf);
+
+/* Parses as many instructions as there are in input.
+size in bytes, not number of instructions.
+Appends all instructions to the end of out_instructions.
+*/
+void parse_instructions(const char *input, u64 size, array<instruction> *out_instructions, set<jump_destination> *out_jumps, const parse_instructions_config *conf);

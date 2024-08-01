@@ -8,27 +8,29 @@ void init(psp_disassembly *disasm)
     assert(disasm != nullptr);
 
     init(&disasm->psp_module);
-    ::init(&disasm->instruction_datas);
-    ::init(&disasm->jumps);
+    ::init(&disasm->all_instructions);
+    ::init(&disasm->all_jumps);
+    ::init(&disasm->disassembly_sections);
 }
 
 void free(psp_disassembly *disasm)
 {
     assert(disasm != nullptr);
 
-    ::free(&disasm->jumps);
-    ::free<true>(&disasm->instruction_datas);
+    ::init(&disasm->disassembly_sections);
+    ::init(&disasm->all_jumps);
+    ::init(&disasm->all_instructions);
     free(&disasm->psp_module);
 }
 
-static void _add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
+static void _add_symbols_to_jumps(set<jump_destination> *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
         ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
+static void _add_imports_to_jumps(set<jump_destination> *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
@@ -37,7 +39,7 @@ static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import>
     }
 }
 
-static void _add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
+static void _add_exports_to_jumps(set<jump_destination> *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
@@ -78,10 +80,10 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
     assert(in != nullptr);
     assert(out != nullptr);
 
-    file_stream log;
+    file_stream log{};
     log.handle = stdout_handle();
 
-    psp_parse_elf_config elfconf;
+    psp_parse_elf_config elfconf{};
     elfconf.section = ""_cs;
     elfconf.vaddr = INFER_VADDR;
     elfconf.verbose = false;
@@ -90,7 +92,9 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
     if (!parse_psp_module_from_elf(in, &out->psp_module, &elfconf, err))
         return false;
 
-    ::resize(&out->instruction_datas, out->psp_module.sections.size);
+    ::resize(&out->disassembly_sections, out->psp_module.sections.size);
+    ::init(&out->all_instructions);
+    ::init(&out->all_jumps);
     
     for_array(i, sec, &out->psp_module.sections)
     {
@@ -100,18 +104,51 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
         pconf.verbose = false;
         pconf.emit_pseudo = true;
 
-        instruction_parse_data *instruction_data = out->instruction_datas.data + i;
-        init(instruction_data);
-        instruction_data->jumps = &out->jumps;
-        instruction_data->section_index = (u32)i;
+        psp_disassembly_section *dsec = out->disassembly_sections.data + i;
+        fill_memory(dsec, 0);
+        dsec->section = sec;
+        dsec->instruction_start_index = (s32)out->all_instructions.size;
 
         if (sec->content_size > 0)
-            parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
+            parse_instructions(sec->content, sec->content_size, &out->all_instructions, &out->all_jumps, &pconf);
+
+        assert((s32)out->all_instructions.size >= dsec->instruction_start_index);
+        dsec->instruction_count = (s32)out->all_instructions.size - dsec->instruction_start_index;
     }
 
-    _add_symbols_to_jumps(&out->jumps, &out->psp_module.symbols);
-    _add_imports_to_jumps(&out->jumps, &out->psp_module.imported_modules);
-    _add_exports_to_jumps(&out->jumps, &out->psp_module.exported_modules);
+    _add_symbols_to_jumps(&out->all_jumps, &out->psp_module.symbols);
+    _add_imports_to_jumps(&out->all_jumps, &out->psp_module.imported_modules);
+    _add_exports_to_jumps(&out->all_jumps, &out->psp_module.exported_modules);
+
+    // set instructions and jumps for sections
+    for_array(dsec, &out->disassembly_sections)
+    {
+        if (dsec->instruction_count == 0)
+            continue;
+
+        dsec->instructions = out->all_instructions.data + dsec->instruction_start_index;
+        assert(dsec->section->vaddr == dsec->instructions->address);
+
+        u32 last_vaddr = (dsec->instructions + dsec->instruction_count - 1)->address;
+        auto search_result = ::nearest_index_of(&out->all_jumps, dsec->section->vaddr, compare_ascending_p);
+        s64 first_jump_idx = search_result.index;
+
+        if (first_jump_idx < 0)
+            first_jump_idx = 0;
+
+        s64 i = first_jump_idx;
+
+        while (i < out->all_jumps.size)
+        {
+            if (out->all_jumps[i].address > last_vaddr)
+                break;
+
+            i += 1;
+        }
+
+        dsec->jumps = out->all_jumps.data + first_jump_idx;
+        dsec->jump_count = i - first_jump_idx;
+    }
 
     return true;
 }

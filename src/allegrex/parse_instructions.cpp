@@ -1,8 +1,7 @@
 
-#include <assert.h>
-#include <string.h>
-
 #include "shl/array.hpp"
+#include "shl/assert.hpp"
+#include "shl/memory.hpp"
 #include "shl/fixed_array.hpp"
 
 #include "allegrex/parse_instruction_arguments.hpp"
@@ -22,9 +21,9 @@ struct category
     u32 mask;
 
     const instruction_info *instructions;
-    size_t instruction_count;
+    u64 instruction_count;
     const category * const *sub_categories;
-    size_t sub_category_count;
+    u64 sub_category_count;
 };
 
 // instructions
@@ -785,21 +784,22 @@ constexpr category AllInstructions{
     CATEGORY_SUB_CATEGORIES(AllInstructions)
 };
 
-void populate_instruction(instruction *instr, const instruction_info *info, const parse_instructions_config *conf, instruction_parse_data *pdata)
+static void _populate_instruction(instruction *instr, const instruction_info *info, const parse_instructions_config *conf)
 {
     instr->mnemonic = info->mnemonic;
     
     if (info->argument_parse_function != nullptr)
-        info->argument_parse_function(instr->opcode, instr, conf, pdata);
+        info->argument_parse_function(instr->opcode, instr, conf);
+
 }
 
-bool try_parse_category_instruction(u32 opcode, const category *cat, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata)
+static bool _try_parse_category_instruction(u32 opcode, const category *cat, instruction *out, const parse_instructions_config *conf)
 {
     if (cat == nullptr)
         return false;
 
     for (u64 i = 0; i < cat->sub_category_count; ++i)
-        if (try_parse_category_instruction(opcode, cat->sub_categories[i], out, conf, pdata))
+        if (_try_parse_category_instruction(opcode, cat->sub_categories[i], out, conf))
             return true;
 
     u32 mop = opcode & cat->mask;
@@ -813,7 +813,7 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
 
         if (mop == instr.opcode)
         {
-            populate_instruction(out, &instr, conf, pdata);
+            _populate_instruction(out, &instr, conf);
             return true;
         }
     }
@@ -821,51 +821,49 @@ bool try_parse_category_instruction(u32 opcode, const category *cat, instruction
     return false;
 }
 
-void init(instruction_parse_data *data)
-{
-    assert(data != nullptr);
-
-    data->vaddr = 0;
-    data->section_index = 0;
-    ::init(&data->instructions);
-    data->jumps = nullptr;
-}
-
-void free(instruction_parse_data *data)
-{
-    assert(data != nullptr);
-    ::free(&data->instructions);
-}
-
-void parse_instruction(u32 opcode, instruction *out, const parse_instructions_config *conf, instruction_parse_data *pdata)
+void parse_instruction(u32 opcode, instruction *out, set<jump_destination> *out_jumps, const parse_instructions_config *conf)
 {
     bool found;
 
-    found = try_parse_category_instruction(opcode, &AllInstructions, out, conf, pdata);
+    found = _try_parse_category_instruction(opcode, &AllInstructions, out, conf);
 
     if (!found)
+    {
         out->mnemonic = allegrex_mnemonic::_UNKNOWN;
+        return;
+    }
+
+    if (out_jumps != nullptr)
+    {
+        // add jumps / branches
+        assert(out->argument_count <= MAX_ARGUMENT_COUNT);
+        for (u32 i = 0; i < out->argument_count; ++i)
+        {
+            if (out->argument_types[i] == argument_type::Jump_Address)
+                ::insert_element(out_jumps, jump_destination{out->arguments[i].jump_address.data, jump_type::Jump});
+            else if (out->argument_types[i] == argument_type::Branch_Address)
+                ::insert_element(out_jumps, jump_destination{out->arguments[i].branch_address.data, jump_type::Branch});
+        }
+    }
 }
 
-void parse_instructions(const char *instructions_data, u64 size, const parse_instructions_config *conf, instruction_parse_data *out)
+void parse_instructions(const char *input, u64 size, array<instruction> *out_instructions, set<jump_destination> *out_jumps, const parse_instructions_config *conf)
 {
     assert(size % sizeof(u32) == 0);
     assert(size <= max_value(u32));
 
-    out->vaddr = conf->vaddr;
-
     u32 instruction_count = (u32)(size / sizeof(u32));
-    ::resize(&out->instructions, instruction_count);
-    memset(out->instructions.data, 0, instruction_count * sizeof(instruction));
+    ::reserve(out_instructions, out_instructions->size + instruction_count);
 
-    u32 *in_data = (u32*)(instructions_data);
+    u32 *in_data = (u32*)(input);
 
     for (u32 addr = 0x00000000, i = 0; addr < size; addr += sizeof(u32), ++i)
     {
-        instruction *out_inst = out->instructions.data + i;
+        instruction *out_inst = ::add_at_end(out_instructions);
+        *out_inst = {};
         out_inst->opcode = in_data[i];
         out_inst->address = conf->vaddr + addr;
 
-        parse_instruction(out_inst->opcode, out_inst, conf, out);
+        parse_instruction(out_inst->opcode, out_inst, out_jumps, conf);
     }
 }

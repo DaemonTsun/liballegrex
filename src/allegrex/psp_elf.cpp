@@ -1,8 +1,9 @@
 
-#include <assert.h>
 #include <string.h>
 
 #include "shl/compare.hpp"
+#include "shl/assert.hpp"
+#include "shl/sort.hpp"
 #include "shl/streams.hpp"
 #include "shl/fixed_array.hpp"
 #include "shl/error.hpp"
@@ -16,151 +17,7 @@
 #include "allegrex/psp_prx.hpp"
 #include "allegrex/prx_decrypt.hpp"
 #include "allegrex/psp_elf.hpp"
-
-
-#if Windows
-#define EI_NIDENT 16
-
-typedef u32 Elf32_Addr;
-typedef u32 Elf32_Off;
-typedef u16 Elf32_Section;
-typedef u16 Elf32_Versym;
-typedef  u8 Elf_Byte;
-typedef u16 Elf32_Half;
-typedef s32 Elf32_Sword;
-typedef u32 Elf32_Word;
-typedef s64 Elf32_Sxword;
-typedef u64 Elf32_Xword;
-
-typedef struct
-{
-    u8  e_ident[EI_NIDENT];
-    u16 e_type;
-    u16 e_machine;
-    u32 e_version;
-    Elf32_Addr e_entry;
-    Elf32_Off  e_phoff;
-    Elf32_Off  e_shoff;
-    u32 e_flags;
-    u16 e_ehsize;
-    u16 e_phentsize;
-    u16 e_phnum;
-    u16 e_shentsize;
-    u16 e_shnum;
-    u16 e_shstrndx;
-} Elf32_Ehdr;
-
-typedef struct
-{
-    u32 p_type;
-    Elf32_Off  p_offset;
-    Elf32_Addr p_vaddr;
-    Elf32_Addr p_paddr;
-    u32 p_filesz;
-    u32 p_memsz;
-    u32 p_flags;
-    u32 p_align;
-} Elf32_Phdr;
-
-typedef struct
-{
-    u32 sh_name;
-    u32 sh_type;
-    u32 sh_flags;
-    Elf32_Addr sh_addr;
-    Elf32_Off  sh_offset;
-    u32 sh_size;
-    u32 sh_link;
-    u32 sh_info;
-    u32 sh_addralign;
-    u32 sh_entsize;
-} Elf32_Shdr;
-
-typedef struct
-{
-    u32 st_name;
-    Elf32_Addr    st_value;
-    u32 st_size;
-    u8  st_info;
-    u8  st_other;
-    u16 st_shndx;
-} Elf32_Sym;
-
-typedef struct {
-    Elf32_Addr r_offset;
-    u32   r_info;
-} Elf32_Rel;
-
-#define ELF32_R_SYM(x) ((x) >> 8)
-#define ELF32_R_TYPE(x) ((x) & 0xff)
-
-#define SHT_NULL     0
-#define SHT_PROGBITS 1
-#define SHT_SYMTAB   2
-#define SHT_STRTAB   3
-#define SHT_RELA     4
-#define SHT_HASH     5
-#define SHT_DYNAMIC  6
-#define SHT_NOTE     7
-#define SHT_NOBITS   8
-#define SHT_REL      9
-#define SHT_SHLIB    10
-#define SHT_DYNSYM   11
-#define SHT_NUM      12
-#define SHT_LOPROC   0x70000000
-#define SHT_HIPROC   0x7fffffff
-#define SHT_LOUSER   0x80000000
-#define SHT_HIUSER   0xffffffff
-
-#define EI_MAG0    0
-#define EI_MAG1    1
-#define EI_MAG2    2
-#define EI_MAG3    3
-#define EI_CLASS   4
-#define EI_DATA    5
-#define EI_VERSION 6
-#define EI_OSABI   7
-#define EI_PAD     8
-
-#define ELFCLASSNONE 0
-#define ELFCLASS32   1
-#define ELFCLASS64   2
-#define ELFCLASSNUM  3
-
-#define ELFDATANONE 0
-#define ELFDATA2LSB 1
-#define ELFDATA2MSB 2
-
-#define EV_NONE     0
-#define EV_CURRENT  1
-#define EV_NUM      2
-
-#define SHF_WRITE          0x1
-#define SHF_ALLOC          0x2
-#define SHF_EXECINSTR      0x4
-#define SHF_RELA_LIVEPATCH 0x00100000
-#define SHF_RO_AFTER_INIT  0x00200000
-#define SHF_MASKPROC       0xf0000000
-
-#define SHN_UNDEF     0
-#define SHN_LORESERVE 0xff00
-#define SHN_LOPROC    0xff00
-#define SHN_HIPROC    0xff1f
-#define SHN_LIVEPATCH 0xff20
-#define SHN_ABS       0xfff1
-#define SHN_COMMON    0xfff2
-#define SHN_HIRESERVE 0xffff
-
-#define EM_MIPS		8	
-#else
-#include <elf.h>
-#endif
-
-/*
-#define R_MIPS_26    4
-#define R_MIPS_HI16  5
-#define R_MIPS_LO16  6
-*/
+#include "allegrex/elf.hpp"
 
 constexpr fixed_array syslib_functions
 {
@@ -180,7 +37,7 @@ constexpr fixed_array syslib_variables
     psp_variable{ 0x11b97506, "module_sdk_version" }
 };
 
-const psp_function *_get_syslib_function(u32 nid)
+static const psp_function *_get_syslib_function(u32 nid)
 {
     for_array(fn, &syslib_functions)
         if (fn->nid == nid)
@@ -189,7 +46,7 @@ const psp_function *_get_syslib_function(u32 nid)
     return nullptr;
 }
 
-const psp_variable *_get_syslib_variable(u32 nid)
+static const psp_variable *_get_syslib_variable(u32 nid)
 {
     for_array(vr, &syslib_variables)
         if (vr->nid == nid)
@@ -202,7 +59,7 @@ const psp_variable *_get_syslib_variable(u32 nid)
     { if (CONF != nullptr && CONF->verbose && CONF->log != nullptr) { tprint(CONF->log->handle, __VA_ARGS__); }};
 
 template<typename T>
-void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
+static void read_section(memory_stream *in, const Elf32_Ehdr *ehdr, int index, T *out)
 {
     read_at(in, out, ehdr->e_shoff + (index) * ehdr->e_shentsize);
 }
@@ -221,7 +78,7 @@ struct elf_read_ctx
 
 #define file_offset_from_vaddr(ctx, vaddr) ((vaddr - ctx->min_vaddr) + ctx->min_offset)
 
-void _add_section_to_symbols(elf_read_ctx *ctx, int section_index, hash_table<u32, elf_symbol> *symbols)
+static void _add_section_to_symbols(elf_read_ctx *ctx, int section_index, hash_table<u32, elf_symbol> *symbols)
 {
     // there's a good chance symbols don't exist, but we add them anyway
     for (int i = 0; i < ctx->elf_header->e_shnum; i++)
@@ -269,7 +126,7 @@ void _add_section_to_symbols(elf_read_ctx *ctx, int section_index, hash_table<u3
 // TODO: actually add relocation information
 // currently only logs relocations
 // do games have relocations...?
-void _add_relocations(elf_read_ctx *ctx, array<elf_relocation> *out)
+static void _add_relocations(elf_read_ctx *ctx, array<elf_relocation> *out)
 {
     for (int i = 0; i < ctx->elf_header->e_shnum; ++i)
     {
@@ -303,7 +160,7 @@ void _add_relocations(elf_read_ctx *ctx, array<elf_relocation> *out)
     }
 }
 
-bool _get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr *out)
+static bool _get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr *out)
 {
     if (out == nullptr)
         return false;
@@ -321,7 +178,7 @@ bool _get_section_header_by_name(elf_read_ctx *ctx, const char *name, Elf32_Shdr
     return false;
 }
 
-void _read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_info *out)
+static void _read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_info *out)
 {
     assert(out != nullptr);
 
@@ -348,7 +205,7 @@ void _read_prx_sce_module_info_section_header(elf_read_ctx *ctx, prx_sce_module_
     log(ctx->conf, "\n");
 }
 
-void _add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
+static void _add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->export_offset_end - mod_info->export_offset_start;
     assert((sz % sizeof(prx_module_export)) == 0);
@@ -431,7 +288,7 @@ void _add_prx_exports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, el
     log(ctx->conf, "\n");
 }
 
-void _add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
+static void _add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, elf_psp_module *out)
 {
     u32 sz = mod_info->import_offset_end - mod_info->import_offset_start;
     assert((sz % sizeof(prx_module_import)) == 0);
@@ -486,7 +343,7 @@ void _add_prx_imports(elf_read_ctx *ctx, const prx_sce_module_info *mod_info, el
     }
 }
 
-void _add_prx_imports_and_exports(elf_read_ctx *ctx, elf_psp_module *out)
+static void _add_prx_imports_and_exports(elf_read_ctx *ctx, elf_psp_module *out)
 {
     prx_sce_module_info *mod_info = &out->module_info;
     _read_prx_sce_module_info_section_header(ctx, mod_info);
@@ -495,7 +352,7 @@ void _add_prx_imports_and_exports(elf_read_ctx *ctx, elf_psp_module *out)
     _add_prx_imports(ctx, mod_info, out);
 }
 
-void _get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
+static void _get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *elf_header, elf_read_ctx *out)
 {
     out->min_vaddr = 0xFFFFFFFF;
     out->max_vaddr = 0;
@@ -530,7 +387,7 @@ void _get_elf_min_max_offsets_and_vaddrs(memory_stream *in, const Elf32_Ehdr *el
 }
 
 // returns the pointer to the start of the string table in the memory stream
-const char *_get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
+static const char *_get_string_table(memory_stream *in, const Elf32_Ehdr *elf_header)
 {
     Elf32_Shdr string_table_header;
     read_section(in, elf_header, elf_header->e_shstrndx, &string_table_header);
@@ -582,7 +439,7 @@ void free(elf_psp_module *mod)
     ::free(&mod->imports);
 }
 
-bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
+static bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, error *err)
 {
     memory_stream in{};
     in.data = out->elf_data;
@@ -702,6 +559,15 @@ bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, error *err
         esec->content_size = section_header.sh_size;
         esec->content_offset = section_header.sh_offset;
     }
+
+    compare_function_p<elf_section> compare_elf_sections =
+        [](const elf_section *l, const elf_section *r)
+        {
+            return compare_ascending(l->vaddr, r->vaddr);
+        };
+
+    // make sure sections are sorted by vaddr
+    ::sort(out->sections.data, out->sections.size, compare_elf_sections);
 
     _add_prx_imports_and_exports(&ctx, out);
 
@@ -827,7 +693,7 @@ s64 decrypt_elf(memory_stream *in, array<u8> *out, error *err)
         return -1;
     }
 
-    char magic[4];
+    char magic[4] = {};
     read(in, magic, 4);
 
     if (strncmp(magic, "\x7f" "ELF", 4))
@@ -841,7 +707,7 @@ s64 decrypt_elf(memory_stream *in, array<u8> *out, error *err)
         }
 
         // ok its encrypted, attempt decrypt
-        PSP_Header phead;
+        PSP_Header phead{};
         read_at(in, &phead, 0);
 
         u64 nsize = Max(phead.elf_size, phead.psp_size);

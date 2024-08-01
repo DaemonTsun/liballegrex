@@ -4,33 +4,8 @@
 #include "allegrex/psp_elf.hpp"
 #include "allegrex/parse_instructions.hpp"
 
-/* TODO:
-current disasm:
-    psp_disassembly
-      - psp_module
-          - raw data
-          - prx module info
-          - symbols
-              - address and name
-          - function imports
-              - address and function info
-          - module imports
-              - name
-              - array of function imports
-          - module exports
-              - name
-              - array of function imports
-          - relocations
-          - sections
-              - name
-              - offset in elf
-              - size
-              - vaddr
-      - instruction_datas
-          - arrays of instructions by section
-      - jumps, grouped by nothing
-
-proposed disasm:
+/*
+DISASSEMBLY STRUCTURE:
     psp_disassembly
       - psp_module
           - raw data
@@ -60,23 +35,34 @@ proposed disasm:
     
  */
 
+struct psp_disassembly_section
+{
+    elf_section *section;
+    instruction *instructions;
+    s32 instruction_start_index; // index into all_instructions array
+    s32 instruction_count;
+    jump_destination *jumps; // jumps that target _inside the section_
+    s32 jump_count;
+};
+
 struct psp_disassembly
 {
-    // contains info about the psp module inside the parsed file,
-    // e.g. name, type, and holds the information about the
-    // sections, imported / exported modules, and symbols.
-    // also stores all the data (binary sections, strings, ...).
+    /* contains info about the psp module inside the parsed file,
+       e.g. name, type, and holds the information about the
+       sections, imported / exported modules, and symbols.
+       also stores all the data (binary sections, strings, ...). */
     elf_psp_module psp_module;
 
-    // holds the information about all parsed instructions, split by
-    // section. each instruction_parse_data holds a section_index
-    // member indicating which section they belong to.
-    array<instruction_parse_data> instruction_datas;
+    /* Array of all instructions in the disassembly, sorted by ascending address. */
+    array<instruction> all_instructions;
 
-    // an array of all jump destinations (e.g. section starts,
-    // functions, branches, etc.) in the disassembled binary, storing
-    // addresses and types, sorted by ascending address.
-    jump_destinations jumps;
+    /* Set of all jump destinations (e.g. section starts,
+       functions, branches, etc.) in the disassembled binary, storing
+       addresses and jump types, sorted by ascending address. */
+    set<jump_destination> all_jumps;
+
+    /* Sections with additional information */ 
+    array<psp_disassembly_section> disassembly_sections;
 };
 
 void init(psp_disassembly *disasm);

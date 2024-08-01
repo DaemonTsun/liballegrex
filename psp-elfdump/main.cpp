@@ -107,7 +107,7 @@ static bool _get_file_stream_or_stdout(const_string file, file_stream *out, erro
 {
     if (is_blank(file))
         out->handle = stdout_handle();
-    else if (!init(out, file.c_str, OPEN_MODE_WRITE_TRUNC, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
+    else if (!init(out, file.c_str, open_mode::WriteTrunc, err))
         return false;
 
     return true;
@@ -150,14 +150,14 @@ static bool _parse_range(disasm_range *r, const char *arg, error *err)
     return true;
 }
 
-static void _add_symbols_to_jumps(jump_destinations *jumps, hash_table<u32, elf_symbol> *syms)
+static void _add_symbols_to_jumps(set<jump_destination> *jumps, hash_table<u32, elf_symbol> *syms)
 {
     // this adds symbols as jumps so they appear in the disassembly
     for_hash_table(k, _, syms)
         ::insert_element(jumps, jump_destination{*k, jump_type::Jump});
 }
 
-static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import> *mods)
+static void _add_imports_to_jumps(set<jump_destination> *jumps, array<module_import> *mods)
 {
     for_array(mod, mods)
     {
@@ -166,7 +166,7 @@ static void _add_imports_to_jumps(jump_destinations *jumps, array<module_import>
     }
 }
 
-static void _add_exports_to_jumps(jump_destinations *jumps, array<module_export> *mods)
+static void _add_exports_to_jumps(set<jump_destination> *jumps, array<module_export> *mods)
 {
     for_array(mod, mods)
     {
@@ -207,14 +207,13 @@ static bool _disassemble_elf(file_stream *in, file_stream *log, const arguments 
     if (!parse_psp_module_from_elf(&elf_data, &pspmodule, &rconf, err))
         return false;
 
-    jump_destinations jumps{};
+    set<jump_destination> jumps{};
     defer { ::free(&jumps); };
 
-    array<instruction_parse_data> instruction_datas;
-    ::init(&instruction_datas, pspmodule.sections.size);
-    defer { ::free<true>(&instruction_datas); };
+    array<instruction> instructions{};
+    defer { ::free(&instructions); };
 
-    dump_config dconf;
+    dump_config dconf{};
     init(&dconf);
     defer { ::free(&dconf); };
 
@@ -235,23 +234,28 @@ static bool _disassemble_elf(file_stream *in, file_stream *log, const arguments 
         pconf.verbose = args->verbose;
         pconf.emit_pseudo = is_flag_set(args->output_format, mips_format_options::pseudoinstructions);
 
-        instruction_parse_data *instruction_data = instruction_datas.data + i;
-        init(instruction_data);
-        instruction_data->jumps = &jumps;
-        instruction_data->section_index = (u32)i;
-
-        if (sec->content_size > 0)
-            parse_instructions(sec->content, sec->content_size, &pconf, instruction_data);
-
         dump_section *dumpsec = dconf.dump_sections.data + i;
         dumpsec->section = sec;
-        dumpsec->instruction_data = instruction_data;
         dumpsec->first_instruction_offset = sec->content_offset;
+        dumpsec->instruction_start_index = (s32)instructions.size;
+
+        if (sec->content_size > 0)
+            parse_instructions(sec->content, sec->content_size, &instructions, &jumps, &pconf);
+
+        dumpsec->instruction_count = (s32)instructions.size - dumpsec->instruction_start_index;
     }
 
     _add_symbols_to_jumps(&jumps, &pspmodule.symbols);
     _add_imports_to_jumps(&jumps, &pspmodule.imported_modules);
     _add_exports_to_jumps(&jumps, &pspmodule.exported_modules);
+
+    for_array(dumpsec, &dconf.dump_sections)
+    {
+        if (dumpsec->instruction_count == 0)
+            continue;
+
+        dumpsec->instructions = instructions.data + dumpsec->instruction_start_index;
+    }
 
     file_stream out{};
 
@@ -260,7 +264,8 @@ static bool _disassemble_elf(file_stream *in, file_stream *log, const arguments 
 
     defer { if (out.handle != stdout_handle()) free(&out); };
 
-    dconf.jumps = &jumps;
+    dconf.jumps = jumps.data;
+    dconf.jump_count = (s32)jumps.size;
 
     _format_dump(args->output_type, &dconf, &out);
 
@@ -282,7 +287,7 @@ static bool _dump_decrypted_elf(file_stream *in, file_stream *log, const argumen
     
     file_stream out{};
 
-    if (!init(&out, args->decrypted_elf_output.c_str, OPEN_MODE_WRITE_TRUNC, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
+    if (!init(&out, args->decrypted_elf_output.c_str, open_mode::WriteTrunc, err))
         return false;
 
     defer { free(&out); };
@@ -329,19 +334,17 @@ static bool _disassemble_range(file_stream *in, file_stream *out, file_stream *l
     
     read_at(in, memstr.data, from, sz);
 
-    instruction_parse_data instruction_data;
-    init(&instruction_data);
-    defer { free(&instruction_data); };
+    array<instruction> instructions;
+    defer { free(&instructions); };
 
-    jump_destinations jumps{};
+    set<jump_destination> jumps{};
     defer { ::free(&jumps); };
 
-    instruction_data.jumps = &jumps;
-
-    parse_instructions(memstr.data, memstr.size, &pconf, &instruction_data);
+    parse_instructions(memstr.data, memstr.size, &instructions, &jumps, &pconf);
 
     dump_config dconf;
-    dconf.jumps = &jumps;
+    dconf.jumps = jumps.data;
+    dconf.jump_count = (s32)jumps.size;
     dconf.log = log;
     dconf.format = args->output_format;
     dconf.module_info = nullptr;
@@ -350,8 +353,9 @@ static bool _disassemble_range(file_stream *in, file_stream *out, file_stream *l
 
     dump_section *dsec = ::add_at_end(&dconf.dump_sections);
     dsec->section = nullptr;
-    dsec->instruction_data = &instruction_data;
     dsec->first_instruction_offset = from;
+    dsec->instructions = instructions.data;
+    dsec->instruction_count = (s32)instructions.size;
 
     _format_dump(args->output_type, &dconf, out);
 
@@ -392,7 +396,7 @@ static bool _psp_elfdump(arguments *args, error *err)
         log.handle = stdout_handle();
     else
     {
-        if (!init(&log, args->log_file.c_str, OPEN_MODE_WRITE, OPEN_PERMISSION_READ | OPEN_PERMISSION_WRITE, err))
+        if (!init(&log, args->log_file.c_str, open_mode::Write, err))
             return false;
 
         seek_from_end(&log, 0);
@@ -402,7 +406,7 @@ static bool _psp_elfdump(arguments *args, error *err)
 
     file_stream in{};
 
-    if (!init(&in, args->input_file.c_str, OPEN_MODE_READ, OPEN_PERMISSION_READ, err))
+    if (!init(&in, args->input_file.c_str, open_mode::Read, err))
         return false;
 
     defer { free(&in); };

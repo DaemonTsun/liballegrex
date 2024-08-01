@@ -30,10 +30,10 @@ static void _format_name(file_stream *out, const instruction *inst)
 static void _asm_format_section(const dump_config *conf, const dump_section *dsec, file_stream *out)
 {
     assert(dsec != nullptr);
-    assert(dsec->instruction_data != nullptr);
 
     const elf_section *sec = dsec->section;
-    const jump_destinations *jumps = conf->jumps;
+    jump_destination *jumps = conf->jumps;
+    s32 jump_count = conf->jump_count;
 
     // format functions
     auto f_comment_pos_addr_instr = _asm_fmt_comment_pos_addr_instr;
@@ -53,7 +53,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
     if (is_flag_set(conf->format, mips_format_options::comment_pos_addr_instr))
     {
         // prepare format string for comment
-        u32 max_instruction_offset = dsec->first_instruction_offset + (u32)dsec->instruction_data->instructions.size * sizeof(u32);
+        u32 max_instruction_offset = dsec->first_instruction_offset + (u32)dsec->instruction_count * sizeof(u32);
         u32 pos_digits = hex_digits(max_instruction_offset);
 
         to_string(comment_format_string + 5, 2, pos_digits);
@@ -85,32 +85,32 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
         f_branch_label = nullptr;
 
     u32 pos = dsec->first_instruction_offset;
-    u32 jmp_i = 0;
+    s32 jmp_i = 0;
 
     if (!is_flag_set(conf->format, mips_format_options::function_glabels)
      && !is_flag_set(conf->format, mips_format_options::labels))
-        jmp_i = max_value(u32);
+        jmp_i = max_value(s32);
     else
     {
         // skip symbols that come before this section
-        while (jmp_i < array_size(jumps)
-            && jumps->data[jmp_i].address < dsec->instruction_data->vaddr)
+        while (jmp_i < jump_count && jumps[jmp_i].address < dsec->section->vaddr)
             ++jmp_i;
     }
 
     // do the writing
     tprint(out->handle, "\n\n/* Disassembly of section %s */\n", sec->name);
 
-    for_array(inst, &dsec->instruction_data->instructions)
+    for (s32 instr_i = 0; instr_i < dsec->instruction_count; ++instr_i)
     {
-        bool write_label = (jmp_i < array_size(jumps)) && (jumps->data[jmp_i].address <= inst->address);
+        instruction *inst = dsec->instructions + instr_i;
+        bool write_label = (jmp_i < jump_count) && (jumps[jmp_i].address <= inst->address);
 
         if (write_label)
             put(out->handle, "\n");
 
         while (write_label)
         {
-            jump_destination *jmp = jumps->data + jmp_i;
+            jump_destination *jmp = jumps + jmp_i;
 
             if (jmp->type == jump_type::Jump)
             {
@@ -124,7 +124,7 @@ static void _asm_format_section(const dump_config *conf, const dump_section *dse
             }
 
             jmp_i++;
-            write_label = (jmp_i < array_size(jumps)) && (jumps->data[jmp_i].address <= inst->address);
+            write_label = (jmp_i < jump_count) && (jumps[jmp_i].address <= inst->address);
         }
 
         if (f_comment_pos_addr_instr != nullptr)

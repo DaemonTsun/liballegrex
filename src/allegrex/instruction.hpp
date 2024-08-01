@@ -112,8 +112,8 @@ union instruction_argument
 
 struct instruction
 {
+    u32 address; // vaddr
     u32 opcode;
-    u32 address;
     allegrex_mnemonic mnemonic;
 
     u32 argument_count; // at most MAX_ARGUMENT_COUNT;
