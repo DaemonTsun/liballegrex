@@ -17,9 +17,9 @@ void free(psp_disassembly *disasm)
 {
     assert(disasm != nullptr);
 
-    ::init(&disasm->disassembly_sections);
-    ::init(&disasm->all_jumps);
-    ::init(&disasm->all_instructions);
+    ::free(&disasm->disassembly_sections);
+    ::free(&disasm->all_jumps);
+    ::free(&disasm->all_instructions);
     free(&disasm->psp_module);
 }
 
