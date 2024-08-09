@@ -38,11 +38,15 @@ DISASSEMBLY STRUCTURE:
 struct psp_disassembly_section
 {
     elf_section *section;
+    u32 vaddr_end; // last vaddr within section
     instruction *instructions;
     s32 instruction_start_index; // index into all_instructions array
     s32 instruction_count;
     jump_destination *jumps; // jumps that target _inside the section_
     s32 jump_count;
+
+    s32 function_count; // how many of those jumps are beginnings of functions
+    s32 branch_count; // jump_count - function_count
 };
 
 struct psp_disassembly

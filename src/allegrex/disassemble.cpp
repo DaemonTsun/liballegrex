@@ -17,9 +17,9 @@ void free(psp_disassembly *disasm)
 {
     assert(disasm != nullptr);
 
-    ::init(&disasm->disassembly_sections);
-    ::init(&disasm->all_jumps);
-    ::init(&disasm->all_instructions);
+    ::free(&disasm->disassembly_sections);
+    ::free(&disasm->all_jumps);
+    ::free(&disasm->all_instructions);
     free(&disasm->psp_module);
 }
 
@@ -93,6 +93,7 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
         return false;
 
     ::resize(&out->disassembly_sections, out->psp_module.sections.size);
+    ::fill_memory((void*)out->disassembly_sections.data, 0, out->disassembly_sections.size * sizeof(psp_disassembly_section));
     ::init(&out->all_instructions);
     ::init(&out->all_jumps);
     
@@ -107,6 +108,7 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
         psp_disassembly_section *dsec = out->disassembly_sections.data + i;
         fill_memory(dsec, 0);
         dsec->section = sec;
+        dsec->vaddr_end = sec->vaddr;
         dsec->instruction_start_index = (s32)out->all_instructions.size;
 
         if (sec->content_size > 0)
@@ -130,6 +132,7 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
         assert(dsec->section->vaddr == dsec->instructions->address);
 
         u32 last_vaddr = (dsec->instructions + dsec->instruction_count - 1)->address;
+        dsec->vaddr_end = last_vaddr;
         auto search_result = ::nearest_index_of(&out->all_jumps, dsec->section->vaddr, compare_ascending_p);
         s64 first_jump_idx = search_result.index;
 
@@ -147,7 +150,17 @@ bool disassemble_psp_elf(memory_stream *in, psp_disassembly *out, error *err)
         }
 
         dsec->jumps = out->all_jumps.data + first_jump_idx;
-        dsec->jump_count = i - first_jump_idx;
+        dsec->jump_count = (s32)(i - first_jump_idx);
+
+        for (s32 j = 0; j < dsec->jump_count; ++j)
+        {
+            if (out->all_jumps.data[j].type == jump_type::Jump)
+                dsec->function_count += 1;
+            else
+                dsec->branch_count += 1;
+        }
+
+        assert(dsec->function_count + dsec->branch_count == dsec->jump_count);
     }
 
     return true;
