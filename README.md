@@ -15,7 +15,7 @@ int main(int argc, const char *argv[])
     if (argc < 2)
         return -1;
 
-    psp_disassembly disasm;
+    psp_disassembly disasm{};
     init(&disasm);
     
     // disassemble from path given by first command line argument
@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
     printf(" name:       %s\n", module->module_info.name);
     printf(" attributes: %x\n", module->module_info.attribute);
 
-    printf("\n with %lu imports:\n", module->imported_modules.size);
+    printf("\n with %ld imports:\n", module->imported_modules.size);
 
     for_array(import, &module->imported_modules)
     {
@@ -48,7 +48,7 @@ int main(int argc, const char *argv[])
             printf("    variable %#x, nid %#x, %s\n", var_export->address, var_export->variable->nid, var_export->variable->name);
     }
 
-    printf("\n %lu sections:\n", module->sections.size);
+    printf("\n %ld sections:\n", module->sections.size);
 
     for_array(section, &module->sections)
         printf("  section %s at offset %#x, size %#lx, vaddr %#x\n", section->name, section->content_offset, section->content_size, section->vaddr);
@@ -73,14 +73,8 @@ Ideally use CMake, clone the repository or add it to your project as a submodule
 
 ```cmake
 add_subdirectory(path/to/liballegrex)
-target_link_libraries(your-target PRIVATE allegrex-1.0.2)
-target_include_directories(your-target PRIVATE ${allegrex-1.0.2_SOURCES_DIR} path/to/mg/ext/imgui)
-```
-
-OR using [better-cmake](https://github.com/DaemonTsun/better-cmake), add the following to your targets external libs:
-
-```cmake
-LIB allegrex 1.0.2 "path/to/liballegrex" INCLUDE LINK
+target_link_libraries(your-target PRIVATE allegrex-1.0.4)
+target_include_directories(your-target PRIVATE ${allegrex-1.0.4_SOURCES_DIR} path/to/mg/ext/imgui)
 ```
 
 ## psp-elfdump
