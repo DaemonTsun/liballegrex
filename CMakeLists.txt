@@ -18,11 +18,11 @@ add_lib(allegrex STATIC
     CPP_WARNINGS ALL SANE FATAL @GNU -Wno-address
     LIBRARIES kirk
     EXT
-        LIB shl 0.9.4 "${ROOT}/ext/shl" INCLUDE LINK GIT_SUBMODULE
+        LIB shl 0.10.0 "${ROOT}/ext/shl" INCLUDE LINK GIT_SUBMODULE
     TESTS "${ROOT}/tests"
     )
 
-set(shl_SOURCES_DIR "${shl-0.9.4_SOURCES_DIR}")
+set(shl_SOURCES_DIR "${shl-0.10_SOURCES_DIR}")
 
 exit_if_included()
 

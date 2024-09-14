@@ -105,7 +105,7 @@ static void _print_usage()
 
 static bool _get_file_stream_or_stdout(const_string file, file_stream *out, error *err)
 {
-    if (is_blank(file))
+    if (string_is_blank(file))
         out->handle = stdout_handle();
     else if (!init(out, file.c_str, open_mode::WriteTrunc, err))
         return false;
@@ -383,7 +383,7 @@ static bool _disassemble_ranges(file_stream *in, file_stream *log, const argumen
 
 static bool _psp_elfdump(arguments *args, error *err)
 {
-    if (is_blank(args->input_file))
+    if (string_is_blank(args->input_file))
     {
         set_error(err, 1, "expected input file");
         return false;
@@ -392,7 +392,7 @@ static bool _psp_elfdump(arguments *args, error *err)
     // get logfile
     file_stream log{};
 
-    if (is_blank(args->log_file))
+    if (string_is_blank(args->log_file))
         log.handle = stdout_handle();
     else
     {
@@ -411,7 +411,7 @@ static bool _psp_elfdump(arguments *args, error *err)
 
     defer { free(&in); };
 
-    if (!is_blank(args->decrypted_elf_output))
+    if (!string_is_blank(args->decrypted_elf_output))
     {
         if (args->input_file == args->decrypted_elf_output)
         {
@@ -503,7 +503,7 @@ static bool _parse_arguments(int argc, const char **argv, arguments *out, error 
                 return false;
             }
 
-            out->vaddr = to_unsigned_int(argv[i + 1], nullptr, 0);
+            out->vaddr = string_to_u32(argv[i + 1], nullptr, 0);
             i += 2;
             continue;
         }
@@ -584,13 +584,13 @@ static bool _parse_arguments(int argc, const char **argv, arguments *out, error 
         }
 
         // etc
-        if (begins_with(arg, "-"_cs))
+        if (string_begins_with(arg, "-"_cs))
         {
             format_error(err, 1, "unknown argument '%s'", arg.c_str);
             return false;
         }
 
-        if (is_blank(out->input_file))
+        if (string_is_blank(out->input_file))
         {
             out->input_file = arg;
             i += 1;

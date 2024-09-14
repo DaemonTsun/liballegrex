@@ -498,12 +498,12 @@ static bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, err
         read_section(&in, &elf_header, i, &section_header);
         const char *section_name = string_table_ptr + section_header.sh_name;
 
-        if (::is_blank(conf->section))
+        if (::string_is_blank(conf->section))
         {
             if ((section_header.sh_flags & SHF_EXECINSTR) == 0) // ignore non-executable sections
                 continue;
         }
-        else if (compare_strings(conf->section, section_name) != 0)
+        else if (::string_compare(conf->section, section_name) != 0)
             continue;
 
         log(conf, "found executable section %-20s: %08x - %08x\n", section_name, section_header.sh_offset, section_header.sh_size);
@@ -512,7 +512,7 @@ static bool _read_elf(elf_psp_module *out, const psp_parse_elf_config *conf, err
 
     if (section_indices.size == 0)
     {
-        if (::is_blank(conf->section))
+        if (::string_is_blank(conf->section))
         {
             set_error(err, 1, "no executable sections found in input file");
             return false;

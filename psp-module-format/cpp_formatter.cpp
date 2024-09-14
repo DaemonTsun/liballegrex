@@ -94,7 +94,7 @@ static void _load_function_args(_parsed_liballegrex_data *data)
 
         const char *nm = strstr(spc, "\\x") + 2;
 
-        psp_function_arg_t val = static_cast<psp_function_arg_t>(to_unsigned_int(nm, nullptr, 16));
+        psp_function_arg_t val = static_cast<psp_function_arg_t>(string_to_u32(nm, nullptr, 16));
 
         insert_element(&data->function_args, _parsed_function_arg{val, argname});
 
@@ -158,7 +158,7 @@ static void _load_pspdev_headers(_parsed_liballegrex_data *data)
 
 static bool _load_liballegrex_data(_parsed_liballegrex_data *out, error *err)
 {
-    char pth[PATH_MAX] = {};
+    char pth[4096] = {};
 
 #if Windows
     int result = (int)GetModuleFileNameA(0, pth, PATH_MAX - 1);
@@ -182,14 +182,14 @@ static bool _load_liballegrex_data(_parsed_liballegrex_data *out, error *err)
     strcpy(strrchr(pth, '/'), "/../../src/allegrex/internal/");
 #endif
 
-    u64 len = string_length(pth);
+    s64 len = string_length(pth);
     assert((len + 40) < PATH_MAX);
-    strcpy(pth + len, "psp_module_function_argument_defs.hpp");
+    copy_memory("psp_module_function_argument_defs.hpp", pth + len, 38);
 
     if (!read_entire_file(pth, &out->functions_file_content, err))
         return false;
 
-    strcpy(pth + len, "psp_module_function_pspdev_headers.hpp");
+    copy_memory("psp_module_function_pspdev_headers.hpp", pth + len, 38);
 
     if (!read_entire_file(pth, &out->headers_file_content, err))
         return false;
